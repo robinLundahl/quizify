@@ -59,11 +59,23 @@ All checks passed. Now commit:
      `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 3. Create the commit.
 
-## Step 6 — Report
+## Step 6 — Archive completed backlog tickets
+
+After a successful commit, check `backlog/` for open tickets that relate to the shipped changes:
+
+1. Read the titles and descriptions of any `.md` files in `backlog/` (excluding `README.md`)
+2. Compare them against the committed changes (file names, commit message, diff)
+3. If a ticket's work is fully addressed by this commit or prior commits:
+   - Move it to `backlog/archive/` (update **Status** to `Done`, check off completed acceptance criteria, add a brief note about what was done)
+   - Stage and commit the archive move in a separate commit: `Archive TICKET-NNN (<short reason>)`
+4. If no tickets match, skip silently — do not mention it.
+
+## Step 7 — Report
 
 Summarise the result:
 - Which checks ran and passed
 - What was committed (message + files)
+- Any tickets archived
 - Whether there is anything left uncommitted
 
 ## If any check fails
