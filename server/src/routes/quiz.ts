@@ -9,7 +9,15 @@ router.get('/', async (req, res) => {
   const quizzes = await prisma.quiz.findMany({
     where: { ownerId: req.userId! },
     orderBy: { updatedAt: 'desc' },
-    include: { _count: { select: { questions: true } } },
+    include: {
+      _count: { select: { questions: true } },
+      sessions: {
+        where: { status: 'FINISHED' },
+        orderBy: { finishedAt: 'desc' },
+        take: 3,
+        select: { id: true, code: true, finishedAt: true },
+      },
+    },
   })
   res.json(quizzes)
 })

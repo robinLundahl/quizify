@@ -113,7 +113,11 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-18T17-31-18-646Z.yml
 │   ├── page-2026-05-18T17-31-25-369Z.yml
 │   ├── page-2026-05-18T17-31-55-548Z.yml
-│   └── page-2026-05-18T17-32-39-618Z.yml
+│   ├── page-2026-05-18T17-32-39-618Z.yml
+│   ├── page-2026-05-18T17-52-01-805Z.yml
+│   ├── page-2026-05-18T17-52-12-813Z.yml
+│   ├── page-2026-05-18T17-56-50-389Z.yml
+│   └── page-2026-05-18T17-57-02-800Z.yml
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -121,9 +125,10 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-003.md
 │   │   ├── TICKET-004.md
 │   │   ├── TICKET-005.md
-│   │   └── TICKET-006.md
+│   │   ├── TICKET-006.md
+│   │   └── TICKET-007.md
 │   ├── README.md
-│   └── TICKET-007.md
+│   └── TICKET-008.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg

@@ -112,4 +112,16 @@ router.get('/:id/results', requireAuth, async (req, res) => {
   })
 })
 
+router.delete('/:id', requireAuth, async (req, res) => {
+  const session = await prisma.gameSession.findUnique({
+    where: { id: req.params.id as string },
+    select: { hostId: true },
+  })
+  if (!session) return res.status(404).json({ error: 'Session not found' })
+  if (session.hostId !== req.userId) return res.status(403).json({ error: 'Forbidden' })
+
+  await prisma.gameSession.delete({ where: { id: req.params.id as string } })
+  res.status(204).send()
+})
+
 export default router

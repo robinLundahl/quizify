@@ -1,6 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '../lib/api'
 
+export interface QuizSession {
+  id: string
+  code: string
+  finishedAt: string | null
+}
+
 export interface Quiz {
   id: string
   title: string
@@ -9,6 +15,7 @@ export interface Quiz {
   createdAt: string
   updatedAt: string
   _count?: { questions: number }
+  sessions?: QuizSession[]
 }
 
 export interface AnswerOption {
@@ -166,6 +173,16 @@ export interface SessionResults {
   finishedAt: string | null
   leaderboard: { rank: number; nickname: string; score: number }[]
   questions: QuestionResult[]
+}
+
+export function useDeleteSession() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      await api.delete(`/sessions/${sessionId}`)
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['quizzes'] }),
+  })
 }
 
 export function useSessionResults(sessionId: string) {
