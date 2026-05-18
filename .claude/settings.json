@@ -18,6 +18,9 @@
       "Bash(npm install)",
       "Bash(npm install *)",
       "Bash(npx tsc --noEmit)",
+      "Bash(npx tsc --noEmit -p server/tsconfig.json)",
+      "Bash(npx tsc --noEmit -p client/tsconfig.app.json)",
+      "Bash(npm run lint --prefix client)",
       "Bash(npx prisma migrate dev*)",
       "Bash(npx prisma generate)",
       "Bash(npx prisma studio)"
