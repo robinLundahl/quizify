@@ -336,8 +336,8 @@ function QuestionForm({
             <label className="mb-1 block text-xs font-medium text-gray-500">Points</label>
             <input
               type="number"
-              min={0}
-              step={100}
+              min={1}
+              step={1}
               value={form.points}
               onChange={(e) => set({ points: Number(e.target.value) })}
               className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
