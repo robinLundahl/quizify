@@ -4,6 +4,8 @@ import ProtectedRoute from './components/ui/ProtectedRoute'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import QuizEditor from './pages/QuizEditor'
+import HostView from './pages/HostView'
+import JoinView from './pages/JoinView'
 
 const queryClient = new QueryClient()
 
@@ -13,9 +15,11 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/join" element={<JoinView />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/quiz/:id" element={<QuizEditor />} />
+            <Route path="/host/:sessionId" element={<HostView />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

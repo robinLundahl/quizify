@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { useQueryClient } from '@tanstack/react-query'
@@ -12,6 +13,7 @@ export default function Dashboard() {
   const { data: quizzes, isLoading } = useQuizzes()
   const createQuiz = useCreateQuiz()
   const deleteQuiz = useDeleteQuiz()
+  const [hostingId, setHostingId] = useState<string | null>(null)
 
   async function handleLogout() {
     await api.post('/auth/logout')
@@ -23,6 +25,16 @@ export default function Dashboard() {
   async function handleCreate() {
     const quiz = await createQuiz.mutateAsync({ title: 'Untitled quiz' })
     navigate(`/quiz/${quiz.id}`)
+  }
+
+  async function handleHost(quizId: string) {
+    setHostingId(quizId)
+    try {
+      const res = await api.post<{ sessionId: string; code: string }>('/sessions', { quizId })
+      navigate(`/host/${res.data.sessionId}`, { state: { code: res.data.code } })
+    } finally {
+      setHostingId(null)
+    }
   }
 
   return (
@@ -80,9 +92,16 @@ export default function Dashboard() {
                 <div className="mt-4 flex gap-2">
                   <button
                     onClick={() => navigate(`/quiz/${quiz.id}`)}
-                    className="flex-1 rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
+                    className="rounded-lg bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition"
                   >
                     Edit
+                  </button>
+                  <button
+                    onClick={() => handleHost(quiz.id)}
+                    disabled={hostingId === quiz.id}
+                    className="flex-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+                  >
+                    {hostingId === quiz.id ? 'Creating…' : 'Host'}
                   </button>
                   <button
                     onClick={() => {

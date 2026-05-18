@@ -76,7 +76,24 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   └── ship/
 │   │       └── SKILL.md
 │   ├── settings.json
+│   ├── settings.local.json
 │   └── update-readme-structure.py
+├── .playwright-mcp/
+│   ├── console-2026-05-18T14-35-50-338Z.log
+│   ├── console-2026-05-18T14-36-21-044Z.log
+│   ├── console-2026-05-18T14-38-35-883Z.log
+│   ├── console-2026-05-18T14-38-57-650Z.log
+│   ├── console-2026-05-18T14-40-31-019Z.log
+│   ├── page-2026-05-18T14-35-50-838Z.yml
+│   ├── page-2026-05-18T14-36-21-233Z.yml
+│   ├── page-2026-05-18T14-36-58-082Z.yml
+│   ├── page-2026-05-18T14-38-36-041Z.yml
+│   ├── page-2026-05-18T14-38-57-800Z.yml
+│   ├── page-2026-05-18T14-40-31-259Z.yml
+│   ├── page-2026-05-18T14-40-48-948Z.yml
+│   ├── page-2026-05-18T14-41-11-854Z.yml
+│   ├── page-2026-05-18T14-42-09-356Z.yml
+│   └── page-2026-05-18T14-42-53-123Z.yml
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -97,11 +114,14 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── ui/
 │   │   ├── hooks/
 │   │   │   ├── useAuth.ts
-│   │   │   └── useQuizzes.ts
+│   │   │   ├── useQuizzes.ts
+│   │   │   └── useSocket.ts
 │   │   ├── lib/
 │   │   │   └── api.ts
 │   │   ├── pages/
 │   │   │   ├── Dashboard.tsx
+│   │   │   ├── HostView.tsx
+│   │   │   ├── JoinView.tsx
 │   │   │   ├── Login.tsx
 │   │   │   └── QuizEditor.tsx
 │   │   ├── store/
@@ -122,6 +142,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ├── server/
 │   ├── prisma/
 │   │   └── schema.prisma
+│   ├── scripts/
+│   │   └── seed-test-session.ts
 │   ├── src/
 │   │   ├── controllers/
 │   │   ├── lib/
@@ -132,9 +154,11 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── requireAuth.ts
 │   │   ├── routes/
 │   │   │   ├── auth.ts
-│   │   │   └── quiz.ts
+│   │   │   ├── quiz.ts
+│   │   │   └── sessions.ts
 │   │   ├── services/
 │   │   ├── socket/
+│   │   │   ├── gameHandlers.ts
 │   │   │   └── index.ts
 │   │   └── index.ts
 │   ├── uploads/
