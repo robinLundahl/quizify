@@ -7,6 +7,7 @@ import { createServer } from 'http'
 import { initSocket } from './socket/index.js'
 import { configurePassport } from './lib/passport.js'
 import authRouter from './routes/auth.js'
+import quizRouter from './routes/quiz.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -19,6 +20,7 @@ app.use(passport.initialize())
 configurePassport()
 
 app.use('/api/auth', authRouter)
+app.use('/api/quiz', quizRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
