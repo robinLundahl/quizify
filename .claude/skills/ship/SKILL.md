@@ -21,16 +21,20 @@ Run `git status` and `git diff` in parallel to understand what changed.
 ## Step 2 — Type-check the server
 
 ```bash
-npx tsc --noEmit -p server/tsconfig.json
+cd server && ./node_modules/.bin/tsc --noEmit
 ```
+
+Run from the project root. Use the locally installed tsc binary — do not use `npx tsc` as it installs the wrong package.
 
 - If this **fails**: print the errors clearly, tell the user which files are broken, and stop. Do not proceed to commit.
 
 ## Step 3 — Type-check the client
 
 ```bash
-npx tsc --noEmit -p client/tsconfig.app.json
+cd client && ./node_modules/.bin/tsc --noEmit -p tsconfig.app.json
 ```
+
+Run from the project root. Use the locally installed tsc binary.
 
 - If this **fails**: print the errors clearly and stop. Do not proceed to commit.
 
