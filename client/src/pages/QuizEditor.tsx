@@ -60,7 +60,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     text: '',
     imageUrl: '',
     timeLimit: 20,
-    points: 1000,
+    points: 1,
     options: [
       { text: '', isCorrect: true },
       { text: '', isCorrect: false },
