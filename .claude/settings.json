@@ -1,4 +1,17 @@
 {
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/robinlundahl/Desktop/Programmering/quiz/.claude/update-readme-structure.py 2>/dev/null || true",
+            "statusMessage": "Updating README structure..."
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "deny": [
       "Read(.env)",

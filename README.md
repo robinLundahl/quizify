@@ -71,19 +71,80 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ## Project structure
 
 ```
-quiz/
-├── client/          # React + Vite frontend
-│   └── src/
-│       ├── components/
-│       ├── hooks/
-│       ├── pages/
-│       ├── store/
-│       └── lib/
-└── server/          # Express backend
-    ├── prisma/      # Schema and migrations
-    └── src/
-        ├── lib/     # Prisma, JWT, Passport
-        ├── middleware/
-        ├── routes/
-        └── socket/
+├── .claude/
+│   ├── skills/
+│   │   └── ship/
+│   │       └── SKILL.md
+│   ├── settings.json
+│   └── update-readme-structure.py
+├── backlog/
+│   ├── archive/
+│   │   ├── TICKET-001.md
+│   │   ├── TICKET-002.md
+│   │   └── TICKET-003.md
+│   ├── README.md
+│   └── TICKET-004.md
+├── client/
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── icons.svg
+│   ├── src/
+│   │   ├── assets/
+│   │   │   ├── hero.png
+│   │   │   └── vite.svg
+│   │   ├── components/
+│   │   │   ├── quiz/
+│   │   │   └── ui/
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts
+│   │   │   └── useQuizzes.ts
+│   │   ├── lib/
+│   │   │   └── api.ts
+│   │   ├── pages/
+│   │   │   ├── Dashboard.tsx
+│   │   │   ├── Login.tsx
+│   │   │   └── QuizEditor.tsx
+│   │   ├── store/
+│   │   │   └── authStore.ts
+│   │   ├── types/
+│   │   ├── App.tsx
+│   │   ├── index.css
+│   │   └── main.tsx
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── README.md
+│   ├── tsconfig.app.json
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── server/
+│   ├── prisma/
+│   │   └── schema.prisma
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── lib/
+│   │   │   ├── jwt.ts
+│   │   │   ├── passport.ts
+│   │   │   └── prisma.ts
+│   │   ├── middleware/
+│   │   │   └── requireAuth.ts
+│   │   ├── routes/
+│   │   │   ├── auth.ts
+│   │   │   └── quiz.ts
+│   │   ├── services/
+│   │   ├── socket/
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   ├── uploads/
+│   ├── .gitignore
+│   ├── package.json
+│   ├── prisma.config.ts
+│   └── tsconfig.json
+├── .env.example
+├── .gitignore
+├── CLAUDE.md
+├── package.json
+└── README.md
 ```
