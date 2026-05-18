@@ -148,3 +148,30 @@ export function useDeleteQuestion(quizId: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['quiz', quizId] }),
   })
 }
+
+export function useReorderQuestions(quizId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (orders: { id: string; order: number }[]) => {
+      await api.patch(`/quiz/${quizId}/questions/reorder`, { orders })
+    },
+    onMutate: async (orders) => {
+      await qc.cancelQueries({ queryKey: ['quiz', quizId] })
+      const prev = qc.getQueryData<QuizWithQuestions>(['quiz', quizId])
+      if (prev) {
+        const orderMap = new Map(orders.map(({ id, order }) => [id, order]))
+        qc.setQueryData<QuizWithQuestions>(['quiz', quizId], {
+          ...prev,
+          questions: [...prev.questions]
+            .map((q) => ({ ...q, order: orderMap.get(q.id) ?? q.order }))
+            .sort((a, b) => a.order - b.order),
+        })
+      }
+      return { prev }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['quiz', quizId], ctx.prev)
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['quiz', quizId] }),
+  })
+}

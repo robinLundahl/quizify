@@ -1,4 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useParams, useNavigate, Link } from 'react-router-dom'
@@ -8,6 +23,7 @@ import {
   useAddQuestion,
   useUpdateQuestion,
   useDeleteQuestion,
+  useReorderQuestions,
   type Question,
   type QuestionType,
   type QuestionPayload,
@@ -537,13 +553,21 @@ function QuestionCard({
 }) {
   const updateQuestion = useUpdateQuestion(quizId)
   const deleteQuestion = useDeleteQuestion(quizId)
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: question.id,
+    disabled: isEditing,
+  })
 
   function handleSave(payload: QuestionPayload) {
     updateQuestion.mutate({ qid: question.id, ...payload }, { onSuccess: onClose })
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5">
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      className="rounded-xl border border-gray-200 bg-white p-5"
+    >
       {isEditing ? (
         <QuestionForm
           initial={questionToForm(question)}
@@ -554,7 +578,19 @@ function QuestionCard({
         />
       ) : (
         <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
+          <button
+            {...attributes}
+            {...listeners}
+            className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 hover:text-gray-400 active:cursor-grabbing"
+            aria-label="Drag to reorder"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
+              <circle cx="5" cy="8" r="1.5" /><circle cx="11" cy="8" r="1.5" />
+              <circle cx="5" cy="12" r="1.5" /><circle cx="11" cy="12" r="1.5" />
+            </svg>
+          </button>
+          <div className="min-w-0 flex-1">
             <div className="mb-1 flex items-center gap-2">
               <span className="text-xs font-medium text-gray-400">Q{index + 1}</span>
               <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
@@ -685,9 +721,21 @@ export default function QuizEditor() {
   const navigate = useNavigate()
   const { data: quiz, isLoading, isError } = useQuiz(id!)
   const updateQuiz = useUpdateQuiz(id!)
+  const reorderQuestions = useReorderQuestions(id!)
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addingQuestion, setAddingQuestion] = useState(false)
+
+  const sensors = useSensors(useSensor(PointerSensor))
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id || !quiz) return
+    const oldIndex = quiz.questions.findIndex((q) => q.id === active.id)
+    const newIndex = quiz.questions.findIndex((q) => q.id === over.id)
+    const reordered = arrayMove(quiz.questions, oldIndex, newIndex)
+    reorderQuestions.mutate(reordered.map((q, i) => ({ id: q.id, order: i })))
+  }, [quiz, reorderQuestions])
 
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center text-gray-500">Loading...</div>
@@ -727,27 +775,31 @@ export default function QuizEditor() {
             <h2 className="text-base font-semibold text-gray-900">Questions ({quiz.questions.length})</h2>
           </div>
 
-          <div className="space-y-3">
-            {quiz.questions.map((q, i) => (
-              <QuestionCard
-                key={q.id}
-                question={q}
-                index={i}
-                quizId={id!}
-                isEditing={editingId === q.id}
-                onEdit={() => { setAddingQuestion(false); setEditingId(q.id) }}
-                onClose={() => setEditingId(null)}
-              />
-            ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={quiz.questions.map((q) => q.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-3">
+                {quiz.questions.map((q, i) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    index={i}
+                    quizId={id!}
+                    isEditing={editingId === q.id}
+                    onEdit={() => { setAddingQuestion(false); setEditingId(q.id) }}
+                    onClose={() => setEditingId(null)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
 
-            {addingQuestion && (
-              <AddQuestionCard
-                quizId={id!}
-                order={quiz.questions.length}
-                onClose={() => setAddingQuestion(false)}
-              />
-            )}
-          </div>
+          {addingQuestion && (
+            <AddQuestionCard
+              quizId={id!}
+              order={quiz.questions.length}
+              onClose={() => setAddingQuestion(false)}
+            />
+          )}
 
           {!addingQuestion && (
             <button

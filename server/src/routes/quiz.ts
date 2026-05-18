@@ -96,6 +96,23 @@ router.post('/:id/questions', async (req, res) => {
   res.status(201).json(question)
 })
 
+router.patch('/:id/questions/reorder', async (req, res) => {
+  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  if (!quiz) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const { orders } = req.body as { orders: { id: string; order: number }[] }
+  if (!Array.isArray(orders)) {
+    res.status(400).json({ error: 'orders array required' })
+    return
+  }
+  await prisma.$transaction(
+    orders.map(({ id, order }) => prisma.question.update({ where: { id }, data: { order } }))
+  )
+  res.json({ ok: true })
+})
+
 router.put('/:id/questions/:qid', async (req, res) => {
   const question = await prisma.question.findFirst({
     where: { id: req.params.qid, quiz: { id: req.params.id, ownerId: req.userId! } },

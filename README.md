@@ -101,7 +101,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-003.md
 │   │   ├── TICKET-004.md
 │   │   └── TICKET-005.md
-│   └── README.md
+│   ├── README.md
+│   └── TICKET-006.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
