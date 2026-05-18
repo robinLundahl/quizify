@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  /* Brand palette derived from the Robin Lundahl logo gradient:
+     golden amber (#F5A020) → orange-coral → hot pink (#EF3F7F) */
+  --color-indigo-50: #fff0f6;
+  --color-indigo-100: #ffdde9;
+  --color-indigo-300: #f9a0c4;
+  --color-indigo-400: #f5669c;
+  --color-indigo-500: #f2508a;
+  --color-indigo-600: #ef3f7f;
+  --color-indigo-700: #d02e6a;
+}

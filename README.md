@@ -73,6 +73,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ```
 ├── .claude/
 │   ├── skills/
+│   │   ├── frontend-design/
+│   │   │   └── SKILL.md
 │   │   └── ship/
 │   │       └── SKILL.md
 │   ├── settings.json
@@ -100,9 +102,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-002.md
 │   │   ├── TICKET-003.md
 │   │   ├── TICKET-004.md
-│   │   └── TICKET-005.md
-│   ├── README.md
-│   └── TICKET-006.md
+│   │   ├── TICKET-005.md
+│   │   └── TICKET-006.md
+│   └── README.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -171,6 +173,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ├── .env.example
 ├── .gitignore
 ├── CLAUDE.md
+├── design.md
 ├── package.json
 └── README.md
 ```

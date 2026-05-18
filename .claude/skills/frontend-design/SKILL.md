@@ -23,7 +23,7 @@ This file is the single source of truth for all visual decisions. Read it in ful
 ## What to apply
 
 ### Colours
-- **Brand action → Indigo.** Any button, link, focus ring, or interactive element that moves the user forward uses the indigo scale (`indigo-600` primary, `indigo-700` hover, `indigo-500` focus ring).
+- **Brand action → Hot Pink.** The brand palette is derived from the Robin Lundahl logo gradient (golden amber → hot pink). Any button, link, focus ring, or interactive element that moves the user forward uses the indigo scale (`indigo-600` primary = #ef3f7f, `indigo-700` hover, `indigo-500` focus ring). These are overridden in `index.css` to the hot-pink palette — do not replace them with Tailwind's built-in indigo.
 - **Surfaces → White / Gray.** Cards are `bg-white`, page backgrounds are `bg-gray-50`. Never introduce a new background colour without checking design.md first.
 - **Game mode → Dark.** In-game screens (`/host`, `/join` during a question) use `bg-gray-900` full-screen. Lobby/finished screens use `bg-indigo-600` full-screen.
 - **Game answer buttons → fixed four colours.** Red → Blue → Yellow → Green. Do not swap or invent new colours for answer options.

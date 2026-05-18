@@ -27,17 +27,19 @@ No external font is currently loaded. If a custom font is added later, update th
 
 ## Color Palette
 
-### Brand — Indigo
+### Brand — Hot Pink (logo-derived)
 The primary color used for actions, focus rings, and the host/lobby screens.
+Derived from the Robin Lundahl logo gradient: golden amber → orange-coral → hot pink.
 
 | Token | Hex | Usage |
 |---|---|---|
-| `indigo-50` | `#eef2ff` | Subtle button backgrounds, badges |
-| `indigo-100` | `#e0e7ff` | Hover tints |
-| `indigo-400` | `#818cf8` | Border highlights |
-| `indigo-500` | `#6366f1` | Focus rings, secondary buttons |
-| `indigo-600` | `#4f46e5` | Primary buttons, brand colour |
-| `indigo-700` | `#4338ca` | Hover state on primary buttons |
+| `indigo-50` | `#fff0f6` | Subtle button backgrounds, badges |
+| `indigo-100` | `#ffdde9` | Hover tints |
+| `indigo-300` | `#f9a0c4` | Loading spinner ring |
+| `indigo-400` | `#f5669c` | Border highlights, focus borders |
+| `indigo-500` | `#f2508a` | Focus rings, secondary buttons |
+| `indigo-600` | `#ef3f7f` | Primary buttons, brand colour, lobby backgrounds |
+| `indigo-700` | `#d02e6a` | Hover state on primary buttons |
 
 ### Neutral — Gray
 Used for all text, borders, and surface backgrounds.
