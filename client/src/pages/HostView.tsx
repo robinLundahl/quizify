@@ -179,12 +179,20 @@ export default function HostView() {
             </div>
           ))}
         </div>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="mt-10 rounded-xl bg-white px-8 py-3 text-lg font-bold text-indigo-600 hover:bg-indigo-50"
-        >
-          Back to Dashboard
-        </button>
+        <div className="mt-10 flex gap-3">
+          <button
+            onClick={() => navigate(`/results/${sessionId}`)}
+            className="rounded-xl bg-white px-8 py-3 text-lg font-bold text-indigo-600 shadow-lg transition hover:bg-indigo-50"
+          >
+            View Results
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="rounded-xl bg-white/20 px-8 py-3 text-lg font-bold text-white transition hover:bg-white/30"
+          >
+            Dashboard
+          </button>
+        </div>
       </div>
     )
   }

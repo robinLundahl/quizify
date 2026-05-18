@@ -149,6 +149,36 @@ export function useDeleteQuestion(quizId: string) {
   })
 }
 
+export interface QuestionResult {
+  id: string
+  text: string
+  type: QuestionType
+  correctAnswerText: string | null
+  totalAnswers: number
+  correctAnswers: number
+  answers: { nickname: string; answer: string; pointsEarned: number; responseTimeMs: number }[]
+}
+
+export interface SessionResults {
+  sessionId: string
+  quizTitle: string
+  status: string
+  finishedAt: string | null
+  leaderboard: { rank: number; nickname: string; score: number }[]
+  questions: QuestionResult[]
+}
+
+export function useSessionResults(sessionId: string) {
+  return useQuery({
+    queryKey: ['session-results', sessionId],
+    queryFn: async () => {
+      const { data } = await api.get<SessionResults>(`/sessions/${sessionId}/results`)
+      return data
+    },
+    enabled: !!sessionId,
+  })
+}
+
 export function useReorderQuestions(quizId: string) {
   const qc = useQueryClient()
   return useMutation({

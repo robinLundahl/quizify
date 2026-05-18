@@ -86,6 +86,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── console-2026-05-18T14-38-35-883Z.log
 │   ├── console-2026-05-18T14-38-57-650Z.log
 │   ├── console-2026-05-18T14-40-31-019Z.log
+│   ├── console-2026-05-18T17-28-45-736Z.log
+│   ├── console-2026-05-18T17-29-33-585Z.log
+│   ├── console-2026-05-18T17-31-55-430Z.log
 │   ├── page-2026-05-18T14-35-50-838Z.yml
 │   ├── page-2026-05-18T14-36-21-233Z.yml
 │   ├── page-2026-05-18T14-36-58-082Z.yml
@@ -95,7 +98,22 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-18T14-40-48-948Z.yml
 │   ├── page-2026-05-18T14-41-11-854Z.yml
 │   ├── page-2026-05-18T14-42-09-356Z.yml
-│   └── page-2026-05-18T14-42-53-123Z.yml
+│   ├── page-2026-05-18T14-42-53-123Z.yml
+│   ├── page-2026-05-18T17-28-47-374Z.yml
+│   ├── page-2026-05-18T17-29-25-619Z.yml
+│   ├── page-2026-05-18T17-29-33-858Z.yml
+│   ├── page-2026-05-18T17-29-56-673Z.yml
+│   ├── page-2026-05-18T17-30-09-479Z.yml
+│   ├── page-2026-05-18T17-30-20-943Z.yml
+│   ├── page-2026-05-18T17-30-41-317Z.yml
+│   ├── page-2026-05-18T17-30-48-245Z.yml
+│   ├── page-2026-05-18T17-30-59-861Z.yml
+│   ├── page-2026-05-18T17-31-11-122Z.yml
+│   ├── page-2026-05-18T17-31-15-023Z.yml
+│   ├── page-2026-05-18T17-31-18-646Z.yml
+│   ├── page-2026-05-18T17-31-25-369Z.yml
+│   ├── page-2026-05-18T17-31-55-548Z.yml
+│   └── page-2026-05-18T17-32-39-618Z.yml
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -104,7 +122,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-004.md
 │   │   ├── TICKET-005.md
 │   │   └── TICKET-006.md
-│   └── README.md
+│   ├── README.md
+│   └── TICKET-007.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -127,7 +146,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── HostView.tsx
 │   │   │   ├── JoinView.tsx
 │   │   │   ├── Login.tsx
-│   │   │   └── QuizEditor.tsx
+│   │   │   ├── QuizEditor.tsx
+│   │   │   └── ResultsView.tsx
 │   │   ├── store/
 │   │   │   └── authStore.ts
 │   │   ├── types/
