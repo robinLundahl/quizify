@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Auth ────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  avatar    String?
+  provider  String
+  createdAt DateTime @default(now())
+
+  quizzes       Quiz[]
+  participants  Participant[]
+  hostedSessions GameSession[]
+}
+
+// ─── Quiz & Questions ─────────────────────────────────────────────────────────
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  questions Question[]
+  sessions  GameSession[]
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  OPEN_ENDED
+  IMAGE
+  MAP
+}
+
+model Question {
+  id        String       @id @default(cuid())
+  quizId    String
+  type      QuestionType
+  text      String
+  imageUrl  String?
+  order     Int
+  timeLimit Int          @default(20)
+  points    Int          @default(1000)
+
+  quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answerOptions AnswerOption[]
+  mapQuestion   MapQuestion?
+  gameAnswers   GameAnswer[]
+
+  @@index([quizId, order])
+}
+
+model AnswerOption {
+  id         String  @id @default(cuid())
+  questionId String
+  text       String
+  isCorrect  Boolean
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model MapQuestion {
+  id         String @id @default(cuid())
+  questionId String @unique
+  lat        Float
+  lng        Float
+  radiusKm   Float  @default(100)
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+// ─── Game Sessions ────────────────────────────────────────────────────────────
+
+enum SessionStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+}
+
+model GameSession {
+  id         String        @id @default(cuid())
+  quizId     String
+  hostId     String
+  code       String        @unique
+  status     SessionStatus @default(WAITING)
+  createdAt  DateTime      @default(now())
+  finishedAt DateTime?
+
+  quiz         Quiz          @relation(fields: [quizId], references: [id])
+  host         User          @relation(fields: [hostId], references: [id])
+  participants Participant[]
+}
+
+model Participant {
+  id        String @id @default(cuid())
+  sessionId String
+  userId    String?
+  nickname  String
+  score     Int    @default(0)
+
+  session     GameSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User?        @relation(fields: [userId], references: [id])
+  gameAnswers GameAnswer[]
+
+  @@index([sessionId])
+}
+
+model GameAnswer {
+  id            String  @id @default(cuid())
+  participantId String
+  questionId    String
+  answer        String
+  pointsEarned  Int     @default(0)
+  responseTimeMs Int
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id])
+
+  @@unique([participantId, questionId])
+}

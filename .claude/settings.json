@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/*)",
+      "Read(**/*credential*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
+    "allow": [
+      "Bash(npm run dev)",
+      "Bash(npm run build)",
+      "Bash(npm run db:migrate)",
+      "Bash(npm run db:generate)",
+      "Bash(npm run dev --prefix client)",
+      "Bash(npm run dev --prefix server)",
+      "Bash(npm install)",
+      "Bash(npm install *)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(npx prisma migrate dev*)",
+      "Bash(npx prisma generate)",
+      "Bash(npx prisma studio)"
+    ]
+  }
+}
