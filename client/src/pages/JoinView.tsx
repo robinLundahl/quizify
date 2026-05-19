@@ -2,6 +2,22 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { getSocket } from '../hooks/useSocket'
 
 // Fix default leaflet icons
@@ -17,6 +33,11 @@ interface AnswerOption {
   text: string
 }
 
+interface RankingItem {
+  id: string
+  label: string
+}
+
 interface Question {
   id: string
   text: string
@@ -26,6 +47,7 @@ interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
+  rankingItems: RankingItem[] | null
 }
 
 interface QuestionPayload {
@@ -47,6 +69,7 @@ interface CorrectAnswer {
   optionText?: string
   lat?: number
   lng?: number
+  items?: { id: string; label: string; correctPosition: number }[]
 }
 
 type Phase = 'enter' | 'lobby' | 'question' | 'answered' | 'reveal' | 'finished'
@@ -71,6 +94,63 @@ function MapPinPicker({
   return null
 }
 
+function SortableRankingItem({
+  item,
+  index,
+  total,
+  disabled,
+  onMove,
+}: {
+  item: RankingItem
+  index: number
+  total: number
+  disabled: boolean
+  onMove: (i: number, dir: -1 | 1) => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-3"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        disabled={disabled}
+        className="cursor-grab touch-none p-1 text-gray-400 active:cursor-grabbing disabled:cursor-default"
+        aria-label="Drag to reorder"
+      >
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
+          <circle cx="5" cy="8" r="1.5" /><circle cx="11" cy="8" r="1.5" />
+          <circle cx="5" cy="12" r="1.5" /><circle cx="11" cy="12" r="1.5" />
+        </svg>
+      </button>
+      <span className="w-5 shrink-0 text-center text-xs font-bold text-gray-400">{index + 1}</span>
+      <span className="flex-1 text-sm font-medium text-white">{item.label}</span>
+      <div className="flex flex-col gap-0.5">
+        <button
+          onClick={() => onMove(index, -1)}
+          disabled={disabled || index === 0}
+          className="rounded px-1 text-gray-400 hover:text-white disabled:opacity-20"
+          aria-label="Move up"
+        >
+          ▲
+        </button>
+        <button
+          onClick={() => onMove(index, 1)}
+          disabled={disabled || index === total - 1}
+          className="rounded px-1 text-gray-400 hover:text-white disabled:opacity-20"
+          aria-label="Move down"
+        >
+          ▼
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export default function JoinView() {
   const [searchParams] = useSearchParams()
   const socket = getSocket()
@@ -85,6 +165,7 @@ export default function JoinView() {
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [mapPin, setMapPin] = useState<[number, number] | null>(null)
   const [openText, setOpenText] = useState('')
+  const [rankingOrder, setRankingOrder] = useState<RankingItem[]>([])
   const [pointsEarned, setPointsEarned] = useState<number | null>(null)
   const [correctAnswer, setCorrectAnswer] = useState<CorrectAnswer | null>(null)
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
@@ -93,6 +174,31 @@ export default function JoinView() {
 
   const participantIdRef = useRef('')
   const sessionIdRef = useRef('')
+
+  const rankingSensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } })
+  )
+
+  const handleRankingDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    setRankingOrder((items) => {
+      const oldIndex = items.findIndex((i) => i.id === active.id)
+      const newIndex = items.findIndex((i) => i.id === over.id)
+      return arrayMove(items, oldIndex, newIndex)
+    })
+  }, [])
+
+  const moveRankingItem = useCallback((index: number, dir: -1 | 1) => {
+    const j = index + dir
+    setRankingOrder((items) => {
+      if (j < 0 || j >= items.length) return items
+      const next = [...items]
+      ;[next[index], next[j]] = [next[j], next[index]]
+      return next
+    })
+  }, [])
 
   useEffect(() => {
     socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string }) => {
@@ -116,6 +222,7 @@ export default function JoinView() {
       setSelectedAnswer('')
       setMapPin(null)
       setOpenText('')
+      setRankingOrder(payload.question.rankingItems ?? [])
       setPointsEarned(null)
       setPhase('question')
       const remaining = Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000))
@@ -195,6 +302,11 @@ export default function JoinView() {
     if (!mapPin) return
     submitAnswer(`${mapPin[0]},${mapPin[1]}`)
   }, [mapPin, submitAnswer])
+
+  const submitRankingAnswer = useCallback(() => {
+    if (!rankingOrder.length) return
+    submitAnswer(JSON.stringify(rankingOrder.map((i) => i.id)))
+  }, [rankingOrder, submitAnswer])
 
   // ── Enter code + nickname ──────────────────────────────────────────────────
   if (phase === 'enter') {
@@ -297,6 +409,17 @@ export default function JoinView() {
         )}
         {correctAnswer?.type === 'MAP' && (
           <p className="mb-2 text-center text-gray-300">Scored by proximity to the target.</p>
+        )}
+        {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
+          <div className="mb-2 w-full max-w-sm space-y-1">
+            <p className="mb-2 text-center text-sm text-gray-400">Correct order</p>
+            {correctAnswer.items.map((item, i) => (
+              <div key={item.id} className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm">
+                <span className="w-4 shrink-0 text-center font-bold text-purple-300">{i + 1}</span>
+                <span className="text-white">{item.label}</span>
+              </div>
+            ))}
+          </div>
         )}
         <p className="mt-4 text-gray-400">
           Rank: <span className="font-bold text-white">#{myRank}</span> · Total:{' '}
@@ -432,6 +555,39 @@ export default function JoinView() {
                 className="w-full rounded-xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
                 {mapPin ? 'Submit Pin' : 'Tap to place pin first'}
+              </button>
+            </div>
+          )}
+
+          {question.type === 'RANKING' && rankingOrder.length > 0 && (
+            <div className="flex flex-col gap-3">
+              <p className="text-center text-sm text-gray-400">Drag or use arrows to put items in the correct order</p>
+              <DndContext
+                sensors={rankingSensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleRankingDragEnd}
+              >
+                <SortableContext items={rankingOrder.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {rankingOrder.map((item, i) => (
+                      <SortableRankingItem
+                        key={item.id}
+                        item={item}
+                        index={i}
+                        total={rankingOrder.length}
+                        disabled={!!selectedAnswer}
+                        onMove={moveRankingItem}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+              <button
+                onClick={submitRankingAnswer}
+                disabled={!!selectedAnswer}
+                className="w-full rounded-xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
+              >
+                Submit Order
               </button>
             </div>
           )}

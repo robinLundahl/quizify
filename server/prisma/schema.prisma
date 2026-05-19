@@ -44,6 +44,7 @@ enum QuestionType {
   OPEN_ENDED
   IMAGE
   MAP
+  RANKING
 }
 
 model Question {
@@ -59,6 +60,7 @@ model Question {
   quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answerOptions AnswerOption[]
   mapQuestion   MapQuestion?
+  rankingItems  RankingItem[]
   gameAnswers   GameAnswer[]
 
   @@index([quizId, order])
@@ -93,6 +95,18 @@ model MapRing {
   mapQuestion MapQuestion @relation(fields: [mapQuestionId], references: [id], onDelete: Cascade)
 
   @@index([mapQuestionId, order])
+}
+
+model RankingItem {
+  id              String @id @default(cuid())
+  questionId      String
+  label           String
+  correctPosition Int
+  order           Int
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([questionId, correctPosition])
 }
 
 // ─── Game Sessions ────────────────────────────────────────────────────────────

@@ -38,7 +38,14 @@ export interface MapQuestionData {
   rings: MapRing[]
 }
 
-export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'OPEN_ENDED' | 'IMAGE' | 'MAP'
+export interface RankingItem {
+  id: string
+  label: string
+  correctPosition: number
+  order: number
+}
+
+export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'OPEN_ENDED' | 'IMAGE' | 'MAP' | 'RANKING'
 
 export interface Question {
   id: string
@@ -51,6 +58,7 @@ export interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: MapQuestionData | null
+  rankingItems: RankingItem[]
 }
 
 export interface QuizWithQuestions extends Quiz {
@@ -122,6 +130,7 @@ export type QuestionPayload = {
   answerOptions?: { text: string; isCorrect: boolean }[]
   correctAnswer?: 'true' | 'false'
   mapQuestion?: { lat: number; lng: number; rings: { radiusKm: number; points: number; order: number }[] }
+  rankingItems?: { label: string; correctPosition: number; order: number }[]
 }
 
 export function useAddQuestion(quizId: string) {

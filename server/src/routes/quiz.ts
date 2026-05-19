@@ -43,6 +43,7 @@ router.get('/:id', async (req, res) => {
         include: {
           answerOptions: true,
           mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+          rankingItems: { orderBy: { correctPosition: 'asc' } },
         },
       },
     },
@@ -84,7 +85,7 @@ router.post('/:id/questions', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems } = req.body
   const question = await prisma.question.create({
     data: {
       quizId: req.params.id,
@@ -94,11 +95,12 @@ router.post('/:id/questions', async (req, res) => {
       order: order ?? 0,
       timeLimit: timeLimit ?? 20,
       points: points ?? 1000,
-      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion),
+      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
     include: {
       answerOptions: true,
       mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+      rankingItems: { orderBy: { correctPosition: 'asc' } },
     },
   })
   res.status(201).json(question)
@@ -129,10 +131,11 @@ router.put('/:id/questions/:qid', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems } = req.body
 
   await prisma.answerOption.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.mapQuestion.deleteMany({ where: { questionId: req.params.qid } })
+  await prisma.rankingItem.deleteMany({ where: { questionId: req.params.qid } })
 
   const updated = await prisma.question.update({
     where: { id: req.params.qid },
@@ -143,9 +146,13 @@ router.put('/:id/questions/:qid', async (req, res) => {
       order,
       timeLimit,
       points,
-      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion),
+      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
-    include: { answerOptions: true, mapQuestion: true },
+    include: {
+      answerOptions: true,
+      mapQuestion: true,
+      rankingItems: { orderBy: { correctPosition: 'asc' } },
+    },
   })
   res.json(updated)
 })
@@ -165,12 +172,14 @@ router.delete('/:id/questions/:qid', async (req, res) => {
 type AnswerOptionInput = { text: string; isCorrect: boolean }
 type MapRingInput = { radiusKm: number; points: number; order: number }
 type MapQuestionInput = { lat: number; lng: number; rings?: MapRingInput[] }
+type RankingItemInput = { label: string; correctPosition: number; order: number }
 
 function buildRelations(
   type: string,
   answerOptions: AnswerOptionInput[] | undefined,
   correctAnswer: string | undefined,
   mapQuestion: MapQuestionInput | undefined,
+  rankingItems: RankingItemInput[] | undefined,
 ) {
   if (type === 'TRUE_FALSE') {
     return {
@@ -197,6 +206,9 @@ function buildRelations(
         },
       },
     }
+  }
+  if (type === 'RANKING' && rankingItems?.length) {
+    return { rankingItems: { create: rankingItems } }
   }
   return {}
 }

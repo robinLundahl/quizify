@@ -14,6 +14,7 @@ interface QuestionData {
     lng: number
     rings: { radiusKm: number; points: number; order: number }[]
   } | null
+  rankingItems: { id: string; label: string; correctPosition: number }[]
 }
 
 interface SessionState {
@@ -43,6 +44,23 @@ function scoreAnswer(question: QuestionData, answer: string, responseTimeMs: num
   const timeMultiplier = 0.5 + 0.5 * timeFraction
 
   if (question.type === 'OPEN_ENDED') return question.points
+
+  if (question.type === 'RANKING') {
+    const items = question.rankingItems
+    if (!items.length) return 0
+    let answeredIds: string[]
+    try {
+      answeredIds = JSON.parse(answer) as string[]
+    } catch {
+      return 0
+    }
+    const pointsPerItem = question.points / items.length
+    let correct = 0
+    for (const item of items) {
+      if (answeredIds.indexOf(item.id) + 1 === item.correctPosition) correct++
+    }
+    return Math.round(correct * pointsPerItem * timeMultiplier)
+  }
 
   if (question.type === 'MAP') {
     if (!question.mapQuestion) return 0
@@ -74,6 +92,10 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
     void endQuestion(io, sessionId, state)
   }, q.timeLimit * 1000)
 
+  const shuffledRankingItems = q.rankingItems.length
+    ? [...q.rankingItems].sort(() => Math.random() - 0.5).map(({ id, label }) => ({ id, label }))
+    : null
+
   io.to(sessionId).emit('session:question', {
     question: {
       id: q.id,
@@ -84,6 +106,7 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
       points: q.points,
       answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
       mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
+      rankingItems: shuffledRankingItems,
     },
     index: state.currentIndex,
     total: state.questions.length,
@@ -112,6 +135,11 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
     }
   } else if (q.type === 'OPEN_ENDED') {
     correctAnswer = { type: 'OPEN_ENDED' }
+  } else if (q.type === 'RANKING') {
+    correctAnswer = {
+      type: 'RANKING',
+      items: [...q.rankingItems].sort((a, b) => a.correctPosition - b.correctPosition),
+    }
   } else {
     const correct = q.answerOptions.find((o) => o.isCorrect)
     correctAnswer = { type: q.type, optionId: correct?.id, optionText: correct?.text }
@@ -150,6 +178,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
               include: {
                 answerOptions: true,
                 mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+                rankingItems: { orderBy: { correctPosition: 'asc' } },
               },
             },
           },

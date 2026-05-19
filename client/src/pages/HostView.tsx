@@ -13,6 +13,11 @@ interface AnswerOption {
   text: string
 }
 
+interface RankingItem {
+  id: string
+  label: string
+}
+
 interface Question {
   id: string
   text: string
@@ -22,6 +27,7 @@ interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
+  rankingItems: RankingItem[] | null
 }
 
 interface QuestionPayload {
@@ -37,6 +43,7 @@ interface CorrectAnswer {
   optionText?: string
   lat?: number
   lng?: number
+  items?: { id: string; label: string; correctPosition: number }[]
 }
 
 type Phase = 'lobby' | 'question' | 'reveal' | 'finished'
@@ -221,6 +228,19 @@ export default function HostView() {
               Map answer revealed — scored by distance rings.
             </div>
           )}
+          {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
+            <div className="mb-6 rounded-xl bg-purple-500/20 p-4">
+              <p className="mb-3 text-center text-sm font-semibold text-purple-300">Correct order</p>
+              <ol className="space-y-1.5">
+                {correctAnswer.items.map((item, i) => (
+                  <li key={item.id} className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-2">
+                    <span className="w-5 shrink-0 text-center text-sm font-bold text-purple-300">{i + 1}</span>
+                    <span className="text-sm text-white">{item.label}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           <h3 className="mb-3 text-lg font-semibold">Leaderboard</h3>
           <div className="mb-8 space-y-2">
@@ -313,6 +333,22 @@ export default function HostView() {
           {question.type === 'MAP' && (
             <div className="rounded-xl bg-white/10 p-6 text-center text-gray-300">
               Map question — players pin a location
+            </div>
+          )}
+
+          {question.type === 'RANKING' && (
+            <div className="rounded-xl bg-white/10 p-4 text-gray-300">
+              <p className="mb-3 text-center text-sm">Ranking question — players drag items into order</p>
+              {question.rankingItems && (
+                <ol className="space-y-2">
+                  {question.rankingItems.map((item, i) => (
+                    <li key={item.id} className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-2">
+                      <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 1}</span>
+                      <span className="text-sm">{item.label}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
             </div>
           )}
         </div>

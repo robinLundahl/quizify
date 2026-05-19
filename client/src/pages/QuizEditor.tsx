@@ -46,6 +46,10 @@ interface RingField {
   points: string
 }
 
+interface RankingItemField {
+  label: string
+}
+
 interface FormState {
   type: QuestionType
   text: string
@@ -57,6 +61,7 @@ interface FormState {
   mapLat: string
   mapLng: string
   mapRings: RingField[]
+  rankingItems: RankingItemField[]
 }
 
 const TYPE_LABELS: Record<QuestionType, string> = {
@@ -65,6 +70,7 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   OPEN_ENDED: 'Open-ended',
   IMAGE: 'Image',
   MAP: 'Map',
+  RANKING: 'Ranking',
 }
 
 const QUESTION_TYPES = Object.keys(TYPE_LABELS) as QuestionType[]
@@ -86,6 +92,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     mapLat: '',
     mapLng: '',
     mapRings: [{ radiusKm: '50', points: '1000' }],
+    rankingItems: [{ label: '' }, { label: '' }],
   }
 }
 
@@ -114,6 +121,14 @@ function questionToForm(q: Question): FormState {
         ? q.mapQuestion.rings.map((r) => ({ radiusKm: String(r.radiusKm), points: String(r.points) }))
         : [{ radiusKm: '50', points: '1000' }]
   }
+  if (q.type === 'RANKING') {
+    form.rankingItems =
+      q.rankingItems.length > 0
+        ? [...q.rankingItems]
+            .sort((a, b) => a.correctPosition - b.correctPosition)
+            .map((r) => ({ label: r.label }))
+        : [{ label: '' }, { label: '' }]
+  }
   return form
 }
 
@@ -139,6 +154,12 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
       ...base,
       mapQuestion: { lat: parseFloat(form.mapLat), lng: parseFloat(form.mapLng), rings },
     }
+  }
+  if (form.type === 'RANKING') {
+    const items = form.rankingItems
+      .filter((r) => r.label.trim())
+      .map((r, i) => ({ label: r.label.trim(), correctPosition: i + 1, order: i }))
+    return { ...base, rankingItems: items }
   }
   return base
 }
@@ -312,6 +333,29 @@ function QuestionForm({
     set({ mapRings })
   }
 
+  function addRankingItem() {
+    set({ rankingItems: [...form.rankingItems, { label: '' }] })
+  }
+
+  function removeRankingItem(i: number) {
+    if (form.rankingItems.length <= 2) return
+    set({ rankingItems: form.rankingItems.filter((_, idx) => idx !== i) })
+  }
+
+  function setRankingItemLabel(i: number, label: string) {
+    const rankingItems = [...form.rankingItems]
+    rankingItems[i] = { label }
+    set({ rankingItems })
+  }
+
+  function moveRankingItem(i: number, dir: -1 | 1) {
+    const j = i + dir
+    if (j < 0 || j >= form.rankingItems.length) return
+    const items = [...form.rankingItems]
+    ;[items[i], items[j]] = [items[j], items[i]]
+    set({ rankingItems: items })
+  }
+
   function handleTypeChange(type: QuestionType) {
     setForm(blankForm(type))
   }
@@ -319,6 +363,7 @@ function QuestionForm({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!form.text.trim()) return
+    if (form.type === 'RANKING' && form.rankingItems.filter((r) => r.label.trim()).length < 2) return
     onSave(formToPayload(form, order))
   }
 
@@ -515,6 +560,59 @@ function QuestionForm({
         </div>
       )}
 
+      {form.type === 'RANKING' && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-medium text-gray-500">
+              Items in correct order (top = position 1)
+            </label>
+            <button type="button" onClick={addRankingItem} className="text-xs text-indigo-600 hover:underline">
+              + Add item
+            </button>
+          </div>
+          {form.rankingItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-400">{i + 1}</span>
+              <input
+                type="text"
+                value={item.label}
+                onChange={(e) => setRankingItemLabel(i, e.target.value)}
+                placeholder={`Item ${i + 1}`}
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <div className="flex flex-col">
+                <button
+                  type="button"
+                  onClick={() => moveRankingItem(i, -1)}
+                  disabled={i === 0}
+                  className="text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                  aria-label="Move up"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={() => moveRankingItem(i, 1)}
+                  disabled={i === form.rankingItems.length - 1}
+                  className="text-gray-400 hover:text-gray-600 disabled:opacity-20"
+                  aria-label="Move down"
+                >
+                  ▼
+                </button>
+              </div>
+              {form.rankingItems.length > 2 && (
+                <button type="button" onClick={() => removeRankingItem(i)} className="text-gray-400 hover:text-red-500">
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+          {form.rankingItems.filter((r) => r.label.trim()).length < 2 && (
+            <p className="text-xs text-red-500">At least 2 items required</p>
+          )}
+        </div>
+      )}
+
       <div className="flex justify-end gap-2 pt-1">
         <button
           type="button"
@@ -625,6 +723,15 @@ function QuestionCard({
                   </p>
                 ))}
               </div>
+            )}
+            {question.type === 'RANKING' && question.rankingItems.length > 0 && (
+              <ol className="mt-2 list-decimal list-inside space-y-0.5">
+                {[...question.rankingItems]
+                  .sort((a, b) => a.correctPosition - b.correctPosition)
+                  .map((r) => (
+                    <li key={r.id} className="text-xs text-gray-500">{r.label}</li>
+                  ))}
+              </ol>
             )}
           </div>
           <div className="flex shrink-0 gap-2">
