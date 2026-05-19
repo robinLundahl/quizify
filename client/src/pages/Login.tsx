@@ -1,8 +1,35 @@
-import { Navigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useMutation } from '@tanstack/react-query'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthStore } from '../store/authStore'
+
+async function loginRequest(email: string, password: string) {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error ?? 'Login failed.')
+  return data
+}
 
 export default function Login() {
   const { user, isLoading } = useAuth()
+  const setUser = useAuthStore((s) => s.setUser)
+  const navigate = useNavigate()
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+  const mutation = useMutation({
+    mutationFn: () => loginRequest(email, password),
+    onSuccess: (data) => {
+      setUser(data)
+      navigate('/dashboard', { replace: true })
+    },
+  })
 
   if (isLoading) return null
   if (user) return <Navigate to="/dashboard" replace />
@@ -21,6 +48,53 @@ export default function Login() {
             <GoogleIcon />
             Continue with Google
           </a>
+
+          <div className="flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">or</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); mutation.mutate() }}
+            className="flex flex-col gap-3"
+          >
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+
+            {mutation.isError && (
+              <p className="text-xs text-red-600">{(mutation.error as Error).message}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={mutation.isPending}
+              className="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+            >
+              {mutation.isPending ? 'Signing in…' : 'Sign in'}
+            </button>
+          </form>
+
+          <p className="text-center text-xs text-gray-500">
+            No account?{' '}
+            <Link to="/register" className="text-indigo-600 hover:underline">
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>
@@ -37,4 +111,3 @@ function GoogleIcon() {
     </svg>
   )
 }
-
