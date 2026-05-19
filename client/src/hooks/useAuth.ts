@@ -4,7 +4,7 @@ import api from '../lib/api'
 import { useAuthStore, type AuthUser } from '../store/authStore'
 
 export function useAuth() {
-  const { user, setUser, clearUser } = useAuthStore()
+  const { setUser, clearUser } = useAuthStore()
 
   const { data, isLoading } = useQuery<AuthUser>({
     queryKey: ['me'],
@@ -18,5 +18,8 @@ export function useAuth() {
     else if (!isLoading) clearUser()
   }, [data, isLoading, setUser, clearUser])
 
-  return { user, isLoading }
+  // Return data directly from React Query so user and isLoading are always
+  // in sync — previously user came from Zustand which updated one render late,
+  // causing a flash where isLoading=false and user=null, triggering a redirect.
+  return { user: data ?? null, isLoading }
 }
