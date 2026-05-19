@@ -66,7 +66,10 @@ router.get('/:id/results', requireAuth, async (req, res) => {
   const questions = await prisma.question.findMany({
     where: { quizId: session.quizId },
     orderBy: { order: 'asc' },
-    include: { answerOptions: true },
+    include: {
+      answerOptions: true,
+      rankingItems: { orderBy: { correctPosition: 'asc' } },
+    },
   })
 
   const questionResults = questions.map((q) => {
@@ -75,9 +78,19 @@ router.get('/:id/results', requireAuth, async (req, res) => {
       p.gameAnswers
         .filter((a) => a.questionId === q.id)
         .map((a) => {
-          const displayAnswer = resolvesOptionId
-            ? (q.answerOptions.find((o) => o.id === a.answer)?.text ?? a.answer)
-            : a.answer
+          let displayAnswer = a.answer
+          if (resolvesOptionId) {
+            displayAnswer = q.answerOptions.find((o) => o.id === a.answer)?.text ?? a.answer
+          } else if (q.type === 'RANKING') {
+            try {
+              const ids = JSON.parse(a.answer) as string[]
+              displayAnswer = ids
+                .map((id, i) => `${i + 1}. ${q.rankingItems.find((r) => r.id === id)?.label ?? id}`)
+                .join(', ')
+            } catch {
+              displayAnswer = a.answer
+            }
+          }
           return {
             nickname: p.nickname,
             answer: displayAnswer,
@@ -87,11 +100,15 @@ router.get('/:id/results', requireAuth, async (req, res) => {
         })
     )
     const correctOption = q.answerOptions.find((o) => o.isCorrect)
+    const correctAnswerText =
+      q.type === 'RANKING' && q.rankingItems.length > 0
+        ? q.rankingItems.map((r, i) => `${i + 1}. ${r.label}`).join(', ')
+        : correctOption?.text ?? null
     return {
       id: q.id,
       text: q.text,
       type: q.type,
-      correctAnswerText: correctOption?.text ?? null,
+      correctAnswerText,
       totalAnswers: answers.length,
       correctAnswers: answers.filter((a) => a.pointsEarned > 0).length,
       answers,
