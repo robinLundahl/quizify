@@ -942,7 +942,7 @@ export default function QuizEditor() {
         <QuizMetaForm
           key={quiz.id}
           quiz={quiz}
-          onSave={(title, description) => updateQuiz.mutate({ title, description })}
+          onSave={(title, description) => updateQuiz.mutate({ title, description }, { onSuccess: () => navigate('/dashboard') })}
           isSaving={updateQuiz.isPending}
         />
 
