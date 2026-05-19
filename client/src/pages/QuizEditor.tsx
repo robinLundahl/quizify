@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -17,6 +17,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import api from '../lib/api'
 import NavDropdown from '../components/ui/NavDropdown'
 import {
   useQuiz,
@@ -143,7 +144,7 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
   const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order }
 
   if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer }
-  if (form.type === 'OPEN_ENDED') return base
+  if (form.type === 'OPEN_ENDED') return { ...base, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') {
     return {
       ...base,
@@ -166,7 +167,7 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
     const items = form.rankingItems
       .filter((r) => r.label.trim())
       .map((r, i) => ({ label: r.label.trim(), correctPosition: i + 1, order: i }))
-    return { ...base, rankingItems: items }
+    return { ...base, imageUrl: form.imageUrl.trim() || undefined, rankingItems: items }
   }
   return base
 }
@@ -350,6 +351,23 @@ function QuestionForm({
 }) {
   const [form, setForm] = useState<FormState>(initial)
   const rankingSensors = useSensors(useSensor(PointerSensor))
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+  async function handleImageUpload(file: File) {
+    setIsUploadingImage(true)
+    try {
+      const body = new FormData()
+      body.append('image', file)
+      const { data } = await api.post<{ url: string }>('/quiz/upload-image', body, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      set({ imageUrl: data.url })
+    } finally {
+      setIsUploadingImage(false)
+      if (imageInputRef.current) imageInputRef.current.value = ''
+    }
+  }
 
   function set(patch: Partial<FormState>) {
     setForm((f) => ({ ...f, ...patch }))
@@ -472,23 +490,52 @@ function QuestionForm({
         />
       </div>
 
-      {form.type === 'IMAGE' && (
+      {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED') && (
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Image URL</label>
+          <label className="mb-1 block text-xs font-medium text-gray-500">Image</label>
           <input
-            type="url"
-            value={form.imageUrl}
-            onChange={(e) => set({ imageUrl: e.target.value })}
-            placeholder="https://..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) void handleImageUpload(file)
+            }}
           />
-          {form.imageUrl && (
-            <img
-              src={form.imageUrl}
-              alt="preview"
-              className="mt-2 h-32 w-auto rounded-lg object-cover"
-              onError={(e) => (e.currentTarget.style.display = 'none')}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isUploadingImage}
+              className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              {isUploadingImage ? 'Uploading…' : '↑ Upload image'}
+            </button>
+            <input
+              type="url"
+              value={form.imageUrl}
+              onChange={(e) => set({ imageUrl: e.target.value })}
+              placeholder="or paste a URL…"
+              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
+          </div>
+          {form.imageUrl && (
+            <div className="mt-2 flex items-start gap-2">
+              <img
+                src={form.imageUrl}
+                alt="preview"
+                className="h-32 w-auto rounded-lg object-cover"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+              />
+              <button
+                type="button"
+                onClick={() => set({ imageUrl: '' })}
+                className="text-xs text-gray-400 hover:text-red-500"
+              >
+                Remove
+              </button>
+            </div>
           )}
         </div>
       )}

@@ -1,9 +1,46 @@
 import { Router } from 'express'
+import multer from 'multer'
+import path from 'path'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { prisma } from '../lib/prisma.js'
+import { getSupabase } from '../lib/supabase.js'
+
+const IMAGES_BUCKET = 'question-images'
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+    if (allowed.includes(path.extname(file.originalname).toLowerCase())) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image files are allowed.'))
+    }
+  },
+})
 
 const router = Router()
 router.use(requireAuth)
+
+router.post('/upload-image', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    res.status(400).json({ error: 'No file uploaded.' })
+    return
+  }
+  const supabase = getSupabase()
+  const ext = path.extname(req.file.originalname).toLowerCase()
+  const filePath = `${req.userId}/${Date.now()}${ext}`
+  const { error: uploadError } = await supabase.storage
+    .from(IMAGES_BUCKET)
+    .upload(filePath, req.file.buffer, { contentType: req.file.mimetype })
+  if (uploadError) {
+    res.status(500).json({ error: 'Upload failed. Please try again.' })
+    return
+  }
+  const { data: { publicUrl } } = supabase.storage.from(IMAGES_BUCKET).getPublicUrl(filePath)
+  res.json({ url: publicUrl })
+})
 
 router.get('/', async (req, res) => {
   const quizzes = await prisma.quiz.findMany({
