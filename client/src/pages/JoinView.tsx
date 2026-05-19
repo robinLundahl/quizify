@@ -160,6 +160,8 @@ export default function JoinView() {
   const [nickname, setNickname] = useState('')
   const [error, setError] = useState('')
   const [quizTitle, setQuizTitle] = useState('')
+  const [hostName, setHostName] = useState('')
+  const [hostAvatar, setHostAvatar] = useState<string | null>(null)
   const [participantId, setParticipantId] = useState('')
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
   const [selectedAnswer, setSelectedAnswer] = useState('')
@@ -201,9 +203,11 @@ export default function JoinView() {
   }, [])
 
   useEffect(() => {
-    socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string }) => {
+    socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null }) => {
       setParticipantId(data.participantId)
       setQuizTitle(data.quizTitle)
+      setHostName(data.hostName)
+      setHostAvatar(data.hostAvatar)
       setPhase('lobby')
       sessionIdRef.current = data.sessionId
       participantIdRef.current = data.participantId
@@ -347,6 +351,16 @@ export default function JoinView() {
   if (phase === 'lobby') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 px-4 text-white">
+        {hostAvatar ? (
+          <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
+        ) : (
+          <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 ring-4 ring-white/30 text-2xl font-bold">
+            {hostName.charAt(0).toUpperCase()}
+          </div>
+        )}
+        {hostName && (
+          <p className="mb-5 text-sm opacity-75">Your host today is {hostName}</p>
+        )}
         <div className="mb-4 rounded-full bg-white/20 px-5 py-2 text-sm font-medium">{quizTitle}</div>
         <h2 className="mb-2 text-3xl font-black">{nickname}</h2>
         <p className="text-lg opacity-70">Waiting for the host to start…</p>

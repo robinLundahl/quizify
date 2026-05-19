@@ -243,7 +243,10 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
     const session = await prisma.gameSession.findUnique({
       where: { code: code.toUpperCase() },
-      include: { quiz: { select: { title: true } } },
+      include: {
+        quiz: { select: { title: true } },
+        host: { select: { name: true, avatar: true } },
+      },
     })
 
     if (!session) {
@@ -267,6 +270,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       sessionId: session.id,
       participantId: participant.id,
       quizTitle: session.quiz.title,
+      hostName: session.host.name,
+      hostAvatar: session.host.avatar ?? null,
     })
 
     const count = await prisma.participant.count({ where: { sessionId: session.id } })
