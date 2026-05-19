@@ -64,6 +64,7 @@ interface FormState {
   mapLng: string
   mapRings: RingField[]
   rankingItems: RankingItemField[]
+  correctAnswers: string[]
 }
 
 const TYPE_LABELS: Record<QuestionType, string> = {
@@ -98,6 +99,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
       { id: crypto.randomUUID(), label: '' },
       { id: crypto.randomUUID(), label: '' },
     ],
+    correctAnswers: [],
   }
 }
 
@@ -137,6 +139,9 @@ function questionToForm(q: Question): FormState {
             { id: crypto.randomUUID(), label: '' },
           ]
   }
+  if (q.type === 'OPEN_ENDED') {
+    form.correctAnswers = q.correctAnswers ?? []
+  }
   return form
 }
 
@@ -144,7 +149,11 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
   const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order }
 
   if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer, imageUrl: form.imageUrl.trim() || undefined }
-  if (form.type === 'OPEN_ENDED') return { ...base, imageUrl: form.imageUrl.trim() || undefined }
+  if (form.type === 'OPEN_ENDED') return {
+    ...base,
+    imageUrl: form.imageUrl.trim() || undefined,
+    correctAnswers: form.correctAnswers.filter((a) => a.trim()),
+  }
   if (form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') {
     return {
       ...base,
@@ -411,6 +420,20 @@ function QuestionForm({
     set({ mapRings })
   }
 
+  function addCorrectAnswer() {
+    set({ correctAnswers: [...form.correctAnswers, ''] })
+  }
+
+  function removeCorrectAnswer(i: number) {
+    set({ correctAnswers: form.correctAnswers.filter((_, idx) => idx !== i) })
+  }
+
+  function setCorrectAnswerText(i: number, text: string) {
+    const correctAnswers = [...form.correctAnswers]
+    correctAnswers[i] = text
+    set({ correctAnswers })
+  }
+
   function addRankingItem() {
     set({ rankingItems: [...form.rankingItems, { id: crypto.randomUUID(), label: '' }] })
   }
@@ -537,6 +560,31 @@ function QuestionForm({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {form.type === 'OPEN_ENDED' && (
+        <div className="space-y-2">
+          <label className="block text-xs font-medium text-gray-500">
+            Accepted answers <span className="font-normal text-gray-400">(leave empty to award points to everyone)</span>
+          </label>
+          {form.correctAnswers.map((answer, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={answer}
+                onChange={(e) => setCorrectAnswerText(i, e.target.value)}
+                placeholder={`Answer ${i + 1}`}
+                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button type="button" onClick={() => removeCorrectAnswer(i)} className="text-gray-400 hover:text-red-500">
+                ✕
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={addCorrectAnswer} className="text-sm text-indigo-600 hover:underline">
+            + Add answer
+          </button>
         </div>
       )}
 
@@ -795,6 +843,11 @@ function QuestionCard({
             {question.type === 'TRUE_FALSE' && (
               <p className="mt-1 text-xs text-gray-400">
                 Correct: {question.answerOptions.find((o) => o.isCorrect)?.text ?? '—'}
+              </p>
+            )}
+            {question.type === 'OPEN_ENDED' && question.correctAnswers.length > 0 && (
+              <p className="mt-1 text-xs text-gray-400">
+                Accepted: {question.correctAnswers.join(' / ')}
               </p>
             )}
             {question.type === 'MAP' && question.mapQuestion && (

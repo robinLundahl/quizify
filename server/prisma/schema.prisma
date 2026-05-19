@@ -52,10 +52,11 @@ model Question {
   quizId    String
   type      QuestionType
   text      String
-  imageUrl  String?
-  order     Int
-  timeLimit Int          @default(20)
-  points    Int          @default(1000)
+  imageUrl       String?
+  correctAnswers String[]
+  order          Int
+  timeLimit      Int          @default(20)
+  points         Int          @default(1000)
 
   quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answerOptions AnswerOption[]

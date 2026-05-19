@@ -122,7 +122,7 @@ router.post('/:id/questions', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
   const question = await prisma.question.create({
     data: {
       quizId: req.params.id,
@@ -132,6 +132,7 @@ router.post('/:id/questions', async (req, res) => {
       order: order ?? 0,
       timeLimit: timeLimit ?? 20,
       points: points ?? 1000,
+      correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
       ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
     include: {
@@ -168,7 +169,7 @@ router.put('/:id/questions/:qid', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
 
   await prisma.answerOption.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.mapQuestion.deleteMany({ where: { questionId: req.params.qid } })
@@ -183,6 +184,7 @@ router.put('/:id/questions/:qid', async (req, res) => {
       order,
       timeLimit,
       points,
+      correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
       ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
     include: {

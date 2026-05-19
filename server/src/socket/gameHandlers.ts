@@ -15,6 +15,7 @@ interface QuestionData {
     rings: { radiusKm: number; points: number; order: number }[]
   } | null
   rankingItems: { id: string; label: string; correctPosition: number }[]
+  correctAnswers: string[]
 }
 
 interface SessionState {
@@ -43,7 +44,12 @@ function scoreAnswer(question: QuestionData, answer: string, responseTimeMs: num
   const timeFraction = Math.max(0, 1 - responseTimeMs / (question.timeLimit * 1000))
   const timeMultiplier = 1.0 + 0.5 * timeFraction
 
-  if (question.type === 'OPEN_ENDED') return question.points
+  if (question.type === 'OPEN_ENDED') {
+    if (!question.correctAnswers.length) return question.points
+    const lower = answer.trim().toLowerCase()
+    const match = question.correctAnswers.some((a) => lower.includes(a.trim().toLowerCase()))
+    return match ? Math.round(question.points * timeMultiplier) : 0
+  }
 
   if (question.type === 'RANKING') {
     const items = question.rankingItems
@@ -134,7 +140,10 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
       rings: q.mapQuestion?.rings,
     }
   } else if (q.type === 'OPEN_ENDED') {
-    correctAnswer = { type: 'OPEN_ENDED' }
+    correctAnswer = {
+      type: 'OPEN_ENDED',
+      optionText: q.correctAnswers.length ? q.correctAnswers.join(' / ') : null,
+    }
   } else if (q.type === 'RANKING') {
     correctAnswer = {
       type: 'RANKING',

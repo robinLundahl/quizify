@@ -59,6 +59,7 @@ export interface Question {
   answerOptions: AnswerOption[]
   mapQuestion: MapQuestionData | null
   rankingItems: RankingItem[]
+  correctAnswers: string[]
 }
 
 export interface QuizWithQuestions extends Quiz {
@@ -131,6 +132,7 @@ export type QuestionPayload = {
   correctAnswer?: 'true' | 'false'
   mapQuestion?: { lat: number; lng: number; rings: { radiusKm: number; points: number; order: number }[] }
   rankingItems?: { label: string; correctPosition: number; order: number }[]
+  correctAnswers?: string[]
 }
 
 export function useAddQuestion(quizId: string) {
