@@ -530,7 +530,6 @@ export default function JoinView() {
           >
             {timeLeft}s
           </span>
-          <span className="text-sm text-gray-400">{myScore.toLocaleString()} pts</span>
         </div>
 
         {/* Question content */}
