@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
 import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
@@ -31,7 +31,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <span className="text-lg font-bold text-indigo-600">Quizify</span>
+          <Link to="/dashboard" className="text-lg font-bold text-indigo-600 hover:opacity-80 transition-opacity">Quizify</Link>
           <NavDropdown />
         </div>
       </header>
