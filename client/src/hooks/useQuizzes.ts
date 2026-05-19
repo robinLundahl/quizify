@@ -7,6 +7,13 @@ export interface QuizSession {
   finishedAt: string | null
 }
 
+export interface ActiveSession {
+  id: string
+  code: string
+  status: 'ACTIVE' | 'WAITING'
+  quizTitle: string
+}
+
 export interface Quiz {
   id: string
   title: string
@@ -73,6 +80,17 @@ export function useQuizzes() {
       const { data } = await api.get<Quiz[]>('/quiz')
       return data
     },
+  })
+}
+
+export function useActiveSessions() {
+  return useQuery({
+    queryKey: ['active-sessions'],
+    queryFn: async () => {
+      const { data } = await api.get<ActiveSession[]>('/sessions/active')
+      return data
+    },
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -192,7 +210,10 @@ export function useDeleteSession() {
     mutationFn: async (sessionId: string) => {
       await api.delete(`/sessions/${sessionId}`)
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['quizzes'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['quizzes'] })
+      void qc.invalidateQueries({ queryKey: ['active-sessions'] })
+    },
   })
 }
 

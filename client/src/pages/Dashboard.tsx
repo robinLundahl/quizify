@@ -1,17 +1,25 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../lib/api'
-import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession } from '../hooks/useQuizzes'
+import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession, useActiveSessions } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
 
 export default function Dashboard() {
   const navigate = useNavigate()
   const { data: quizzes, isLoading } = useQuizzes()
+  const { data: activeSessions } = useActiveSessions()
   const createQuiz = useCreateQuiz()
   const deleteQuiz = useDeleteQuiz()
   const deleteSession = useDeleteSession()
   const [hostingId, setHostingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
+
+  function handleRejoin(sessionId: string, code: string, status: 'ACTIVE' | 'WAITING') {
+    if (status === 'ACTIVE') {
+      localStorage.setItem('quizify_active_host_session', sessionId)
+    }
+    navigate(`/host/${sessionId}`, { state: { code, rejoin: true, status } })
+  }
 
   async function handleCreate() {
     const quiz = await createQuiz.mutateAsync({ title: 'Untitled quiz' })
@@ -38,6 +46,53 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-5xl px-6 py-12">
+        {activeSessions && activeSessions.length > 0 && (
+          <div className="mb-8">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-indigo-600">
+              Active sessions
+            </h2>
+            <div className="space-y-2">
+              {activeSessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 px-5 py-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="rounded bg-indigo-600 px-2 py-0.5 font-mono text-sm font-bold tracking-widest text-white">
+                      {s.code}
+                    </span>
+                    <span className="font-medium text-gray-900">{s.quizTitle}</span>
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                        s.status === 'ACTIVE'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }`}
+                    >
+                      {s.status === 'ACTIVE' ? 'In progress' : 'Waiting'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleRejoin(s.id, s.code, s.status)}
+                      className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+                    >
+                      Rejoin
+                    </button>
+                    <button
+                      onClick={() => deleteSession.mutate(s.id)}
+                      disabled={deleteSession.isPending}
+                      className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Your quizzes</h1>
           <button

@@ -64,7 +64,8 @@ export default function HostView() {
   const socket = getSocket()
 
   const [phase, setPhase] = useState<Phase>('lobby')
-  const joinCode = (location.state as { code?: string } | null)?.code ?? ''
+  const locationState = location.state as { code?: string; rejoin?: boolean; status?: string } | null
+  const joinCode = locationState?.code ?? ''
   const [players, setPlayers] = useState<Player[]>([])
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
   const [correctAnswer, setCorrectAnswer] = useState<CorrectAnswer | null>(null)
@@ -76,7 +77,10 @@ export default function HostView() {
   useEffect(() => {
     if (!sessionId) return
 
-    if (localStorage.getItem(STORAGE_KEY) === sessionId) {
+    const fromDashboardRejoin = locationState?.rejoin === true && locationState?.status === 'ACTIVE'
+    const fromLocalStorage = localStorage.getItem(STORAGE_KEY) === sessionId
+
+    if (fromDashboardRejoin || fromLocalStorage) {
       socket.emit('host:rejoin', { sessionId })
     } else {
       socket.emit('host:join', { sessionId })

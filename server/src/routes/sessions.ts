@@ -32,6 +32,27 @@ router.post('/', requireAuth, async (req, res) => {
   res.json({ code: session.code, sessionId: session.id })
 })
 
+router.get('/active', requireAuth, async (req, res) => {
+  const sessions = await prisma.gameSession.findMany({
+    where: { hostId: req.userId!, status: { in: ['ACTIVE', 'WAITING'] } },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      code: true,
+      status: true,
+      quiz: { select: { title: true } },
+    },
+  })
+  res.json(
+    sessions.map((s) => ({
+      id: s.id,
+      code: s.code,
+      status: s.status,
+      quizTitle: s.quiz.title,
+    }))
+  )
+})
+
 router.get('/:code', async (req, res) => {
   const session = await prisma.gameSession.findUnique({
     where: { code: req.params.code.toUpperCase() },
