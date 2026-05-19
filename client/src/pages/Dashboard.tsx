@@ -116,7 +116,7 @@ export default function Dashboard() {
                           <button
                             onClick={() => deleteSession.mutate(s.id)}
                             disabled={deleteSession.isPending}
-                            className="text-gray-300 transition hover:text-red-500 disabled:opacity-40"
+                            className="cursor-pointer text-gray-300 transition hover:text-red-500 disabled:opacity-40"
                             title="Delete session"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
