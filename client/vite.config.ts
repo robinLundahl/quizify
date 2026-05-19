@@ -9,6 +9,7 @@ export default defineConfig({
     alias: { '@': resolve(__dirname, 'src') },
   },
   server: {
+    host: true,
     proxy: {
       '/api': 'http://localhost:3001',
       '/socket.io': {
