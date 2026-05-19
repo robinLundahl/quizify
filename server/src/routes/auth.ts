@@ -117,6 +117,12 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar })
 })
 
+router.delete('/account', requireAuth, async (req, res) => {
+  await prisma.user.delete({ where: { id: req.userId } })
+  res.clearCookie('token')
+  res.json({ ok: true })
+})
+
 router.post('/logout', (_req, res) => {
   res.clearCookie('token')
   res.json({ ok: true })

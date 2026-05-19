@@ -1,27 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useAuthStore } from '../store/authStore'
-import { useQueryClient } from '@tanstack/react-query'
 import api from '../lib/api'
 import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession } from '../hooks/useQuizzes'
+import NavDropdown from '../components/ui/NavDropdown'
 
 export default function Dashboard() {
-  const user = useAuthStore((s) => s.user)
-  const clearUser = useAuthStore((s) => s.clearUser)
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const { data: quizzes, isLoading } = useQuizzes()
   const createQuiz = useCreateQuiz()
   const deleteQuiz = useDeleteQuiz()
   const deleteSession = useDeleteSession()
   const [hostingId, setHostingId] = useState<string | null>(null)
-
-  async function handleLogout() {
-    await api.post('/auth/logout')
-    clearUser()
-    queryClient.clear()
-    navigate('/login')
-  }
 
   async function handleCreate() {
     const quiz = await createQuiz.mutateAsync({ title: 'Untitled quiz' })
@@ -43,18 +32,7 @@ export default function Dashboard() {
       <header className="border-b border-gray-200 bg-white px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <span className="text-lg font-bold text-indigo-600">Quizify</span>
-          <div className="flex items-center gap-3">
-            {user?.avatar && (
-              <img src={user.avatar} alt={user.name} className="h-8 w-8 rounded-full" />
-            )}
-            <span className="text-sm font-medium text-gray-700">{user?.name}</span>
-            <button
-              onClick={handleLogout}
-              className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-100"
-            >
-              Log out
-            </button>
-          </div>
+          <NavDropdown />
         </div>
       </header>
 

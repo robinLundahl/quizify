@@ -17,6 +17,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import NavDropdown from '../components/ui/NavDropdown'
 import {
   useQuiz,
   useUpdateQuiz,
@@ -753,12 +754,15 @@ export default function QuizEditor() {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-3xl items-center gap-4">
-          <button onClick={() => navigate('/dashboard')} className="text-sm text-gray-500 hover:text-gray-800">
-            ← Dashboard
-          </button>
-          <span className="text-gray-300">|</span>
-          <span className="truncate text-sm font-medium text-gray-700">{quiz.title}</span>
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <button onClick={() => navigate('/dashboard')} className="text-sm text-gray-500 hover:text-gray-800 shrink-0">
+              ← Dashboard
+            </button>
+            <span className="text-gray-300 shrink-0">|</span>
+            <span className="truncate text-sm font-medium text-gray-700">{quiz.title}</span>
+          </div>
+          <NavDropdown />
         </div>
       </header>
 

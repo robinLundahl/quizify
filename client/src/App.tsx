@@ -4,6 +4,7 @@ import ProtectedRoute from './components/ui/ProtectedRoute'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Settings from './pages/Settings'
 import QuizEditor from './pages/QuizEditor'
 import HostView from './pages/HostView'
 import JoinView from './pages/JoinView'
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/join" element={<JoinView />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/quiz/:id" element={<QuizEditor />} />
             <Route path="/host/:sessionId" element={<HostView />} />
             <Route path="/results/:sessionId" element={<ResultsView />} />
