@@ -120,6 +120,30 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
   })
 }
 
+function computeCorrectAnswer(q: QuestionData): unknown {
+  if (q.type === 'MAP') {
+    return {
+      type: 'MAP',
+      lat: q.mapQuestion?.lat,
+      lng: q.mapQuestion?.lng,
+      rings: q.mapQuestion?.rings,
+    }
+  } else if (q.type === 'OPEN_ENDED') {
+    return {
+      type: 'OPEN_ENDED',
+      optionText: q.correctAnswers.length ? q.correctAnswers.join(' / ') : null,
+    }
+  } else if (q.type === 'RANKING') {
+    return {
+      type: 'RANKING',
+      items: [...q.rankingItems].sort((a, b) => a.correctPosition - b.correctPosition),
+    }
+  } else {
+    const correct = q.answerOptions.find((o) => o.isCorrect)
+    return { type: q.type, optionId: correct?.id, optionText: correct?.text }
+  }
+}
+
 async function endQuestion(io: Server, sessionId: string, state: SessionState) {
   if (state.questionEnded) return
   state.questionEnded = true
@@ -130,29 +154,7 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
   }
 
   const q = state.questions[state.currentIndex]
-
-  let correctAnswer: unknown
-  if (q.type === 'MAP') {
-    correctAnswer = {
-      type: 'MAP',
-      lat: q.mapQuestion?.lat,
-      lng: q.mapQuestion?.lng,
-      rings: q.mapQuestion?.rings,
-    }
-  } else if (q.type === 'OPEN_ENDED') {
-    correctAnswer = {
-      type: 'OPEN_ENDED',
-      optionText: q.correctAnswers.length ? q.correctAnswers.join(' / ') : null,
-    }
-  } else if (q.type === 'RANKING') {
-    correctAnswer = {
-      type: 'RANKING',
-      items: [...q.rankingItems].sort((a, b) => a.correctPosition - b.correctPosition),
-    }
-  } else {
-    const correct = q.answerOptions.find((o) => o.isCorrect)
-    correctAnswer = { type: q.type, optionId: correct?.id, optionText: correct?.text }
-  }
+  const correctAnswer = computeCorrectAnswer(q)
 
   const participants = await prisma.participant.findMany({
     where: { sessionId },
@@ -163,6 +165,20 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
   io.to(sessionId).emit('session:question_ended', { correctAnswer, scores: participants })
 }
 
+function buildQuestionPayload(q: QuestionData) {
+  return {
+    id: q.id,
+    text: q.text,
+    type: q.type,
+    imageUrl: q.imageUrl,
+    timeLimit: q.timeLimit,
+    points: q.points,
+    answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
+    mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
+    rankingItems: q.rankingItems.length ? q.rankingItems.map(({ id, label }) => ({ id, label })) : null,
+  }
+}
+
 export function registerGameHandlers(io: Server, socket: Socket) {
   // Host joins an already-created session room (lobby phase)
   socket.on('host:join', async (data: { sessionId: string }) => {
@@ -171,6 +187,57 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     })
     if (!session || session.status !== 'WAITING') return
     socket.join(data.sessionId)
+  })
+
+  // Host reconnects after a page refresh during an active session
+  socket.on('host:rejoin', async (data: { sessionId: string }) => {
+    const { sessionId } = data
+
+    const session = await prisma.gameSession.findUnique({ where: { id: sessionId } })
+    if (!session || session.status !== 'ACTIVE') {
+      socket.emit('host:rejoin_failed', { reason: 'session_not_active' })
+      return
+    }
+
+    const state = sessions.get(sessionId)
+    if (!state) {
+      socket.emit('host:rejoin_failed', { reason: 'server_restarted' })
+      return
+    }
+
+    socket.join(sessionId)
+
+    const q = state.questions[state.currentIndex]
+    const questionPayload = buildQuestionPayload(q)
+
+    if (!state.questionEnded) {
+      const endsAt = state.questionStartedAt + q.timeLimit * 1000
+      socket.emit('host:rejoin_success', {
+        phase: 'question',
+        question: questionPayload,
+        index: state.currentIndex,
+        total: state.questions.length,
+        endsAt,
+        answeredCount: state.answeredParticipants.size,
+      })
+    } else {
+      const correctAnswer = computeCorrectAnswer(q)
+      const scores = await prisma.participant.findMany({
+        where: { sessionId },
+        orderBy: { score: 'desc' },
+        select: { id: true, nickname: true, score: true },
+      })
+      socket.emit('host:rejoin_success', {
+        phase: 'reveal',
+        question: questionPayload,
+        index: state.currentIndex,
+        total: state.questions.length,
+        endsAt: 0,
+        answeredCount: state.answeredParticipants.size,
+        correctAnswer,
+        scores,
+      })
+    }
   })
 
   // Host starts the game

@@ -48,6 +48,8 @@ interface CorrectAnswer {
 
 type Phase = 'lobby' | 'question' | 'reveal' | 'finished'
 
+const STORAGE_KEY = 'quizify_active_host_session'
+
 const OPTION_COLORS = [
   'bg-red-500 hover:bg-red-600',
   'bg-blue-500 hover:bg-blue-600',
@@ -69,11 +71,16 @@ export default function HostView() {
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [answerCount, setAnswerCount] = useState(0)
+  const [rejoinError, setRejoinError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!sessionId) return
 
-    socket.emit('host:join', { sessionId })
+    if (localStorage.getItem(STORAGE_KEY) === sessionId) {
+      socket.emit('host:rejoin', { sessionId })
+    } else {
+      socket.emit('host:join', { sessionId })
+    }
 
     socket.on('session:player_joined', ({ nickname, count }: { nickname: string; count: number }) => {
       setPlayers((prev) => {
@@ -84,6 +91,7 @@ export default function HostView() {
     })
 
     socket.on('session:started', () => {
+      localStorage.setItem(STORAGE_KEY, sessionId)
       setPhase('question')
     })
 
@@ -106,8 +114,45 @@ export default function HostView() {
     )
 
     socket.on('session:finished', ({ leaderboard: lb }: { leaderboard: Player[] }) => {
+      localStorage.removeItem(STORAGE_KEY)
       setLeaderboard(lb)
       setPhase('finished')
+    })
+
+    socket.on(
+      'host:rejoin_success',
+      (payload: {
+        phase: 'question' | 'reveal'
+        question: Question
+        index: number
+        total: number
+        endsAt: number
+        answeredCount: number
+        correctAnswer?: CorrectAnswer
+        scores?: Player[]
+      }) => {
+        const questionPayload: QuestionPayload = {
+          question: payload.question,
+          index: payload.index,
+          total: payload.total,
+          endsAt: payload.endsAt,
+        }
+        setCurrentQuestion(questionPayload)
+        setAnswerCount(payload.answeredCount)
+        if (payload.phase === 'question') {
+          setCorrectAnswer(null)
+          setTimeLeft(Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000)))
+          setPhase('question')
+        } else {
+          setCorrectAnswer(payload.correctAnswer ?? null)
+          setLeaderboard(payload.scores ?? [])
+          setPhase('reveal')
+        }
+      }
+    )
+
+    socket.on('host:rejoin_failed', ({ reason }: { reason: string }) => {
+      setRejoinError(reason)
     })
 
     return () => {
@@ -116,6 +161,8 @@ export default function HostView() {
       socket.off('session:question')
       socket.off('session:question_ended')
       socket.off('session:finished')
+      socket.off('host:rejoin_success')
+      socket.off('host:rejoin_failed')
     }
   }, [sessionId, socket])
 
@@ -133,6 +180,28 @@ export default function HostView() {
   const handleNext = useCallback(() => {
     socket.emit('host:next', { sessionId })
   }, [socket, sessionId])
+
+  if (rejoinError) {
+    const message =
+      rejoinError === 'server_restarted'
+        ? 'The server was restarted and the session state was lost.'
+        : 'This session is no longer active.'
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 p-6 text-white">
+        <h1 className="mb-4 text-2xl font-black text-red-400">Could not rejoin session</h1>
+        <p className="mb-8 max-w-sm text-center text-gray-300">{message}</p>
+        <button
+          onClick={() => {
+            localStorage.removeItem(STORAGE_KEY)
+            navigate('/dashboard')
+          }}
+          className="rounded-xl bg-indigo-500 px-8 py-3 text-lg font-bold hover:bg-indigo-600"
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    )
+  }
 
   if (phase === 'lobby') {
     return (
