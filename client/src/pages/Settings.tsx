@@ -13,7 +13,7 @@ export default function Settings() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const [confirming, setConfirming] = useState(false)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
 
@@ -82,6 +82,12 @@ export default function Settings() {
       setDeleteError('Something went wrong. Please try again.')
       setDeleting(false)
     }
+  }
+
+  function handleCloseDeleteModal() {
+    if (deleting) return
+    setShowDeleteModal(false)
+    setDeleteError('')
   }
 
   return (
@@ -169,39 +175,42 @@ export default function Settings() {
             Permanently delete your account and all your quizzes. This cannot be undone.
           </p>
 
-          {!confirming ? (
-            <button
-              onClick={() => setConfirming(true)}
-              className="border border-gray-200 text-gray-500 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
-            >
-              Delete account
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm font-medium text-red-600">
-                Are you sure? This cannot be undone.
-              </p>
-              {deleteError && <p className="text-xs text-red-600">{deleteError}</p>}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setConfirming(false); setDeleteError('') }}
-                  disabled={deleting}
-                  className="border border-gray-300 text-gray-600 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 transition disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteAccount}
-                  disabled={deleting}
-                  className="rounded-lg bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition"
-                >
-                  {deleting ? 'Deleting…' : 'Confirm delete'}
-                </button>
-              </div>
-            </div>
-          )}
+          <button
+            onClick={() => { setDeleteError(''); setShowDeleteModal(true) }}
+            className="border border-gray-200 text-gray-500 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
+          >
+            Delete account
+          </button>
         </div>
       </main>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+            <h2 className="font-semibold text-gray-900">Delete account?</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Your account and all your quizzes will be permanently deleted. This cannot be undone.
+            </p>
+            {deleteError && <p className="mt-3 text-xs text-red-600">{deleteError}</p>}
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={handleCloseDeleteModal}
+                disabled={deleting}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete account'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
