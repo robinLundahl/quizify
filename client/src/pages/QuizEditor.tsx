@@ -476,7 +476,15 @@ function QuestionForm({
           </select>
         </div>
         <div>
-          <label className={LABEL_CLS}>Time (s)</label>
+          <div className="mb-1.5 flex items-center gap-1">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Time (s)</span>
+            <span className="group relative flex items-center">
+              <span className="cursor-default text-xs text-gray-400 hover:text-gray-600">ⓘ</span>
+              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 w-52 -translate-x-1/2 rounded-xl bg-gray-900 px-3 py-2 text-xs font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                The amount of seconds a player has to answer a question. The quicker they respond, the more points they score.
+              </span>
+            </span>
+          </div>
           <input
             type="number"
             min={5}
