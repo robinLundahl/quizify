@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
 import api from '../lib/api'
 import NavDropdown from '../components/ui/NavDropdown'
+import AvatarCropper from '../components/ui/AvatarCropper'
 
 export default function Settings() {
   const user = useAuthStore((s) => s.user)
@@ -16,30 +17,44 @@ export default function Settings() {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
 
+  const [cropSrc, setCropSrc] = useState<string | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarRemoving, setAvatarRemoving] = useState(false)
   const [avatarError, setAvatarError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
     setAvatarError('')
+    const url = URL.createObjectURL(file)
+    setCropSrc(url)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  async function handleCropSave(blob: Blob) {
     setAvatarUploading(true)
     try {
       const form = new FormData()
-      form.append('avatar', file)
+      form.append('avatar', blob, 'avatar.jpg')
       const res = await api.patch<{ avatar: string }>('/auth/avatar', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       if (user) setUser({ ...user, avatar: res.data.avatar })
+      if (cropSrc) URL.revokeObjectURL(cropSrc)
+      setCropSrc(null)
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
       setAvatarError(msg ?? 'Upload failed. Please try again.')
     } finally {
       setAvatarUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
+  }
+
+  function handleCropCancel() {
+    if (cropSrc) URL.revokeObjectURL(cropSrc)
+    setCropSrc(null)
+    setAvatarError('')
   }
 
   async function handleAvatarRemove() {
@@ -102,12 +117,12 @@ export default function Settings() {
               />
               <button
                 onClick={() => fileInputRef.current?.click()}
-                disabled={avatarUploading || avatarRemoving}
+                disabled={avatarUploading || avatarRemoving || !!cropSrc}
                 className="border border-gray-300 text-gray-600 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 transition disabled:opacity-50"
               >
-                {avatarUploading ? 'Uploading…' : 'Upload photo'}
+                Upload photo
               </button>
-              {user?.avatar && (
+              {user?.avatar && !cropSrc && (
                 <button
                   onClick={handleAvatarRemove}
                   disabled={avatarUploading || avatarRemoving}
@@ -118,8 +133,18 @@ export default function Settings() {
               )}
             </div>
           </div>
+
+          {cropSrc && (
+            <AvatarCropper
+              imageSrc={cropSrc}
+              onSave={handleCropSave}
+              onCancel={handleCropCancel}
+              saving={avatarUploading}
+            />
+          )}
+
           {avatarError && <p className="text-xs text-red-600">{avatarError}</p>}
-          <p className="text-xs text-gray-400">JPEG, PNG, WebP or GIF · max 2 MB</p>
+          {!cropSrc && <p className="text-xs text-gray-400">JPEG, PNG, WebP or GIF · max 2 MB</p>}
         </div>
 
         {/* Account info */}
