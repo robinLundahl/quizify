@@ -19,3 +19,7 @@ server/uploads/*
 # Misc
 .DS_Store
 *.log
+
+# Dev tools
+.playwright-mcp/
+.claude/settings.local.json
