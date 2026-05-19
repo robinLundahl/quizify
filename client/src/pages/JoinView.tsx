@@ -151,7 +151,6 @@ export default function JoinView() {
   const [code, setCode] = useState(searchParams.get('code') ?? '')
   const [nickname, setNickname] = useState('')
   const [error, setError] = useState('')
-  const [quizTitle, setQuizTitle] = useState('')
   const [hostName, setHostName] = useState('')
   const [hostAvatar, setHostAvatar] = useState<string | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
@@ -198,7 +197,6 @@ export default function JoinView() {
     socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null }) => {
       localStorage.setItem(PLAYER_SESSION_KEY, data.sessionId)
       localStorage.setItem(PLAYER_PARTICIPANT_KEY, data.participantId)
-      setQuizTitle(data.quizTitle)
       setHostName(data.hostName)
       setHostAvatar(data.hostAvatar)
       setPhase('lobby')
@@ -422,12 +420,9 @@ export default function JoinView() {
           </div>
         )}
         {hostName && (
-          <p className="mb-5 text-sm opacity-75">Hosted by {hostName}</p>
+          <p className="mb-5 text-sm opacity-75">Quiz hosted by {hostName}</p>
         )}
-        <div className="mb-5 rounded-full border border-white/20 bg-white/15 px-5 py-2 text-sm font-medium backdrop-blur-sm">
-          {quizTitle}
-        </div>
-        <h2 className="mb-1 text-3xl font-black">{nickname}</h2>
+        <h2 className="mb-1 text-3xl font-black">Good luck, {nickname}!</h2>
         <p className="text-base opacity-60">Waiting for the host to start…</p>
         <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
       </div>
