@@ -652,6 +652,7 @@ function QuestionCard({
 }) {
   const updateQuestion = useUpdateQuestion(quizId)
   const deleteQuestion = useDeleteQuestion(quizId)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: question.id,
     disabled: isEditing,
@@ -742,12 +743,39 @@ function QuestionCard({
               Edit
             </button>
             <button
-              onClick={() => { if (confirm('Delete this question?')) deleteQuestion.mutate(question.id) }}
+              onClick={() => setConfirmDelete(true)}
               disabled={deleteQuestion.isPending}
               className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
             >
               Delete
             </button>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+            <h2 className="font-semibold text-gray-900">Delete question?</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              <span className="font-medium text-gray-700">"{question.text}"</span> will be permanently deleted. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(false)}
+                disabled={deleteQuestion.isPending}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteQuestion.mutate(question.id, { onSettled: () => setConfirmDelete(false) })}
+                disabled={deleteQuestion.isPending}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteQuestion.isPending ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
           </div>
         </div>
       )}
