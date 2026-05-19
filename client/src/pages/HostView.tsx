@@ -365,7 +365,7 @@ export default function HostView() {
             <img
               src={question.imageUrl}
               alt=""
-              className="mb-4 max-h-48 w-full rounded-xl object-cover"
+              className="mb-4 max-h-48 w-full rounded-xl object-contain"
             />
           )}
 

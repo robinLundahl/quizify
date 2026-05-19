@@ -481,7 +481,7 @@ export default function JoinView() {
           <img
             src={question.imageUrl}
             alt=""
-            className="mx-4 max-h-40 rounded-xl object-cover"
+            className="mx-4 max-h-40 rounded-xl object-contain"
           />
         )}
         <h2 className="px-4 py-4 text-center text-xl font-bold leading-snug">{question.text}</h2>
