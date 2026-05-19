@@ -41,7 +41,7 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 
 function scoreAnswer(question: QuestionData, answer: string, responseTimeMs: number): number {
   const timeFraction = Math.max(0, 1 - responseTimeMs / (question.timeLimit * 1000))
-  const timeMultiplier = 0.5 + 0.5 * timeFraction
+  const timeMultiplier = 1.0 + 0.5 * timeFraction
 
   if (question.type === 'OPEN_ENDED') return question.points
 
