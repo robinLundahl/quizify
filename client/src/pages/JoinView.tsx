@@ -63,32 +63,23 @@ interface Player {
   score: number
 }
 
-interface CorrectAnswer {
-  type: string
-  optionId?: string
-  optionText?: string
-  lat?: number
-  lng?: number
-  items?: { id: string; label: string; correctPosition: number }[]
-}
-
 type Phase = 'enter' | 'lobby' | 'question' | 'answered' | 'reveal' | 'finished'
 
 const PLAYER_SESSION_KEY = 'quizify_player_session'
 const PLAYER_PARTICIPANT_KEY = 'quizify_player_participant'
 
 const OPTION_COLORS = [
-  { bg: 'bg-red-500 active:bg-red-700', border: 'border-red-600' },
-  { bg: 'bg-blue-500 active:bg-blue-700', border: 'border-blue-600' },
-  { bg: 'bg-yellow-500 active:bg-yellow-700', border: 'border-yellow-600' },
-  { bg: 'bg-green-500 active:bg-green-700', border: 'border-green-600' },
+  'bg-red-400 active:brightness-75',
+  'bg-blue-400 active:brightness-75',
+  'bg-yellow-400 active:brightness-75',
+  'bg-green-400 active:brightness-75',
 ]
 
-function MapPinPicker({
-  onPin,
-}: {
-  onPin: (lat: number, lng: number) => void
-}) {
+const OPTION_LETTERS = ['A', 'B', 'C', 'D']
+
+const MEDALS = ['🥇', '🥈', '🥉']
+
+function MapPinPicker({ onPin }: { onPin: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
       onPin(e.latlng.lat, e.latlng.lng)
@@ -115,7 +106,7 @@ function SortableRankingItem({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      className="flex items-center gap-2 rounded-xl bg-white/10 px-3 py-3"
+      className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3"
     >
       <button
         {...attributes}
@@ -171,8 +162,6 @@ export default function JoinView() {
   const [mapPin, setMapPin] = useState<[number, number] | null>(null)
   const [openText, setOpenText] = useState('')
   const [rankingOrder, setRankingOrder] = useState<RankingItem[]>([])
-  const [pointsEarned, setPointsEarned] = useState<number | null>(null)
-  const [correctAnswer, setCorrectAnswer] = useState<CorrectAnswer | null>(null)
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [myScore, setMyScore] = useState(0)
@@ -237,22 +226,19 @@ export default function JoinView() {
       setMapPin(null)
       setOpenText('')
       setRankingOrder(payload.question.rankingItems ?? [])
-      setPointsEarned(null)
       setPhase('question')
       const remaining = Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000))
       setTimeLeft(remaining)
     })
 
     socket.on('player:answer_received', ({ pointsEarned: pts }: { pointsEarned: number }) => {
-      setPointsEarned(pts)
       setMyScore((s) => s + pts)
       setPhase('answered')
     })
 
     socket.on(
       'session:question_ended',
-      ({ correctAnswer: ca, scores }: { correctAnswer: CorrectAnswer; scores: Player[] }) => {
-        setCorrectAnswer(ca)
+      ({ scores }: { correctAnswer: unknown; scores: Player[] }) => {
         setLeaderboard(scores)
         setPhase('reveal')
       }
@@ -275,9 +261,7 @@ export default function JoinView() {
         endsAt: number
         score: number
         nickname: string
-        correctAnswer?: CorrectAnswer
         scores?: Player[]
-        pointsEarned?: number | null
       }) => {
         const savedSessionId = localStorage.getItem(PLAYER_SESSION_KEY) ?? ''
         const savedParticipantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY) ?? ''
@@ -297,15 +281,12 @@ export default function JoinView() {
           setMapPin(null)
           setOpenText('')
           setRankingOrder(payload.question.rankingItems ?? [])
-          setPointsEarned(null)
           setTimeLeft(Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000)))
           setPhase('question')
         } else if (payload.phase === 'answered') {
           setPhase('answered')
         } else {
-          setCorrectAnswer(payload.correctAnswer ?? null)
           setLeaderboard(payload.scores ?? [])
-          setPointsEarned(payload.pointsEarned ?? null)
           setPhase('reveal')
         }
       }
@@ -330,6 +311,20 @@ export default function JoinView() {
       socket.off('player:reconnect_failed')
     }
   }, [socket])
+
+  // Sync html/body background to the current phase so iOS safe areas match
+  useEffect(() => {
+    const color =
+      phase === 'question' || phase === 'answered' || phase === 'reveal'
+        ? '#111827'
+        : '#ef3f7f'
+    document.documentElement.style.backgroundColor = color
+    document.body.style.backgroundColor = color
+    return () => {
+      document.documentElement.style.backgroundColor = ''
+      document.body.style.backgroundColor = ''
+    }
+  }, [phase])
 
   // Countdown timer
   useEffect(() => {
@@ -367,12 +362,9 @@ export default function JoinView() {
     [socket, currentQuestion, phase]
   )
 
-  const handleMapPin = useCallback(
-    (lat: number, lng: number) => {
-      setMapPin([lat, lng])
-    },
-    []
-  )
+  const handleMapPin = useCallback((lat: number, lng: number) => {
+    setMapPin([lat, lng])
+  }, [])
 
   const submitMapAnswer = useCallback(() => {
     if (!mapPin) return
@@ -384,71 +376,75 @@ export default function JoinView() {
     submitAnswer(JSON.stringify(rankingOrder.map((i) => i.id)))
   }, [rankingOrder, submitAnswer])
 
-  // ── Enter code + nickname ──────────────────────────────────────────────────
+  // ── Enter ──────────────────────────────────────────────────────────────────
   if (phase === 'enter') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 px-4">
-        <h1 className="mb-8 text-4xl font-black text-white">Join a Quiz</h1>
-        {savedSession && (
-          <div className="mb-6 w-full max-w-sm rounded-xl bg-white/15 p-4 text-white">
-            <p className="mb-1 font-semibold">Active session found</p>
-            <p className="mb-3 text-sm opacity-70">You were in a game that may still be running.</p>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <h1 className="mb-6 text-4xl font-black text-white">Quizify</h1>
+        <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+          {savedSession && (
+            <div className="mb-5 rounded-xl bg-white/15 p-4 text-white">
+              <p className="mb-1 font-semibold">Active session found</p>
+              <p className="mb-3 text-sm opacity-70">You were in a game that may still be running.</p>
+              <button
+                onClick={handleRejoin}
+                className="w-full rounded-xl bg-white py-3 font-bold text-indigo-600 transition hover:bg-indigo-50"
+              >
+                Rejoin game
+              </button>
+            </div>
+          )}
+          <form onSubmit={handleJoin} className="space-y-3">
+            <input
+              type="text"
+              placeholder="Game code"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              maxLength={6}
+              className="w-full rounded-xl bg-white px-5 py-4 text-center text-2xl font-black uppercase tracking-widest text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
+            />
+            <input
+              type="text"
+              placeholder="Your nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+              maxLength={20}
+              className="w-full rounded-xl bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
+            />
+            {error && <p className="text-center text-sm font-medium text-red-200">{error}</p>}
             <button
-              onClick={handleRejoin}
-              className="w-full rounded-xl bg-white py-3 font-bold text-indigo-600 transition hover:bg-indigo-50"
+              type="submit"
+              disabled={!code.trim() || !nickname.trim()}
+              className="w-full rounded-xl bg-white py-4 text-lg font-bold text-indigo-600 transition hover:bg-indigo-50 disabled:opacity-40"
             >
-              Rejoin game
+              Join
             </button>
-          </div>
-        )}
-        <form onSubmit={handleJoin} className="w-full max-w-sm space-y-4">
-          <input
-            type="text"
-            placeholder="Game code"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            maxLength={6}
-            className="w-full rounded-xl bg-white px-5 py-4 text-center text-2xl font-black uppercase tracking-widest text-gray-800 shadow-lg outline-none"
-          />
-          <input
-            type="text"
-            placeholder="Your nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            maxLength={20}
-            className="w-full rounded-xl bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 shadow-lg outline-none"
-          />
-          {error && <p className="text-center text-sm font-medium text-red-200">{error}</p>}
-          <button
-            type="submit"
-            disabled={!code.trim() || !nickname.trim()}
-            className="w-full rounded-xl bg-white py-4 text-lg font-bold text-indigo-600 shadow-lg transition hover:bg-indigo-50 disabled:opacity-40"
-          >
-            Join
-          </button>
-        </form>
+          </form>
+        </div>
       </div>
     )
   }
 
-  // ── Lobby ─────────────────────────────────────────────────────────────────
+  // ── Lobby ──────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 px-4 text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {hostAvatar ? (
           <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
         ) : (
-          <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 ring-4 ring-white/30 text-2xl font-bold">
+          <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/30">
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
         {hostName && (
-          <p className="mb-5 text-sm opacity-75">Your host today is {hostName}</p>
+          <p className="mb-5 text-sm opacity-75">Hosted by {hostName}</p>
         )}
-        <div className="mb-4 rounded-full bg-white/20 px-5 py-2 text-sm font-medium">{quizTitle}</div>
-        <h2 className="mb-2 text-3xl font-black">{nickname}</h2>
-        <p className="text-lg opacity-70">Waiting for the host to start…</p>
-        <div className="mt-8 h-12 w-12 animate-spin rounded-full border-4 border-white/30 border-t-white" />
+        <div className="mb-5 rounded-full border border-white/20 bg-white/15 px-5 py-2 text-sm font-medium backdrop-blur-sm">
+          {quizTitle}
+        </div>
+        <h2 className="mb-1 text-3xl font-black">{nickname}</h2>
+        <p className="text-base opacity-60">Waiting for the host to start…</p>
+        <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
       </div>
     )
   }
@@ -457,10 +453,10 @@ export default function JoinView() {
   if (phase === 'finished') {
     const myRank = leaderboard.findIndex((p) => p.id === participantId) + 1
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 px-4 text-white">
-        <h1 className="mb-2 text-4xl font-black">Game Over!</h1>
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+        <h1 className="mb-1 text-4xl font-black">Game Over!</h1>
         {myRank > 0 && (
-          <p className="mb-6 text-xl opacity-80">
+          <p className="mb-6 text-base opacity-75">
             You finished #{myRank} with {myScore.toLocaleString()} pts
           </p>
         )}
@@ -468,14 +464,15 @@ export default function JoinView() {
           {leaderboard.slice(0, 10).map((p, i) => (
             <div
               key={p.id}
-              className={`flex items-center justify-between rounded-xl px-5 py-3 font-semibold ${
+              className={`flex items-center justify-between rounded-2xl px-5 py-3 font-semibold ${
                 p.id === participantId ? 'bg-white text-indigo-700' : 'bg-white/20'
               }`}
             >
-              <span>
-                {i + 1}. {p.nickname}
+              <span className="flex items-center gap-2">
+                <span>{MEDALS[i] ?? `${i + 1}.`}</span>
+                {p.nickname}
               </span>
-              <span>{p.score.toLocaleString()}</span>
+              <span className="text-sm opacity-90">{p.score.toLocaleString()} pts</span>
             </div>
           ))}
         </div>
@@ -485,58 +482,34 @@ export default function JoinView() {
 
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal') {
-    const myRank = leaderboard.findIndex((p) => p.id === participantId) + 1
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 px-4 text-white">
-        <div
-          className={`mb-4 rounded-full px-6 py-2 text-lg font-bold ${
-            pointsEarned && pointsEarned > 0 ? 'bg-green-500' : 'bg-red-500'
-          }`}
-        >
-          {pointsEarned !== null && pointsEarned > 0
-            ? `+${pointsEarned.toLocaleString()} pts`
-            : 'No points'}
-        </div>
-        {correctAnswer?.optionText && (
-          <p className="mb-2 text-center text-lg text-gray-300">
-            Correct: <span className="font-bold text-green-400">{correctAnswer.optionText}</span>
-          </p>
-        )}
-        {correctAnswer?.type === 'OPEN_ENDED' && (
-          <p className="mb-2 text-center text-gray-300">Open-ended — full points awarded.</p>
-        )}
-        {correctAnswer?.type === 'MAP' && (
-          <p className="mb-2 text-center text-gray-300">Scored by proximity to the target.</p>
-        )}
-        {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
-          <div className="mb-2 w-full max-w-sm space-y-1">
-            <p className="mb-2 text-center text-sm text-gray-400">Correct order</p>
-            {correctAnswer.items.map((item, i) => (
-              <div key={item.id} className="flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm">
-                <span className="w-4 shrink-0 text-center font-bold text-purple-300">{i + 1}</span>
-                <span className="text-white">{item.label}</span>
-              </div>
-            ))}
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-900 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+        {hostAvatar ? (
+          <img
+            src={hostAvatar}
+            alt={hostName}
+            className="mb-5 h-20 w-20 animate-pulse rounded-full object-cover ring-4 ring-white/20"
+          />
+        ) : (
+          <div className="mb-5 flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/20">
+            {hostName.charAt(0).toUpperCase()}
           </div>
         )}
-        <p className="mt-4 text-gray-400">
-          Rank: <span className="font-bold text-white">#{myRank}</span> · Total:{' '}
-          <span className="font-bold text-white">{myScore.toLocaleString()} pts</span>
-        </p>
-        <p className="mt-6 text-sm text-gray-500">Waiting for next question…</p>
+        <p className="text-base font-medium text-gray-400">Waiting for next question…</p>
       </div>
     )
   }
 
-  // ── Answered (waiting for question to end) ────────────────────────────────
+  // ── Answered ──────────────────────────────────────────────────────────────
   if (phase === 'answered') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 px-4 text-white">
-        <div className="mb-4 rounded-full bg-indigo-500 px-6 py-2 text-lg font-bold">
-          Answer submitted!
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-900 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 text-3xl ring-4 ring-indigo-500/30">
+          ✓
         </div>
-        <p className="text-gray-400">Waiting for other players…</p>
-        <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-indigo-300/30 border-t-indigo-400" />
+        <p className="text-lg font-bold text-white">Answer submitted!</p>
+        <p className="mt-1 text-sm text-gray-500">Waiting for other players…</p>
+        <div className="mt-8 h-8 w-8 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-400" />
       </div>
     )
   }
@@ -546,31 +519,31 @@ export default function JoinView() {
     const { question, index, total } = currentQuestion
 
     return (
-      <div className="flex min-h-screen flex-col bg-gray-900 text-white">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3">
+      <div className="flex min-h-dvh flex-col bg-gray-900 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+        {/* Header pill */}
+        <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
           <span className="text-sm text-gray-400">
             {index + 1} / {total}
           </span>
           <span
-            className={`text-2xl font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}
+            className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'animate-pulse text-red-400' : 'text-white'}`}
           >
             {timeLeft}s
           </span>
           <span className="text-sm text-gray-400">{myScore.toLocaleString()} pts</span>
         </div>
 
-        {/* Question */}
+        {/* Question content */}
         {question.imageUrl && (
           <img
             src={question.imageUrl}
             alt=""
-            className="mx-4 max-h-40 rounded-xl object-contain"
+            className="mx-4 mt-4 max-h-40 rounded-2xl object-contain"
           />
         )}
         <h2 className="px-4 py-4 text-center text-xl font-bold leading-snug">{question.text}</h2>
 
-        {/* Answer interface */}
+        {/* Answers */}
         <div className="flex-1 px-4 pb-6">
           {(question.type === 'MULTIPLE_CHOICE' || question.type === 'IMAGE') && (
             <div className="grid grid-cols-2 gap-3">
@@ -579,10 +552,13 @@ export default function JoinView() {
                   key={opt.id}
                   onClick={() => submitAnswer(opt.id)}
                   disabled={!!selectedAnswer}
-                  className={`${OPTION_COLORS[i % 4].bg} flex min-h-[5rem] items-center justify-center rounded-xl p-3 text-center text-sm font-semibold text-white shadow-lg transition disabled:opacity-60 ${
+                  className={`${OPTION_COLORS[i % 4]} flex min-h-[5rem] items-center rounded-2xl p-3 text-left text-sm font-semibold text-white shadow-lg transition disabled:opacity-60 ${
                     selectedAnswer === opt.id ? 'ring-4 ring-white' : ''
                   }`}
                 >
+                  <span className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black/20 text-xs font-bold">
+                    {OPTION_LETTERS[i % 4]}
+                  </span>
                   {opt.text}
                 </button>
               ))}
@@ -596,7 +572,7 @@ export default function JoinView() {
                   key={opt.id}
                   onClick={() => submitAnswer(opt.id)}
                   disabled={!!selectedAnswer}
-                  className={`${OPTION_COLORS[i % 2].bg} flex min-h-[5rem] items-center justify-center rounded-xl p-3 text-center text-2xl font-bold text-white shadow-lg transition disabled:opacity-60 ${
+                  className={`${OPTION_COLORS[i % 2]} flex min-h-[5rem] items-center justify-center rounded-2xl p-3 text-center text-2xl font-bold text-white shadow-lg transition disabled:opacity-60 ${
                     selectedAnswer === opt.id ? 'ring-4 ring-white' : ''
                   }`}
                 >
@@ -614,12 +590,12 @@ export default function JoinView() {
                 disabled={!!selectedAnswer}
                 placeholder="Type your answer…"
                 rows={3}
-                className="w-full rounded-xl border border-gray-600 bg-gray-800 p-4 text-white placeholder-gray-500 outline-none focus:border-indigo-400 disabled:opacity-60"
+                className="w-full rounded-2xl border border-white/10 bg-white/8 p-4 text-white placeholder-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-60"
               />
               <button
                 onClick={() => submitAnswer(openText)}
                 disabled={!openText.trim() || !!selectedAnswer}
-                className="w-full rounded-xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
+                className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
                 Submit
               </button>
@@ -629,7 +605,7 @@ export default function JoinView() {
           {question.type === 'MAP' && (
             <div className="flex flex-col gap-3">
               <p className="text-center text-sm text-gray-400">Tap the map to place your pin</p>
-              <div className="h-72 w-full overflow-hidden rounded-xl">
+              <div className="h-72 w-full overflow-hidden rounded-2xl">
                 <MapContainer
                   center={
                     question.mapQuestion
@@ -650,7 +626,7 @@ export default function JoinView() {
               <button
                 onClick={submitMapAnswer}
                 disabled={!mapPin || !!selectedAnswer}
-                className="w-full rounded-xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
+                className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
                 {mapPin ? 'Submit Pin' : 'Tap to place pin first'}
               </button>
@@ -683,7 +659,7 @@ export default function JoinView() {
               <button
                 onClick={submitRankingAnswer}
                 disabled={!!selectedAnswer}
-                className="w-full rounded-xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
+                className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
                 Submit Order
               </button>

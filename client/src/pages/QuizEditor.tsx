@@ -226,21 +226,19 @@ function MapPicker({
   const center: [number, number] = position ?? [20, 0]
   const zoom = position ? 6 : 2
 
-  // Sort rings smallest-first for color assignment, then reverse for rendering
-  // (largest rendered first so smaller circles appear on top)
   const validRings = rings
     .map((r, i) => ({ ...r, index: i }))
     .filter((r) => parseFloat(r.radiusKm) > 0)
     .sort((a, b) => parseFloat(a.radiusKm) - parseFloat(b.radiusKm))
 
-  const renderRings = [...validRings].reverse() // largest first for DOM layering
+  const renderRings = [...validRings].reverse()
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-medium text-gray-500">
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">
         Click the map to place the correct answer pin
       </label>
-      <div className="overflow-hidden rounded-lg border border-gray-300" style={{ height: 280 }}>
+      <div className="overflow-hidden rounded-xl border border-gray-200" style={{ height: 280 }}>
         <MapContainer center={[0, 0]} zoom={2} style={{ height: '100%', width: '100%' }}>
           <MapInitializer center={center} zoom={zoom} />
           <TileLayer
@@ -250,8 +248,7 @@ function MapPicker({
           <ClickHandler onMapClick={(lt, lg) => onChange(lt.toFixed(6), lg.toFixed(6))} />
           {position &&
             renderRings.map((ring, i) => {
-              // i=0 is outermost in this reversed array; color it faded
-              const colorIndex = renderRings.length - 1 - i // 0 = outermost, n-1 = innermost
+              const colorIndex = renderRings.length - 1 - i
               const fillOpacity = ringFillOpacity(colorIndex, validRings.length)
               return (
                 <Circle
@@ -317,7 +314,7 @@ function SortableRankingEditorItem({
         type="button"
         {...attributes}
         {...listeners}
-        className="cursor-grab touch-none p-1 text-gray-300 hover:text-gray-400 active:cursor-grabbing"
+        className="cursor-grab touch-none p-1 text-gray-300 hover:text-gray-500 active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -332,7 +329,7 @@ function SortableRankingEditorItem({
         value={item.label}
         onChange={(e) => onLabelChange(e.target.value)}
         placeholder={`Item ${index + 1}`}
-        className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="flex-1 rounded-xl border border-gray-200 px-3 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
       {showRemove && (
         <button type="button" onClick={onRemove} className="text-gray-400 hover:text-red-500">
@@ -344,6 +341,9 @@ function SortableRankingEditorItem({
 }
 
 // ─── Question Form ─────────────────────────────────────────────────────────────
+
+const INPUT_CLS = 'rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
+const LABEL_CLS = 'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400'
 
 function QuestionForm({
   initial,
@@ -461,14 +461,14 @@ function QuestionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="rounded-xl bg-gray-50 p-4 space-y-4">
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-gray-500">Type</label>
+          <label className={LABEL_CLS}>Type</label>
           <select
             value={form.type}
             onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
-            className="w-full rounded-lg border border-gray-300 px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className={`w-full ${INPUT_CLS} pr-8`}
           >
             {QUESTION_TYPES.map((t) => (
               <option key={t} value={t}>{TYPE_LABELS[t]}</option>
@@ -476,46 +476,46 @@ function QuestionForm({
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Time (s)</label>
+          <label className={LABEL_CLS}>Time (s)</label>
           <input
             type="number"
             min={5}
             max={120}
             value={form.timeLimit}
             onChange={(e) => set({ timeLimit: Number(e.target.value) })}
-            className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className={`w-20 ${INPUT_CLS}`}
           />
         </div>
         {form.type !== 'MAP' && (
           <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">Points</label>
+            <label className={LABEL_CLS}>Points</label>
             <input
               type="number"
               min={1}
               step={1}
               value={form.points}
               onChange={(e) => set({ points: Number(e.target.value) })}
-              className="w-24 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`w-24 ${INPUT_CLS}`}
             />
           </div>
         )}
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-500">Question</label>
+        <label className={LABEL_CLS}>Question</label>
         <textarea
           required
           rows={2}
           value={form.text}
           onChange={(e) => set({ text: e.target.value })}
           placeholder="Enter your question..."
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full ${INPUT_CLS}`}
         />
       </div>
 
       {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED' || form.type === 'TRUE_FALSE') && (
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">Image</label>
+          <label className={LABEL_CLS}>Image</label>
           <input
             ref={imageInputRef}
             type="file"
@@ -531,7 +531,7 @@ function QuestionForm({
               type="button"
               onClick={() => imageInputRef.current?.click()}
               disabled={isUploadingImage}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
             >
               {isUploadingImage ? 'Uploading…' : '↑ Upload image'}
             </button>
@@ -540,7 +540,7 @@ function QuestionForm({
               value={form.imageUrl}
               onChange={(e) => set({ imageUrl: e.target.value })}
               placeholder="or paste a URL…"
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className={`flex-1 ${INPUT_CLS}`}
             />
           </div>
           {form.imageUrl && (
@@ -548,7 +548,7 @@ function QuestionForm({
               <img
                 src={form.imageUrl}
                 alt="preview"
-                className="h-32 w-auto rounded-lg object-cover"
+                className="h-32 w-auto rounded-xl object-cover"
                 onError={(e) => (e.currentTarget.style.display = 'none')}
               />
               <button
@@ -565,8 +565,8 @@ function QuestionForm({
 
       {form.type === 'OPEN_ENDED' && (
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-500">
-            Accepted answers <span className="font-normal text-gray-400">(leave empty to award points to everyone)</span>
+          <label className={LABEL_CLS}>
+            Accepted answers <span className="font-normal normal-case text-gray-400">(leave empty to award points to everyone)</span>
           </label>
           {form.correctAnswers.map((answer, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -575,7 +575,7 @@ function QuestionForm({
                 value={answer}
                 onChange={(e) => setCorrectAnswerText(i, e.target.value)}
                 placeholder={`Answer ${i + 1}`}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`flex-1 ${INPUT_CLS}`}
               />
               <button type="button" onClick={() => removeCorrectAnswer(i)} className="text-gray-400 hover:text-red-500">
                 ✕
@@ -590,7 +590,7 @@ function QuestionForm({
 
       {(form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') && (
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-500">Answer options</label>
+          <label className={LABEL_CLS}>Answer options</label>
           {form.options.map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
               <input
@@ -606,7 +606,7 @@ function QuestionForm({
                 value={opt.text}
                 onChange={(e) => setOptionText(i, e.target.value)}
                 placeholder={`Option ${i + 1}`}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className={`flex-1 ${INPUT_CLS}`}
               />
               {form.options.length > 2 && (
                 <button type="button" onClick={() => removeOption(i)} className="text-gray-400 hover:text-red-500">
@@ -625,7 +625,7 @@ function QuestionForm({
 
       {form.type === 'TRUE_FALSE' && (
         <div>
-          <label className="mb-2 block text-xs font-medium text-gray-500">Correct answer</label>
+          <label className={`${LABEL_CLS} mb-2`}>Correct answer</label>
           <div className="flex gap-4">
             {(['true', 'false'] as const).map((val) => (
               <label key={val} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -654,7 +654,7 @@ function QuestionForm({
           />
 
           <div>
-            <label className="mb-2 block text-xs font-medium text-gray-500">
+            <label className={`${LABEL_CLS} mb-2`}>
               Scoring rings (up to 4) — smallest ring wins
             </label>
             <div className="space-y-2">
@@ -671,7 +671,7 @@ function QuestionForm({
                     value={ring.radiusKm}
                     onChange={(e) => setRing(i, { radiusKm: e.target.value })}
                     placeholder="km"
-                    className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={`w-20 ${INPUT_CLS}`}
                   />
                   <span className="text-xs text-gray-400">km →</span>
                   <input
@@ -681,7 +681,7 @@ function QuestionForm({
                     value={ring.points}
                     onChange={(e) => setRing(i, { points: e.target.value })}
                     placeholder="pts"
-                    className="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    className={`w-20 ${INPUT_CLS}`}
                   />
                   <span className="text-xs text-gray-400">pts</span>
                   {form.mapRings.length > 1 && (
@@ -707,7 +707,7 @@ function QuestionForm({
 
       {form.type === 'RANKING' && (
         <div className="space-y-2">
-          <label className="block text-xs font-medium text-gray-500">
+          <label className={LABEL_CLS}>
             Items in correct order (top = position 1)
           </label>
           <DndContext
@@ -745,20 +745,20 @@ function QuestionForm({
         </div>
       )}
 
-      <div className="flex justify-end gap-2 pt-1">
+      <div className="flex justify-end gap-2 border-t border-gray-200 pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-300 px-4 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+          className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={isSaving}
-          className="rounded-lg bg-indigo-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {isSaving ? 'Saving...' : 'Save question'}
+          {isSaving ? 'Saving…' : 'Save question'}
         </button>
       </div>
     </form>
@@ -798,22 +798,24 @@ function QuestionCard({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      className="rounded-xl border border-gray-200 bg-white p-5"
+      className="rounded-2xl bg-white shadow-sm"
     >
       {isEditing ? (
-        <QuestionForm
-          initial={questionToForm(question)}
-          order={question.order}
-          onSave={handleSave}
-          onCancel={onClose}
-          isSaving={updateQuestion.isPending}
-        />
+        <div className="p-5">
+          <QuestionForm
+            initial={questionToForm(question)}
+            order={question.order}
+            onSave={handleSave}
+            onCancel={onClose}
+            isSaving={updateQuestion.isPending}
+          />
+        </div>
       ) : (
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 p-5">
           <button
             {...attributes}
             {...listeners}
-            className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 hover:text-gray-400 active:cursor-grabbing"
+            className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 hover:text-gray-500 active:cursor-grabbing"
             aria-label="Drag to reorder"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -823,9 +825,9 @@ function QuestionCard({
             </svg>
           </button>
           <div className="min-w-0 flex-1">
-            <div className="mb-1 flex items-center gap-2">
+            <div className="mb-1.5 flex items-center gap-2">
               <span className="text-xs font-medium text-gray-400">Q{index + 1}</span>
-              <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+              <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                 {TYPE_LABELS[question.type]}
               </span>
             </div>
@@ -872,17 +874,17 @@ function QuestionCard({
               </ol>
             )}
           </div>
-          <div className="flex shrink-0 gap-2">
+          <div className="flex shrink-0 gap-1.5">
             <button
               onClick={onEdit}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
             >
               Edit
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
               disabled={deleteQuestion.isPending}
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-500 hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
             >
               Delete
             </button>
@@ -891,8 +893,8 @@ function QuestionCard({
       )}
 
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="font-semibold text-gray-900">Delete question?</h2>
             <p className="mt-2 text-sm text-gray-500">
               <span className="font-medium text-gray-700">"{question.text}"</span> will be permanently deleted. This cannot be undone.
@@ -901,14 +903,14 @@ function QuestionCard({
               <button
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleteQuestion.isPending}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 disabled:opacity-50"
+                className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 onClick={() => deleteQuestion.mutate(question.id, { onSettled: () => setConfirmDelete(false) })}
                 disabled={deleteQuestion.isPending}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+                className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
               >
                 {deleteQuestion.isPending ? 'Deleting…' : 'Delete'}
               </button>
@@ -926,8 +928,8 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
   const addQuestion = useAddQuestion(quizId)
 
   return (
-    <div className="rounded-xl border-2 border-dashed border-indigo-300 bg-indigo-50/40 p-5">
-      <p className="mb-4 text-sm font-semibold text-indigo-700">New question</p>
+    <div className="rounded-2xl bg-white shadow-sm p-5">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">New question</p>
       <QuestionForm
         initial={blankForm()}
         order={order}
@@ -954,33 +956,33 @@ function QuizMetaForm({
   const [description, setDescription] = useState(quiz.description ?? '')
 
   return (
-    <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-6">
+    <section className="rounded-2xl bg-white shadow-sm p-6 space-y-4">
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-500">Title</label>
+        <label className={LABEL_CLS}>Title</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full ${INPUT_CLS} text-lg font-semibold`}
         />
       </div>
       <div>
-        <label className="mb-1 block text-xs font-medium text-gray-500">Description (optional)</label>
+        <label className={LABEL_CLS}>Description <span className="font-normal normal-case text-gray-400">(optional)</span></label>
         <textarea
           rows={2}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What is this quiz about?"
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          className={`w-full ${INPUT_CLS}`}
         />
       </div>
-      <div className="flex justify-end">
+      <div className="flex justify-end border-t border-gray-100 pt-4">
         <button
           onClick={() => onSave(title.trim(), description.trim() || undefined)}
           disabled={isSaving || !title.trim()}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition"
+          className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {isSaving ? 'Saving...' : 'Save'}
+          {isSaving ? 'Saving…' : 'Save'}
         </button>
       </div>
     </section>
@@ -1011,7 +1013,7 @@ export default function QuizEditor() {
   }, [quiz, reorderQuestions])
 
   if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-gray-500">Loading...</div>
+    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400">Loading…</div>
   }
 
   if (isError || !quiz) {
@@ -1025,20 +1027,23 @@ export default function QuizEditor() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-6 py-4">
+      <header className="sticky top-0 z-10 border-b border-gray-100 bg-white/90 px-6 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0">
-            <button onClick={() => navigate('/dashboard')} className="text-sm text-gray-500 hover:text-gray-800 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="shrink-0 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+            >
               ← Dashboard
             </button>
-            <span className="text-gray-300 shrink-0">|</span>
-            <span className="truncate text-sm font-medium text-gray-700">{quiz.title}</span>
+            <span className="shrink-0 text-gray-200">|</span>
+            <span className="truncate text-sm font-semibold text-gray-800">{quiz.title}</span>
           </div>
           <NavDropdown />
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl space-y-8 px-6 py-10">
+      <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
         <QuizMetaForm
           key={quiz.id}
           quiz={quiz}
@@ -1048,7 +1053,9 @@ export default function QuizEditor() {
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold text-gray-900">Questions ({quiz.questions.length})</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Questions ({quiz.questions.length})
+            </h2>
           </div>
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -1070,17 +1077,19 @@ export default function QuizEditor() {
           </DndContext>
 
           {addingQuestion && (
-            <AddQuestionCard
-              quizId={id!}
-              order={quiz.questions.length}
-              onClose={() => setAddingQuestion(false)}
-            />
+            <div className="mt-3">
+              <AddQuestionCard
+                quizId={id!}
+                order={quiz.questions.length}
+                onClose={() => setAddingQuestion(false)}
+              />
+            </div>
           )}
 
           {!addingQuestion && (
             <button
               onClick={() => { setEditingId(null); setAddingQuestion(true) }}
-              className="mt-4 w-full rounded-xl border-2 border-dashed border-gray-300 py-3 text-sm text-gray-500 transition hover:border-indigo-400 hover:text-indigo-600"
+              className="mt-3 w-full rounded-2xl border-2 border-dashed border-gray-200 py-4 text-sm font-semibold text-gray-400 transition hover:border-indigo-300 hover:bg-indigo-50/30 hover:text-indigo-600"
             >
               + Add question
             </button>

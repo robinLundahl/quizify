@@ -51,10 +51,18 @@ type Phase = 'lobby' | 'question' | 'reveal' | 'finished'
 const STORAGE_KEY = 'quizify_active_host_session'
 
 const OPTION_COLORS = [
-  'bg-red-500 hover:bg-red-600',
-  'bg-blue-500 hover:bg-blue-600',
-  'bg-yellow-500 hover:bg-yellow-600',
-  'bg-green-500 hover:bg-green-600',
+  'bg-red-400 hover:brightness-110',
+  'bg-blue-400 hover:brightness-110',
+  'bg-yellow-400 hover:brightness-110',
+  'bg-green-400 hover:brightness-110',
+]
+
+const OPTION_LETTERS = ['A', 'B', 'C', 'D']
+
+const RANK_STYLES = [
+  'bg-yellow-400/20 text-yellow-300',
+  'bg-gray-400/20 text-gray-300',
+  'bg-amber-400/20 text-amber-300',
 ]
 
 export default function HostView() {
@@ -207,18 +215,22 @@ export default function HostView() {
     )
   }
 
+  // ── Lobby ─────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 p-6 text-white">
         <h1 className="mb-2 text-4xl font-black tracking-tight">Game Code</h1>
-        <div className="mb-8 rounded-2xl bg-white px-10 py-6 text-6xl font-black tracking-widest text-indigo-600 shadow-xl">
+        <p className="mb-3 text-sm font-medium text-white/70">
+          Go to <span className="font-semibold">quizify.app/join</span> to join
+        </p>
+        <div className="mb-8 rounded-2xl border border-white/25 bg-white/15 px-10 py-6 text-6xl font-black tracking-widest text-white backdrop-blur-sm shadow-lg">
           {joinCode || '------'}
         </div>
-        <p className="mb-8 text-lg opacity-80">
+        <p className="mb-6 text-lg font-medium opacity-80">
           Players joined: <span className="font-bold">{players.length}</span>
         </p>
         {players.length > 0 && (
-          <div className="mb-8 flex flex-wrap justify-center gap-2">
+          <div className="mb-8 flex flex-wrap justify-center gap-2 max-w-lg">
             {players.map((p) => (
               <span key={p.id} className="rounded-full bg-white/20 px-4 py-1 text-sm font-medium">
                 {p.nickname}
@@ -233,14 +245,13 @@ export default function HostView() {
         >
           Start Game
         </button>
-        <p className="mt-4 text-sm opacity-60">
-          Go to <span className="font-semibold">quizify.app/join</span> to join
-        </p>
       </div>
     )
   }
 
+  // ── Finished ──────────────────────────────────────────────────────────────
   if (phase === 'finished') {
+    const medals = ['🥇', '🥈', '🥉']
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 p-6 text-white">
         <h1 className="mb-8 text-4xl font-black">Final Leaderboard</h1>
@@ -248,14 +259,13 @@ export default function HostView() {
           {leaderboard.map((p, i) => (
             <div
               key={p.id}
-              className={`flex items-center justify-between rounded-xl px-6 py-4 font-semibold text-white shadow ${
-                i === 0 ? 'bg-yellow-400 text-gray-900' : i === 1 ? 'bg-gray-300 text-gray-900' : i === 2 ? 'bg-amber-600' : 'bg-white/20'
-              }`}
+              className="flex items-center justify-between rounded-2xl bg-white/20 px-6 py-4 font-semibold shadow"
             >
-              <span>
-                {i + 1}. {p.nickname}
+              <span className="flex items-center gap-3">
+                <span className="text-xl">{medals[i] ?? `${i + 1}.`}</span>
+                {p.nickname}
               </span>
-              <span>{p.score.toLocaleString()} pts</span>
+              <span className="text-white/90">{p.score.toLocaleString()} pts</span>
             </div>
           ))}
         </div>
@@ -277,36 +287,38 @@ export default function HostView() {
     )
   }
 
+  // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal' && currentQuestion) {
     return (
       <div className="flex min-h-screen flex-col items-center bg-gray-900 p-6 text-white">
         <div className="w-full max-w-2xl">
-          <p className="mb-2 text-center text-sm font-medium uppercase tracking-widest text-gray-400">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-500">
             Question {currentQuestion.index + 1} / {currentQuestion.total} — Results
           </p>
           <h2 className="mb-6 text-center text-2xl font-bold">{currentQuestion.question.text}</h2>
 
           {correctAnswer?.type === 'OPEN_ENDED' && (
-            <div className="mb-6 rounded-xl bg-yellow-500/20 p-4 text-center text-yellow-300">
+            <div className="mb-6 rounded-2xl border border-yellow-500/30 bg-yellow-500/20 p-6 text-center text-yellow-300">
               Open-ended — all participants received full points.
             </div>
           )}
           {correctAnswer?.optionText && (
-            <div className="mb-6 rounded-xl bg-green-500/20 p-4 text-center text-lg font-semibold text-green-400">
-              Correct: {correctAnswer.optionText}
+            <div className="mb-6 rounded-2xl border border-green-500/30 bg-green-500/20 p-6 text-center">
+              <div className="mb-2 text-3xl">✓</div>
+              <p className="text-lg font-semibold text-green-400">{correctAnswer.optionText}</p>
             </div>
           )}
           {correctAnswer?.type === 'MAP' && (
-            <div className="mb-6 rounded-xl bg-blue-500/20 p-4 text-center text-blue-300">
+            <div className="mb-6 rounded-2xl border border-blue-500/30 bg-blue-500/20 p-6 text-center text-blue-300">
               Map answer revealed — scored by distance rings.
             </div>
           )}
           {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
-            <div className="mb-6 rounded-xl bg-purple-500/20 p-4">
+            <div className="mb-6 rounded-2xl border border-purple-500/30 bg-purple-500/20 p-5">
               <p className="mb-3 text-center text-sm font-semibold text-purple-300">Correct order</p>
               <ol className="space-y-1.5">
                 {correctAnswer.items.map((item, i) => (
-                  <li key={item.id} className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-2">
+                  <li key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5">
                     <span className="w-5 shrink-0 text-center text-sm font-bold text-purple-300">{i + 1}</span>
                     <span className="text-sm text-white">{item.label}</span>
                   </li>
@@ -315,24 +327,31 @@ export default function HostView() {
             </div>
           )}
 
-          <h3 className="mb-3 text-lg font-semibold">Leaderboard</h3>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Leaderboard</h3>
           <div className="mb-8 space-y-2">
             {leaderboard.slice(0, 10).map((p, i) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between rounded-lg bg-white/10 px-4 py-2"
+                className="flex items-center justify-between rounded-xl bg-white/8 px-4 py-2.5"
               >
-                <span className="font-medium">
-                  {i + 1}. {p.nickname}
+                <span className="flex items-center gap-2.5">
+                  {i < 3 ? (
+                    <span className={`rounded-lg px-2 py-0.5 text-xs font-bold ${RANK_STYLES[i]}`}>
+                      #{i + 1}
+                    </span>
+                  ) : (
+                    <span className="w-7 text-sm text-gray-500">{i + 1}.</span>
+                  )}
+                  <span className="font-medium text-white">{p.nickname}</span>
                 </span>
-                <span className="text-indigo-300">{p.score.toLocaleString()} pts</span>
+                <span className="text-sm font-bold text-indigo-300">{p.score.toLocaleString()} pts</span>
               </div>
             ))}
           </div>
 
           <button
             onClick={handleNext}
-            className="w-full rounded-xl bg-indigo-500 py-4 text-lg font-bold hover:bg-indigo-600"
+            className="w-full rounded-2xl bg-indigo-500 py-4 text-lg font-bold hover:bg-indigo-600 transition-colors"
           >
             {currentQuestion.index + 1 < currentQuestion.total ? 'Next Question →' : 'Show Final Results'}
           </button>
@@ -341,18 +360,18 @@ export default function HostView() {
     )
   }
 
-  // Question phase
+  // ── Question ──────────────────────────────────────────────────────────────
   if (currentQuestion) {
     const { question, index, total } = currentQuestion
     return (
       <div className="flex min-h-screen flex-col items-center bg-gray-900 p-6 text-white">
         <div className="w-full max-w-2xl">
-          <div className="mb-4 flex items-center justify-between">
+          <div className="mb-4 flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
             <span className="text-sm text-gray-400">
               Question {index + 1} / {total}
             </span>
             <span
-              className={`text-2xl font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}
+              className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}
             >
               {timeLeft}s
             </span>
@@ -365,7 +384,7 @@ export default function HostView() {
             <img
               src={question.imageUrl}
               alt=""
-              className="mb-4 max-h-48 w-full rounded-xl object-contain"
+              className="mb-4 max-h-48 w-full rounded-2xl object-contain"
             />
           )}
 
@@ -376,9 +395,12 @@ export default function HostView() {
               {question.answerOptions.map((opt, i) => (
                 <div
                   key={opt.id}
-                  className={`${OPTION_COLORS[i % 4]} flex items-center justify-center rounded-xl p-4 text-center font-semibold`}
+                  className={`${OPTION_COLORS[i % 4]} flex min-h-[6rem] items-center rounded-2xl p-4 font-semibold`}
                 >
-                  {opt.text}
+                  <span className="mr-3 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/20 text-sm font-bold">
+                    {OPTION_LETTERS[i % 4]}
+                  </span>
+                  <span>{opt.text}</span>
                 </div>
               ))}
             </div>
@@ -389,7 +411,7 @@ export default function HostView() {
               {['True', 'False'].map((label, i) => (
                 <div
                   key={label}
-                  className={`${OPTION_COLORS[i]} flex items-center justify-center rounded-xl p-4 text-center text-xl font-bold`}
+                  className={`${OPTION_COLORS[i]} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold`}
                 >
                   {label}
                 </div>
@@ -398,24 +420,24 @@ export default function HostView() {
           )}
 
           {question.type === 'OPEN_ENDED' && (
-            <div className="rounded-xl bg-white/10 p-6 text-center text-gray-300">
+            <div className="rounded-2xl bg-white/10 p-6 text-center text-gray-300">
               Open-ended — players type their answer
             </div>
           )}
 
           {question.type === 'MAP' && (
-            <div className="rounded-xl bg-white/10 p-6 text-center text-gray-300">
+            <div className="rounded-2xl bg-white/10 p-6 text-center text-gray-300">
               Map question — players pin a location
             </div>
           )}
 
           {question.type === 'RANKING' && (
-            <div className="rounded-xl bg-white/10 p-4 text-gray-300">
+            <div className="rounded-2xl bg-white/10 p-4 text-gray-300">
               <p className="mb-3 text-center text-sm">Ranking question — players drag items into order</p>
               {question.rankingItems && (
                 <ol className="space-y-2">
                   {question.rankingItems.map((item, i) => (
-                    <li key={item.id} className="flex items-center gap-3 rounded-lg bg-white/10 px-4 py-2">
+                    <li key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2">
                       <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 1}</span>
                       <span className="text-sm">{item.label}</span>
                     </li>

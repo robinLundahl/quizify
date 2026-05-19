@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+html,
+body {
+  min-height: 100dvh;
+  background-color: #111827;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
 @theme {
   /* Brand palette derived from the Robin Lundahl logo gradient:
      golden amber (#F5A020) → orange-coral → hot pink (#EF3F7F) */
