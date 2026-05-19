@@ -143,7 +143,7 @@ function questionToForm(q: Question): FormState {
 function formToPayload(form: FormState, order: number): QuestionPayload {
   const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order }
 
-  if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer }
+  if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'OPEN_ENDED') return { ...base, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') {
     return {
@@ -490,7 +490,7 @@ function QuestionForm({
         />
       </div>
 
-      {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED') && (
+      {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED' || form.type === 'TRUE_FALSE') && (
         <div>
           <label className="mb-1 block text-xs font-medium text-gray-500">Image</label>
           <input
