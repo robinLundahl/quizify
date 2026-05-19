@@ -77,8 +77,6 @@ const OPTION_COLORS = [
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
 
-const MEDALS = ['🥇', '🥈', '🥉']
-
 function MapPinPicker({ onPin }: { onPin: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -156,15 +154,12 @@ export default function JoinView() {
   const [quizTitle, setQuizTitle] = useState('')
   const [hostName, setHostName] = useState('')
   const [hostAvatar, setHostAvatar] = useState<string | null>(null)
-  const [participantId, setParticipantId] = useState('')
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
   const [selectedAnswer, setSelectedAnswer] = useState('')
   const [mapPin, setMapPin] = useState<[number, number] | null>(null)
   const [openText, setOpenText] = useState('')
   const [rankingOrder, setRankingOrder] = useState<RankingItem[]>([])
-  const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
-  const [myScore, setMyScore] = useState(0)
   const [savedSession, setSavedSession] = useState<{ sessionId: string; participantId: string } | null>(() => {
     const sessionId = localStorage.getItem(PLAYER_SESSION_KEY)
     const participantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY)
@@ -203,7 +198,6 @@ export default function JoinView() {
     socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null }) => {
       localStorage.setItem(PLAYER_SESSION_KEY, data.sessionId)
       localStorage.setItem(PLAYER_PARTICIPANT_KEY, data.participantId)
-      setParticipantId(data.participantId)
       setQuizTitle(data.quizTitle)
       setHostName(data.hostName)
       setHostAvatar(data.hostAvatar)
@@ -231,23 +225,17 @@ export default function JoinView() {
       setTimeLeft(remaining)
     })
 
-    socket.on('player:answer_received', ({ pointsEarned: pts }: { pointsEarned: number }) => {
-      setMyScore((s) => s + pts)
+    socket.on('player:answer_received', () => {
       setPhase('answered')
     })
 
-    socket.on(
-      'session:question_ended',
-      ({ scores }: { correctAnswer: unknown; scores: Player[] }) => {
-        setLeaderboard(scores)
-        setPhase('reveal')
-      }
-    )
+    socket.on('session:question_ended', () => {
+      setPhase('reveal')
+    })
 
-    socket.on('session:finished', ({ leaderboard: lb }: { leaderboard: Player[] }) => {
+    socket.on('session:finished', () => {
       localStorage.removeItem(PLAYER_SESSION_KEY)
       localStorage.removeItem(PLAYER_PARTICIPANT_KEY)
-      setLeaderboard(lb)
       setPhase('finished')
     })
 
@@ -267,9 +255,7 @@ export default function JoinView() {
         const savedParticipantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY) ?? ''
         sessionIdRef.current = savedSessionId
         participantIdRef.current = savedParticipantId
-        setParticipantId(savedParticipantId)
         setNickname(payload.nickname)
-        setMyScore(payload.score)
         setCurrentQuestion({
           question: payload.question,
           index: payload.index,
@@ -286,7 +272,6 @@ export default function JoinView() {
         } else if (payload.phase === 'answered') {
           setPhase('answered')
         } else {
-          setLeaderboard(payload.scores ?? [])
           setPhase('reveal')
         }
       }
@@ -451,31 +436,17 @@ export default function JoinView() {
 
   // ── Finished ──────────────────────────────────────────────────────────────
   if (phase === 'finished') {
-    const myRank = leaderboard.findIndex((p) => p.id === participantId) + 1
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
-        <h1 className="mb-1 text-4xl font-black">Game Over!</h1>
-        {myRank > 0 && (
-          <p className="mb-6 text-base opacity-75">
-            You finished #{myRank} with {myScore.toLocaleString()} pts
-          </p>
+        {hostAvatar ? (
+          <img src={hostAvatar} alt={hostName} className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
+        ) : (
+          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/30">
+            {hostName.charAt(0).toUpperCase()}
+          </div>
         )}
-        <div className="w-full max-w-sm space-y-2">
-          {leaderboard.slice(0, 10).map((p, i) => (
-            <div
-              key={p.id}
-              className={`flex items-center justify-between rounded-2xl px-5 py-3 font-semibold ${
-                p.id === participantId ? 'bg-white text-indigo-700' : 'bg-white/20'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <span>{MEDALS[i] ?? `${i + 1}.`}</span>
-                {p.nickname}
-              </span>
-              <span className="text-sm opacity-90">{p.score.toLocaleString()} pts</span>
-            </div>
-          ))}
-        </div>
+        <h1 className="mb-2 text-3xl font-black">Thanks for playing!</h1>
+        <p className="text-base opacity-70">Hope you had fun.</p>
       </div>
     )
   }
