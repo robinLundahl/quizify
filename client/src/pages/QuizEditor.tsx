@@ -47,6 +47,7 @@ interface RingField {
 }
 
 interface RankingItemField {
+  id: string
   label: string
 }
 
@@ -92,7 +93,10 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     mapLat: '',
     mapLng: '',
     mapRings: [{ radiusKm: '50', points: '1000' }],
-    rankingItems: [{ label: '' }, { label: '' }],
+    rankingItems: [
+      { id: crypto.randomUUID(), label: '' },
+      { id: crypto.randomUUID(), label: '' },
+    ],
   }
 }
 
@@ -126,8 +130,11 @@ function questionToForm(q: Question): FormState {
       q.rankingItems.length > 0
         ? [...q.rankingItems]
             .sort((a, b) => a.correctPosition - b.correctPosition)
-            .map((r) => ({ label: r.label }))
-        : [{ label: '' }, { label: '' }]
+            .map((r) => ({ id: r.id, label: r.label }))
+        : [
+            { id: crypto.randomUUID(), label: '' },
+            { id: crypto.randomUUID(), label: '' },
+          ]
   }
   return form
 }
@@ -274,6 +281,58 @@ function MapPicker({
   )
 }
 
+// ─── Sortable Ranking Item (editor) ───────────────────────────────────────────
+
+function SortableRankingEditorItem({
+  item,
+  index,
+  showRemove,
+  onLabelChange,
+  onRemove,
+}: {
+  item: RankingItemField
+  index: number
+  showRemove: boolean
+  onLabelChange: (label: string) => void
+  onRemove: () => void
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
+      className="flex items-center gap-2"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="cursor-grab touch-none p-1 text-gray-300 hover:text-gray-400 active:cursor-grabbing"
+        aria-label="Drag to reorder"
+      >
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+          <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
+          <circle cx="5" cy="8" r="1.5" /><circle cx="11" cy="8" r="1.5" />
+          <circle cx="5" cy="12" r="1.5" /><circle cx="11" cy="12" r="1.5" />
+        </svg>
+      </button>
+      <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-400">{index + 1}</span>
+      <input
+        type="text"
+        value={item.label}
+        onChange={(e) => onLabelChange(e.target.value)}
+        placeholder={`Item ${index + 1}`}
+        className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      />
+      {showRemove && (
+        <button type="button" onClick={onRemove} className="text-gray-400 hover:text-red-500">
+          ✕
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ─── Question Form ─────────────────────────────────────────────────────────────
 
 function QuestionForm({
@@ -290,6 +349,7 @@ function QuestionForm({
   isSaving: boolean
 }) {
   const [form, setForm] = useState<FormState>(initial)
+  const rankingSensors = useSensors(useSensor(PointerSensor))
 
   function set(patch: Partial<FormState>) {
     setForm((f) => ({ ...f, ...patch }))
@@ -334,7 +394,7 @@ function QuestionForm({
   }
 
   function addRankingItem() {
-    set({ rankingItems: [...form.rankingItems, { label: '' }] })
+    set({ rankingItems: [...form.rankingItems, { id: crypto.randomUUID(), label: '' }] })
   }
 
   function removeRankingItem(i: number) {
@@ -344,16 +404,8 @@ function QuestionForm({
 
   function setRankingItemLabel(i: number, label: string) {
     const rankingItems = [...form.rankingItems]
-    rankingItems[i] = { label }
+    rankingItems[i] = { ...rankingItems[i], label }
     set({ rankingItems })
-  }
-
-  function moveRankingItem(i: number, dir: -1 | 1) {
-    const j = i + dir
-    if (j < 0 || j >= form.rankingItems.length) return
-    const items = [...form.rankingItems]
-    ;[items[i], items[j]] = [items[j], items[i]]
-    set({ rankingItems: items })
   }
 
   function handleTypeChange(type: QuestionType) {
@@ -375,7 +427,7 @@ function QuestionForm({
           <select
             value={form.type}
             onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full rounded-lg border border-gray-300 px-3 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           >
             {QUESTION_TYPES.map((t) => (
               <option key={t} value={t}>{TYPE_LABELS[t]}</option>
@@ -507,16 +559,9 @@ function QuestionForm({
           />
 
           <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label className="text-xs font-medium text-gray-500">
-                Scoring rings (up to 4) — smallest ring wins
-              </label>
-              {form.mapRings.length < 4 && (
-                <button type="button" onClick={addRing} className="text-xs text-indigo-600 hover:underline">
-                  + Add ring
-                </button>
-              )}
-            </div>
+            <label className="mb-2 block text-xs font-medium text-gray-500">
+              Scoring rings (up to 4) — smallest ring wins
+            </label>
             <div className="space-y-2">
               {form.mapRings.map((ring, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -555,6 +600,11 @@ function QuestionForm({
                   )}
                 </div>
               ))}
+              {form.mapRings.length < 4 && (
+                <button type="button" onClick={addRing} className="text-sm text-indigo-600 hover:underline">
+                  + Add ring
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -562,52 +612,39 @@ function QuestionForm({
 
       {form.type === 'RANKING' && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="text-xs font-medium text-gray-500">
-              Items in correct order (top = position 1)
-            </label>
-            <button type="button" onClick={addRankingItem} className="text-xs text-indigo-600 hover:underline">
-              + Add item
-            </button>
-          </div>
-          {form.rankingItems.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-400">{i + 1}</span>
-              <input
-                type="text"
-                value={item.label}
-                onChange={(e) => setRankingItemLabel(i, e.target.value)}
-                placeholder={`Item ${i + 1}`}
-                className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              <div className="flex flex-col">
-                <button
-                  type="button"
-                  onClick={() => moveRankingItem(i, -1)}
-                  disabled={i === 0}
-                  className="text-gray-400 hover:text-gray-600 disabled:opacity-20"
-                  aria-label="Move up"
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  onClick={() => moveRankingItem(i, 1)}
-                  disabled={i === form.rankingItems.length - 1}
-                  className="text-gray-400 hover:text-gray-600 disabled:opacity-20"
-                  aria-label="Move down"
-                >
-                  ▼
-                </button>
+          <label className="block text-xs font-medium text-gray-500">
+            Items in correct order (top = position 1)
+          </label>
+          <DndContext
+            sensors={rankingSensors}
+            collisionDetection={closestCenter}
+            onDragEnd={(event) => {
+              const { active, over } = event
+              if (!over || active.id === over.id) return
+              const oldIndex = form.rankingItems.findIndex((r) => r.id === active.id)
+              const newIndex = form.rankingItems.findIndex((r) => r.id === over.id)
+              set({ rankingItems: arrayMove(form.rankingItems, oldIndex, newIndex) })
+            }}
+          >
+            <SortableContext items={form.rankingItems.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-1.5">
+                {form.rankingItems.map((item, i) => (
+                  <SortableRankingEditorItem
+                    key={item.id}
+                    item={item}
+                    index={i}
+                    showRemove={form.rankingItems.length > 2}
+                    onLabelChange={(label) => setRankingItemLabel(i, label)}
+                    onRemove={() => removeRankingItem(i)}
+                  />
+                ))}
               </div>
-              {form.rankingItems.length > 2 && (
-                <button type="button" onClick={() => removeRankingItem(i)} className="text-gray-400 hover:text-red-500">
-                  ✕
-                </button>
-              )}
-            </div>
-          ))}
-          {form.rankingItems.filter((r) => r.label.trim()).length < 2 && (
+            </SortableContext>
+          </DndContext>
+          <button type="button" onClick={addRankingItem} className="text-sm text-indigo-600 hover:underline">
+            + Add item
+          </button>
+          {form.rankingItems.length < 2 && (
             <p className="text-xs text-red-500">At least 2 items required</p>
           )}
         </div>
