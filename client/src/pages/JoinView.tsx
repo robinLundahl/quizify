@@ -482,6 +482,7 @@ export default function JoinView() {
 
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal') {
+    const isFinalRound = currentQuestion !== null && currentQuestion.index + 1 === currentQuestion.total
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-900 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {hostAvatar ? (
@@ -495,7 +496,14 @@ export default function JoinView() {
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
-        <p className="text-base font-medium text-gray-400">Waiting for next question…</p>
+        {isFinalRound ? (
+          <>
+            <p className="text-lg font-bold text-white">Thank you for participating!</p>
+            <p className="mt-1 text-sm text-gray-500">The host will present the winner shortly.</p>
+          </>
+        ) : (
+          <p className="text-base font-medium text-gray-400">Waiting for next question…</p>
+        )}
       </div>
     )
   }
