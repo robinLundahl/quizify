@@ -11,6 +11,7 @@ export default function Dashboard() {
   const deleteQuiz = useDeleteQuiz()
   const deleteSession = useDeleteSession()
   const [hostingId, setHostingId] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
 
   async function handleCreate() {
     const quiz = await createQuiz.mutateAsync({ title: 'Untitled quiz' })
@@ -83,9 +84,7 @@ export default function Dashboard() {
                     {hostingId === quiz.id ? 'Creating…' : 'Host'}
                   </button>
                   <button
-                    onClick={() => {
-                      if (confirm(`Delete "${quiz.title}"?`)) deleteQuiz.mutate(quiz.id)
-                    }}
+                    onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title })}
                     className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                   >
                     Delete
@@ -134,6 +133,35 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
+            <h2 className="font-semibold text-gray-900">Delete quiz?</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              <span className="font-medium text-gray-700">"{confirmDelete.title}"</span> will be permanently deleted. This cannot be undone.
+            </p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleteQuiz.isPending}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteQuiz.mutate(confirmDelete.id, { onSettled: () => setConfirmDelete(null) })
+                }}
+                disabled={deleteQuiz.isPending}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteQuiz.isPending ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
