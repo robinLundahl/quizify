@@ -74,6 +74,9 @@ interface CorrectAnswer {
 
 type Phase = 'enter' | 'lobby' | 'question' | 'answered' | 'reveal' | 'finished'
 
+const PLAYER_SESSION_KEY = 'quizify_player_session'
+const PLAYER_PARTICIPANT_KEY = 'quizify_player_participant'
+
 const OPTION_COLORS = [
   { bg: 'bg-red-500 active:bg-red-700', border: 'border-red-600' },
   { bg: 'bg-blue-500 active:bg-blue-700', border: 'border-blue-600' },
@@ -173,6 +176,11 @@ export default function JoinView() {
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [myScore, setMyScore] = useState(0)
+  const [savedSession, setSavedSession] = useState<{ sessionId: string; participantId: string } | null>(() => {
+    const sessionId = localStorage.getItem(PLAYER_SESSION_KEY)
+    const participantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY)
+    return sessionId && participantId ? { sessionId, participantId } : null
+  })
 
   const participantIdRef = useRef('')
   const sessionIdRef = useRef('')
@@ -204,6 +212,8 @@ export default function JoinView() {
 
   useEffect(() => {
     socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null }) => {
+      localStorage.setItem(PLAYER_SESSION_KEY, data.sessionId)
+      localStorage.setItem(PLAYER_PARTICIPANT_KEY, data.participantId)
       setParticipantId(data.participantId)
       setQuizTitle(data.quizTitle)
       setHostName(data.hostName)
@@ -249,8 +259,63 @@ export default function JoinView() {
     )
 
     socket.on('session:finished', ({ leaderboard: lb }: { leaderboard: Player[] }) => {
+      localStorage.removeItem(PLAYER_SESSION_KEY)
+      localStorage.removeItem(PLAYER_PARTICIPANT_KEY)
       setLeaderboard(lb)
       setPhase('finished')
+    })
+
+    socket.on(
+      'player:reconnect_success',
+      (payload: {
+        phase: 'question' | 'answered' | 'reveal'
+        question: Question
+        index: number
+        total: number
+        endsAt: number
+        score: number
+        nickname: string
+        correctAnswer?: CorrectAnswer
+        scores?: Player[]
+        pointsEarned?: number | null
+      }) => {
+        const savedSessionId = localStorage.getItem(PLAYER_SESSION_KEY) ?? ''
+        const savedParticipantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY) ?? ''
+        sessionIdRef.current = savedSessionId
+        participantIdRef.current = savedParticipantId
+        setParticipantId(savedParticipantId)
+        setNickname(payload.nickname)
+        setMyScore(payload.score)
+        setCurrentQuestion({
+          question: payload.question,
+          index: payload.index,
+          total: payload.total,
+          endsAt: payload.endsAt,
+        })
+        if (payload.phase === 'question') {
+          setSelectedAnswer('')
+          setMapPin(null)
+          setOpenText('')
+          setRankingOrder(payload.question.rankingItems ?? [])
+          setPointsEarned(null)
+          setTimeLeft(Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000)))
+          setPhase('question')
+        } else if (payload.phase === 'answered') {
+          setPhase('answered')
+        } else {
+          setCorrectAnswer(payload.correctAnswer ?? null)
+          setLeaderboard(payload.scores ?? [])
+          setPointsEarned(payload.pointsEarned ?? null)
+          setPhase('reveal')
+        }
+      }
+    )
+
+    socket.on('player:reconnect_failed', () => {
+      localStorage.removeItem(PLAYER_SESSION_KEY)
+      localStorage.removeItem(PLAYER_PARTICIPANT_KEY)
+      setSavedSession(null)
+      setError('Could not reconnect — the session may have ended.')
     })
 
     return () => {
@@ -261,6 +326,8 @@ export default function JoinView() {
       socket.off('player:answer_received')
       socket.off('session:question_ended')
       socket.off('session:finished')
+      socket.off('player:reconnect_success')
+      socket.off('player:reconnect_failed')
     }
   }, [socket])
 
@@ -280,6 +347,11 @@ export default function JoinView() {
     },
     [socket, code, nickname]
   )
+
+  const handleRejoin = useCallback(() => {
+    if (!savedSession) return
+    socket.emit('player:reconnect', savedSession)
+  }, [socket, savedSession])
 
   const submitAnswer = useCallback(
     (answer: string) => {
@@ -317,6 +389,18 @@ export default function JoinView() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 px-4">
         <h1 className="mb-8 text-4xl font-black text-white">Join a Quiz</h1>
+        {savedSession && (
+          <div className="mb-6 w-full max-w-sm rounded-xl bg-white/15 p-4 text-white">
+            <p className="mb-1 font-semibold">Active session found</p>
+            <p className="mb-3 text-sm opacity-70">You were in a game that may still be running.</p>
+            <button
+              onClick={handleRejoin}
+              className="w-full rounded-xl bg-white py-3 font-bold text-indigo-600 transition hover:bg-indigo-50"
+            >
+              Rejoin game
+            </button>
+          </div>
+        )}
         <form onSubmit={handleJoin} className="w-full max-w-sm space-y-4">
           <input
             type="text"

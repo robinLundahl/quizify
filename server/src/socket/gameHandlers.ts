@@ -312,6 +312,76 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     }
   })
 
+  // Player reconnects after a page reload during an active session
+  socket.on('player:reconnect', async (data: { sessionId: string; participantId: string }) => {
+    const { sessionId, participantId } = data
+
+    const [session, participant] = await Promise.all([
+      prisma.gameSession.findUnique({ where: { id: sessionId } }),
+      prisma.participant.findUnique({ where: { id: participantId } }),
+    ])
+
+    if (!session || session.status !== 'ACTIVE') {
+      socket.emit('player:reconnect_failed', { reason: 'session_not_active' })
+      return
+    }
+    if (!participant || participant.sessionId !== sessionId) {
+      socket.emit('player:reconnect_failed', { reason: 'participant_not_found' })
+      return
+    }
+
+    const state = sessions.get(sessionId)
+    if (!state) {
+      socket.emit('player:reconnect_failed', { reason: 'server_restarted' })
+      return
+    }
+
+    socket.join(sessionId)
+    socket.data.participantId = participantId
+    socket.data.sessionId = sessionId
+
+    const q = state.questions[state.currentIndex]
+    const alreadyAnswered = state.answeredParticipants.has(participantId)
+
+    if (!state.questionEnded) {
+      const endsAt = state.questionStartedAt + q.timeLimit * 1000
+      socket.emit('player:reconnect_success', {
+        phase: alreadyAnswered ? 'answered' : 'question',
+        question: buildQuestionPayload(q),
+        index: state.currentIndex,
+        total: state.questions.length,
+        endsAt,
+        score: participant.score,
+        nickname: participant.nickname,
+      })
+    } else {
+      const correctAnswer = computeCorrectAnswer(q)
+      const [scores, myAnswer] = await Promise.all([
+        prisma.participant.findMany({
+          where: { sessionId },
+          orderBy: { score: 'desc' },
+          select: { id: true, nickname: true, score: true },
+        }),
+        prisma.gameAnswer.findFirst({
+          where: { participantId, questionId: q.id },
+          select: { pointsEarned: true },
+        }),
+      ])
+      socket.emit('player:reconnect_success', {
+        phase: 'reveal',
+        question: buildQuestionPayload(q),
+        index: state.currentIndex,
+        total: state.questions.length,
+        endsAt: 0,
+        score: participant.score,
+        nickname: participant.nickname,
+        correctAnswer,
+        scores,
+        pointsEarned: myAnswer?.pointsEarned ?? null,
+      })
+    }
+  })
+
   // Player joins a session lobby
   socket.on('player:join', async (data: { code: string; nickname: string }) => {
     const { code, nickname } = data
