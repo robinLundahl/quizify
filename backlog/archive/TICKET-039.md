@@ -1,7 +1,8 @@
 # TICKET-039: Sync Host Color Theme to Player Views
 
-**Status:** Open
+**Status:** Done
 **Created:** 2026-05-20
+**Closed:** 2026-05-20
 **Priority:** Medium
 
 ## Description
@@ -29,12 +30,12 @@ The desired behaviour: when a host picks a theme, that theme should be broadcast
 
 ## Acceptance Criteria
 
-- [ ] Host's active theme is applied to all player views within the current game session
-- [ ] Late-joining players receive the correct theme on connect
-- [ ] Theme updates in real-time if the host changes theme mid-session
-- [ ] All player-facing views (join, lobby, question, feedback, leaderboard, results) respect the theme
-- [ ] Players cannot override the theme themselves
-- [ ] No regression on host views or Light/Dark mode
+- [x] Host's active theme is applied to all player views within the current game session
+- [x] Late-joining players receive the correct theme on connect
+- [x] Theme updates in real-time if the host changes theme mid-session
+- [x] All player-facing views (join, lobby, question, feedback, leaderboard, results) respect the theme
+- [x] Players cannot override the theme themselves
+- [x] No regression on host views or Light/Dark mode
 
 ## Files Likely Affected
 
@@ -43,3 +44,7 @@ The desired behaviour: when a host picks a theme, that theme should be broadcast
 - `client/src/pages/` — player-facing pages (JoinView, PlayerView, etc.)
 - `client/src/main.tsx` or a new `client/src/lib/theme.ts` — extract `applyTheme` as a reusable util
 - `client/src/store/themeStore.ts` — possibly a read-only player variant
+
+## Notes
+
+Implemented fully in-memory (no schema migration needed). Theme stored in `sessionThemes` Map pre-game and `SessionState.theme` during active game. `applyTheme` extracted to `client/src/lib/theme.ts` and now also sets `<meta name="theme-color">` for iOS Safari chrome. Gradient backgrounds moved from `background-attachment: fixed` (broken on iOS) to direct `html` background to ensure full-screen coverage including safe areas.
