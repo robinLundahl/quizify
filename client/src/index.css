@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant themed (&:where(.theme-sunset, .theme-forest, .theme-rose, .theme-peach, .theme-sunset *, .theme-forest *, .theme-rose *, .theme-peach *));
 
 html,
 body {
