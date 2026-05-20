@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'sunset' | 'forest' | 'rose' | 'peach'
 
 interface ThemeStore {
   theme: Theme

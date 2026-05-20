@@ -49,11 +49,15 @@ export default function Dashboard() {
             </Link>
             <select
               value={theme}
-              onChange={(e) => setTheme(e.target.value as 'light' | 'dark')}
+              onChange={(e) => setTheme(e.target.value as Parameters<typeof setTheme>[0])}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             >
               <option value="light">Light</option>
               <option value="dark">Dark</option>
+              <option value="sunset">Sunset</option>
+              <option value="forest">Forest</option>
+              <option value="rose">Rose</option>
+              <option value="peach">Peach</option>
             </select>
           </div>
           <NavDropdown />

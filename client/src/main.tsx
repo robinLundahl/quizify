@@ -5,8 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { useThemeStore } from './store/themeStore'
 
+const COLOR_THEMES = ['sunset', 'forest', 'rose', 'peach']
+
 const applyTheme = (theme: string) => {
-  document.documentElement.classList.toggle('dark', theme === 'dark')
+  const root = document.documentElement
+  root.classList.remove('dark', ...COLOR_THEMES.map(t => `theme-${t}`))
+  if (theme === 'dark') {
+    root.classList.add('dark')
+  } else if (COLOR_THEMES.includes(theme)) {
+    root.classList.add('dark', `theme-${theme}`)
+  }
 }
 applyTheme(useThemeStore.getState().theme)
 useThemeStore.subscribe((state) => applyTheme(state.theme))

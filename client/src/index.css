@@ -4,7 +4,134 @@
 html,
 body {
   min-height: 100dvh;
-  background-color: #111827;
+}
+
+html {
+  background-color: var(--color-gray-900, #111827);
+}
+
+body {
+  background-color: transparent;
+}
+
+html.theme-sunset {
+  --color-gray-50: #ffffff;
+  --color-gray-100: #ffffff;
+  --color-gray-200: #ffffff;
+  --color-gray-300: #ffffff;
+  --color-gray-400: rgba(255, 255, 255, 0.75);
+  --color-gray-500: rgba(255, 255, 255, 0.55);
+  --color-gray-600: #eb7f86;
+  --color-gray-700: color-mix(in srgb, #ce6693, black 20%);
+  --color-gray-800: color-mix(in srgb, #a059a0, black 25%);
+  --color-gray-900: transparent;
+  --color-gray-950: transparent;
+  --color-white: #fff;
+  --color-indigo-50: #f3e79b;
+  --color-indigo-100: #fac484;
+  --color-indigo-300: #fac484;
+  --color-indigo-400: #f8a07e;
+  --color-indigo-500: #eb7f86;
+  --color-indigo-600: #fac484;
+  --color-indigo-700: #f8a07e;
+  --color-indigo-900: #5c53a5;
+  background:
+    radial-gradient(ellipse at 85% 10%, #f3e79b 0%, transparent 55%),
+    radial-gradient(ellipse at 5% 30%, #fac484 0%, transparent 50%),
+    radial-gradient(ellipse at 55% 55%, #ce6693 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 90%, #f8a07e 0%, transparent 50%),
+    #5c53a5;
+  background-attachment: fixed;
+}
+
+html.theme-forest {
+  --color-gray-50: #ffffff;
+  --color-gray-100: #ffffff;
+  --color-gray-200: #ffffff;
+  --color-gray-300: #ffffff;
+  --color-gray-400: rgba(255, 255, 255, 0.75);
+  --color-gray-500: rgba(255, 255, 255, 0.55);
+  --color-gray-600: #4da284;
+  --color-gray-700: color-mix(in srgb, #36877a, black 10%);
+  --color-gray-800: color-mix(in srgb, #266b6e, black 15%);
+  --color-gray-900: transparent;
+  --color-gray-950: transparent;
+  --color-white: #fff;
+  --color-indigo-50: #c4e6c3;
+  --color-indigo-100: #96d2a4;
+  --color-indigo-300: #96d2a4;
+  --color-indigo-400: #6dbc90;
+  --color-indigo-500: #4da284;
+  --color-indigo-600: #6dbc90;
+  --color-indigo-700: #4da284;
+  --color-indigo-900: #1d4f60;
+  background:
+    radial-gradient(ellipse at 20% 15%, #c4e6c3 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 35%, #6dbc90 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 80%, #4da284 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 85%, #266b6e 0%, transparent 55%),
+    #1d4f60;
+  background-attachment: fixed;
+}
+
+html.theme-rose {
+  --color-gray-50: #ffffff;
+  --color-gray-100: #ffffff;
+  --color-gray-200: #ffffff;
+  --color-gray-300: #ffffff;
+  --color-gray-400: rgba(255, 255, 255, 0.75);
+  --color-gray-500: rgba(255, 255, 255, 0.55);
+  --color-gray-600: #cc607d;
+  --color-gray-700: color-mix(in srgb, #ad466c, black 10%);
+  --color-gray-800: color-mix(in srgb, #8b3058, black 10%);
+  --color-gray-900: transparent;
+  --color-gray-950: transparent;
+  --color-white: #fff;
+  --color-indigo-50: #ffc6c4;
+  --color-indigo-100: #f4a3a8;
+  --color-indigo-300: #ffc6c4;
+  --color-indigo-400: #f4a3a8;
+  --color-indigo-500: #e38191;
+  --color-indigo-600: #ffc6c4;
+  --color-indigo-700: #f4a3a8;
+  --color-indigo-900: #672044;
+  background:
+    radial-gradient(ellipse at 80% 10%, #ffc6c4 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 50%, #e38191 0%, transparent 50%),
+    radial-gradient(ellipse at 65% 80%, #ad466c 0%, transparent 55%),
+    radial-gradient(ellipse at 10% 85%, #8b3058 0%, transparent 45%),
+    #672044;
+  background-attachment: fixed;
+}
+
+html.theme-peach {
+  --color-gray-50: rgba(0, 0, 0, 0.87);
+  --color-gray-100: rgba(0, 0, 0, 0.87);
+  --color-gray-200: rgba(0, 0, 0, 0.82);
+  --color-gray-300: rgba(0, 0, 0, 0.77);
+  --color-gray-400: rgba(0, 0, 0, 0.60);
+  --color-gray-500: rgba(0, 0, 0, 0.45);
+  --color-gray-600: rgba(0, 0, 0, 0.15);
+  --color-gray-700: #ffd5a8;
+  --color-gray-800: #ffe8c8;
+  --color-gray-900: transparent;
+  --color-gray-950: transparent;
+  --color-white: #fff;
+  --color-indigo-50: rgba(225, 83, 131, 0.08);
+  --color-indigo-100: rgba(225, 83, 131, 0.15);
+  --color-indigo-300: color-mix(in srgb, #e15383, black 20%);
+  --color-indigo-400: #f16d7a;
+  --color-indigo-500: #e15383;
+  --color-indigo-600: color-mix(in srgb, #e15383, black 10%);
+  --color-indigo-700: color-mix(in srgb, #e15383, black 20%);
+  --color-indigo-900: #e15383;
+  background:
+    radial-gradient(ellipse at 80% 10%, #fef6b5 0%, transparent 55%),
+    radial-gradient(ellipse at 15% 40%, #ffc285 0%, transparent 50%),
+    radial-gradient(ellipse at 55% 60%, #fa8a76 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 90%, #f16d7a 0%, transparent 50%),
+    #e15383;
+  background-attachment: fixed;
 }
 
 #root {
