@@ -57,6 +57,7 @@ model Question {
   order          Int
   timeLimit      Int          @default(20)
   points         Int          @default(1000)
+  translations   Json?
 
   quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answerOptions AnswerOption[]
@@ -72,6 +73,7 @@ model AnswerOption {
   questionId String
   text       String
   isCorrect  Boolean
+  translations Json?
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
@@ -104,6 +106,7 @@ model RankingItem {
   label           String
   correctPosition Int
   order           Int
+  translations    Json?
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 

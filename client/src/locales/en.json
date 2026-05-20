@@ -189,7 +189,10 @@
     "delete_question_title": "Delete question?",
     "delete_question_body": "\"{{text}}\" will be permanently deleted. This cannot be undone.",
     "not_found": "Quiz not found.",
-    "back_to_dashboard": "Back to dashboard"
+    "back_to_dashboard": "Back to dashboard",
+    "translate_btn": "Translate to {{lang}}",
+    "translating": "Translating…",
+    "translate_error": "Translation failed. Try again."
   },
   "results": {
     "loading": "Loading results…",

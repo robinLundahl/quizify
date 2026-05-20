@@ -48,9 +48,12 @@ interface RingField {
   points: string
 }
 
+type Translations = Record<string, string>
+
 interface RankingItemField {
   id: string
   label: string
+  translations?: Translations
 }
 
 interface FormState {
@@ -59,13 +62,22 @@ interface FormState {
   imageUrl: string
   timeLimit: number
   points: number
-  options: { text: string; isCorrect: boolean }[]
+  translations?: Translations
+  options: { text: string; isCorrect: boolean; translations?: Translations }[]
   correctAnswer: 'true' | 'false'
   mapLat: string
   mapLng: string
   mapRings: RingField[]
   rankingItems: RankingItemField[]
   correctAnswers: string[]
+}
+
+async function callMyMemory(text: string, src: string, tgt: string): Promise<string> {
+  const res = await fetch(
+    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${src}|${tgt}`
+  )
+  const data = await res.json() as { responseData?: { translatedText?: string } }
+  return data.responseData?.translatedText ?? text
 }
 
 const QUESTION_TYPES: QuestionType[] = [
@@ -86,6 +98,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     imageUrl: '',
     timeLimit: 20,
     points: 1,
+    translations: undefined,
     options: [
       { text: '', isCorrect: true },
       { text: '', isCorrect: false },
@@ -108,11 +121,12 @@ function questionToForm(q: Question): FormState {
   form.imageUrl = q.imageUrl ?? ''
   form.timeLimit = q.timeLimit
   form.points = q.points
+  form.translations = (q.translations as Translations | null) ?? undefined
 
   if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE') {
     form.options =
       q.answerOptions.length > 0
-        ? q.answerOptions.map((o) => ({ text: o.text, isCorrect: o.isCorrect }))
+        ? q.answerOptions.map((o) => ({ text: o.text, isCorrect: o.isCorrect, translations: (o.translations as Translations | null) ?? undefined }))
         : [{ text: '', isCorrect: true }, { text: '', isCorrect: false }]
   }
   if (q.type === 'TRUE_FALSE') {
@@ -132,7 +146,7 @@ function questionToForm(q: Question): FormState {
       q.rankingItems.length > 0
         ? [...q.rankingItems]
             .sort((a, b) => a.correctPosition - b.correctPosition)
-            .map((r) => ({ id: r.id, label: r.label }))
+            .map((r) => ({ id: r.id, label: r.label, translations: (r.translations as Translations | null) ?? undefined }))
         : [
             { id: crypto.randomUUID(), label: '' },
             { id: crypto.randomUUID(), label: '' },
@@ -145,7 +159,7 @@ function questionToForm(q: Question): FormState {
 }
 
 function formToPayload(form: FormState, order: number): QuestionPayload {
-  const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order }
+  const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order, translations: form.translations ?? null }
 
   if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'OPEN_ENDED') return {
@@ -157,7 +171,7 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
     return {
       ...base,
       imageUrl: form.type === 'IMAGE' ? form.imageUrl.trim() || undefined : undefined,
-      answerOptions: form.options.filter((o) => o.text.trim()),
+      answerOptions: form.options.filter((o) => o.text.trim()).map((o) => ({ text: o.text, isCorrect: o.isCorrect, translations: o.translations ?? null })),
     }
   }
   if (form.type === 'MAP') {
@@ -174,7 +188,7 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
   if (form.type === 'RANKING') {
     const items = form.rankingItems
       .filter((r) => r.label.trim())
-      .map((r, i) => ({ label: r.label.trim(), correctPosition: i + 1, order: i }))
+      .map((r, i) => ({ label: r.label.trim(), correctPosition: i + 1, order: i, translations: r.translations ?? null }))
     return { ...base, imageUrl: form.imageUrl.trim() || undefined, rankingItems: items }
   }
   return base
@@ -358,11 +372,62 @@ function QuestionForm({
   onCancel: () => void
   isSaving: boolean
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [form, setForm] = useState<FormState>(initial)
   const rankingSensors = useSensors(useSensor(PointerSensor))
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [isTranslating, setIsTranslating] = useState(false)
+  const [translateError, setTranslateError] = useState('')
+
+  const src = i18n.resolvedLanguage ?? 'en'
+  const tgt = src === 'en' ? 'sv' : 'en'
+  const tgtLabel = tgt.toUpperCase()
+
+  async function handleTranslate() {
+    if (!form.text.trim()) return
+    setIsTranslating(true)
+    setTranslateError('')
+    try {
+      const textsToTranslate: string[] = [form.text]
+      if (form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') {
+        form.options.forEach((o) => { if (o.text.trim()) textsToTranslate.push(o.text) })
+      }
+      if (form.type === 'RANKING') {
+        form.rankingItems.forEach((r) => { if (r.label.trim()) textsToTranslate.push(r.label) })
+      }
+
+      const translated = await Promise.all(textsToTranslate.map((text) => callMyMemory(text, src, tgt)))
+
+      let idx = 0
+      const questionTranslations: Translations = { [src]: form.text, [tgt]: translated[idx++] }
+
+      const newOptions = form.options.map((o) => {
+        if ((form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') && o.text.trim()) {
+          return { ...o, translations: { [src]: o.text, [tgt]: translated[idx++] } as Translations }
+        }
+        return o
+      })
+
+      const newRankingItems = form.rankingItems.map((r) => {
+        if (form.type === 'RANKING' && r.label.trim()) {
+          return { ...r, translations: { [src]: r.label, [tgt]: translated[idx++] } as Translations }
+        }
+        return r
+      })
+
+      setForm((f) => ({
+        ...f,
+        translations: questionTranslations,
+        options: newOptions,
+        rankingItems: newRankingItems,
+      }))
+    } catch {
+      setTranslateError(t('quiz_editor.translate_error'))
+    } finally {
+      setIsTranslating(false)
+    }
+  }
 
   async function handleImageUpload(file: File) {
     setIsUploadingImage(true)
@@ -452,6 +517,7 @@ function QuestionForm({
 
   function handleTypeChange(type: QuestionType) {
     setForm(blankForm(type))
+    setTranslateError('')
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -516,10 +582,26 @@ function QuestionForm({
           required
           rows={2}
           value={form.text}
-          onChange={(e) => set({ text: e.target.value })}
+          onChange={(e) => set({ text: e.target.value, translations: undefined })}
           placeholder={t('quiz_editor.question_placeholder')}
           className={`w-full ${INPUT_CLS}`}
         />
+        <div className="mt-1.5 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleTranslate}
+            disabled={isTranslating || !form.text.trim()}
+            className="flex items-center gap-1 rounded-lg border border-gray-300 dark:border-gray-600 px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-40"
+          >
+            {isTranslating ? t('quiz_editor.translating') : t('quiz_editor.translate_btn', { lang: tgtLabel })}
+          </button>
+          {form.translations?.[tgt] && !isTranslating && (
+            <span className="text-xs text-green-600 dark:text-green-400 truncate max-w-[240px]" title={form.translations[tgt]}>
+              {tgtLabel}: {form.translations[tgt]}
+            </span>
+          )}
+          {translateError && <span className="text-xs text-red-500">{translateError}</span>}
+        </div>
       </div>
 
       {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED' || form.type === 'TRUE_FALSE') && (

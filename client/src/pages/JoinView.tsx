@@ -32,14 +32,18 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
+type Translations = Record<string, string> | null | undefined
+
 interface AnswerOption {
   id: string
   text: string
+  translations?: Translations
 }
 
 interface RankingItem {
   id: string
   label: string
+  translations?: Translations
 }
 
 interface Question {
@@ -49,9 +53,14 @@ interface Question {
   imageUrl: string | null
   timeLimit: number
   points: number
+  translations?: Translations
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
   rankingItems: RankingItem[] | null
+}
+
+function getLocalizedText(text: string, translations: Translations, lang: string): string {
+  return (translations as Record<string, string> | null | undefined)?.[lang] ?? text
 }
 
 interface QuestionPayload {
@@ -103,7 +112,8 @@ function SortableRankingItem({
   disabled: boolean
   onMove: (i: number, dir: -1 | 1) => void
 }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage ?? 'en'
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   return (
     <div
@@ -125,7 +135,7 @@ function SortableRankingItem({
         </svg>
       </button>
       <span className="w-5 shrink-0 text-center text-xs font-bold text-gray-400">{index + 1}</span>
-      <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white">{item.label}</span>
+      <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white">{getLocalizedText(item.label, item.translations, lang)}</span>
       <div className="flex flex-col gap-0.5">
         <button
           onClick={() => onMove(index, -1)}
@@ -151,7 +161,8 @@ function SortableRankingItem({
 export default function JoinView() {
   const [searchParams] = useSearchParams()
   const socket = getSocket()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lang = i18n.resolvedLanguage ?? 'en'
 
   const [phase, setPhase] = useState<Phase>('enter')
   const [code, setCode] = useState(searchParams.get('code') ?? '')
@@ -506,12 +517,12 @@ export default function JoinView() {
 
     return (
       <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
-        {langToggle}
         {/* Header pill */}
         <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-black/5 dark:bg-white/5 px-4 py-2.5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {index + 1} / {total}
           </span>
+          <LangToggle />
           <span
             className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'animate-pulse text-red-400' : 'text-white'}`}
           >
@@ -527,7 +538,7 @@ export default function JoinView() {
             className="mx-4 mt-4 max-h-40 rounded-2xl object-contain"
           />
         )}
-        <h2 className="px-4 py-4 text-center text-xl font-bold leading-snug">{question.text}</h2>
+        <h2 className="px-4 py-4 text-center text-xl font-bold leading-snug">{getLocalizedText(question.text, question.translations, lang)}</h2>
 
         {/* Answers */}
         <div className="flex-1 px-4 pb-6">
@@ -545,7 +556,7 @@ export default function JoinView() {
                   <span className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black/20 text-xs font-bold">
                     {OPTION_LETTERS[i % 4]}
                   </span>
-                  {opt.text}
+                  {getLocalizedText(opt.text, opt.translations, lang)}
                 </button>
               ))}
             </div>
