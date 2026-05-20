@@ -25,9 +25,11 @@ interface SessionState {
   questionEnded: boolean
   questionEndTimer?: ReturnType<typeof setTimeout>
   answeredParticipants: Set<string>
+  theme: string
 }
 
 const sessions = new Map<string, SessionState>()
+const sessionThemes = new Map<string, string>()
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371
@@ -181,16 +183,28 @@ function buildQuestionPayload(q: QuestionData) {
 
 export function registerGameHandlers(io: Server, socket: Socket) {
   // Host joins an already-created session room (lobby phase)
-  socket.on('host:join', async (data: { sessionId: string }) => {
+  socket.on('host:join', async (data: { sessionId: string; theme?: string }) => {
     const session = await prisma.gameSession.findUnique({
       where: { id: data.sessionId },
     })
     if (!session || session.status !== 'WAITING') return
+    const theme = data.theme ?? 'forest'
+    sessionThemes.set(data.sessionId, theme)
     socket.join(data.sessionId)
+    io.to(data.sessionId).emit('session:theme', { theme })
+  })
+
+  // Host updates theme mid-session
+  socket.on('host:set_theme', (data: { sessionId: string; theme: string }) => {
+    const { sessionId, theme } = data
+    const state = sessions.get(sessionId)
+    if (state) state.theme = theme
+    sessionThemes.set(sessionId, theme)
+    io.to(sessionId).emit('session:theme', { theme })
   })
 
   // Host reconnects after a page refresh during an active session
-  socket.on('host:rejoin', async (data: { sessionId: string }) => {
+  socket.on('host:rejoin', async (data: { sessionId: string; theme?: string }) => {
     const { sessionId } = data
 
     const session = await prisma.gameSession.findUnique({ where: { id: sessionId } })
@@ -205,7 +219,9 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       return
     }
 
+    if (data.theme) state.theme = data.theme
     socket.join(sessionId)
+    io.to(sessionId).emit('session:theme', { theme: state.theme })
 
     const q = state.questions[state.currentIndex]
     const questionPayload = buildQuestionPayload(q)
@@ -276,8 +292,10 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       questionStartedAt: 0,
       questionEnded: false,
       answeredParticipants: new Set(),
+      theme: sessionThemes.get(sessionId) ?? 'forest',
     }
     sessions.set(sessionId, state)
+    sessionThemes.delete(sessionId)
 
     socket.join(sessionId)
     io.to(sessionId).emit('session:started')
@@ -307,6 +325,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       })
       io.to(sessionId).emit('session:finished', { leaderboard })
       sessions.delete(sessionId)
+      sessionThemes.delete(sessionId)
     } else {
       await broadcastQuestion(io, sessionId, state)
     }
@@ -353,6 +372,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         endsAt,
         score: participant.score,
         nickname: participant.nickname,
+        theme: state.theme,
       })
     } else {
       const correctAnswer = computeCorrectAnswer(q)
@@ -378,6 +398,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         correctAnswer,
         scores,
         pointsEarned: myAnswer?.pointsEarned ?? null,
+        theme: state.theme,
       })
     }
   })
@@ -418,6 +439,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       quizTitle: session.quiz.title,
       hostName: session.host.name,
       hostAvatar: session.host.avatar ?? null,
+      theme: sessionThemes.get(session.id) ?? 'forest',
     })
 
     const count = await prisma.participant.count({ where: { sessionId: session.id } })

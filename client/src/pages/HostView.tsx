@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { getSocket } from '../hooks/useSocket'
+import { useThemeStore } from '../store/themeStore'
 
 interface Player {
   id: string
@@ -71,6 +72,7 @@ export default function HostView() {
   const location = useLocation()
   const socket = getSocket()
 
+  const theme = useThemeStore((s) => s.theme)
   const [phase, setPhase] = useState<Phase>('lobby')
   const locationState = location.state as { code?: string; rejoin?: boolean; status?: string } | null
   const joinCode = locationState?.code ?? ''
@@ -89,9 +91,9 @@ export default function HostView() {
     const fromLocalStorage = localStorage.getItem(STORAGE_KEY) === sessionId
 
     if (fromDashboardRejoin || fromLocalStorage) {
-      socket.emit('host:rejoin', { sessionId })
+      socket.emit('host:rejoin', { sessionId, theme })
     } else {
-      socket.emit('host:join', { sessionId })
+      socket.emit('host:join', { sessionId, theme })
     }
 
     socket.on('session:player_joined', ({ nickname, count }: { nickname: string; count: number }) => {
@@ -177,6 +179,12 @@ export default function HostView() {
       socket.off('host:rejoin_failed')
     }
   }, [sessionId, socket])
+
+  // Broadcast theme changes to all players in the session
+  useEffect(() => {
+    if (!sessionId) return
+    socket.emit('host:set_theme', { sessionId, theme })
+  }, [theme, sessionId, socket])
 
   // Countdown timer
   useEffect(() => {

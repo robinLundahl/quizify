@@ -105,6 +105,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── console-2026-05-19T07-34-39-094Z.log
 │   ├── console-2026-05-19T07-37-13-845Z.log
 │   ├── console-2026-05-19T07-44-18-593Z.log
+│   ├── console-2026-05-20T07-58-27-772Z.log
+│   ├── console-2026-05-20T08-11-16-890Z.log
+│   ├── console-2026-05-20T08-11-29-644Z.log
 │   ├── page-2026-05-18T14-35-50-838Z.yml
 │   ├── page-2026-05-18T14-36-21-233Z.yml
 │   ├── page-2026-05-18T14-36-58-082Z.yml
@@ -186,7 +189,11 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-19T07-37-39-339Z.yml
 │   ├── page-2026-05-19T07-44-19-070Z.yml
 │   ├── page-2026-05-19T07-44-30-113Z.yml
-│   └── page-2026-05-19T07-44-34-963Z.yml
+│   ├── page-2026-05-19T07-44-34-963Z.yml
+│   ├── page-2026-05-20T07-58-28-528Z.yml
+│   ├── page-2026-05-20T07-58-55-362Z.yml
+│   ├── page-2026-05-20T08-11-17-212Z.yml
+│   └── page-2026-05-20T08-11-29-775Z.yml
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -222,9 +229,12 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-032.md
 │   │   ├── TICKET-033.md
 │   │   ├── TICKET-034.md
-│   │   └── TICKET-035.md
+│   │   ├── TICKET-035.md
+│   │   ├── TICKET-036.md
+│   │   ├── TICKET-037.md
+│   │   └── TICKET-038.md
 │   ├── README.md
-│   └── TICKET-036.md
+│   └── TICKET-039.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -242,7 +252,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── useSocket.ts
 │   │   ├── lib/
 │   │   │   ├── api.ts
-│   │   │   └── cropImage.ts
+│   │   │   ├── cropImage.ts
+│   │   │   └── theme.ts
 │   │   ├── pages/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
@@ -253,7 +264,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── ResultsView.tsx
 │   │   │   └── Settings.tsx
 │   │   ├── store/
-│   │   │   └── authStore.ts
+│   │   │   ├── authStore.ts
+│   │   │   └── themeStore.ts
 │   │   ├── types/
 │   │   ├── App.tsx
 │   │   ├── index.css

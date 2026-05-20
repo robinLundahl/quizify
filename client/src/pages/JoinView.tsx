@@ -19,6 +19,8 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { getSocket } from '../hooks/useSocket'
+import { applyTheme } from '../lib/theme'
+import { useThemeStore } from '../store/themeStore'
 
 // Fix default leaflet icons
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -194,7 +196,8 @@ export default function JoinView() {
   }, [])
 
   useEffect(() => {
-    socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null }) => {
+    socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null; theme?: string }) => {
+      applyTheme(data.theme ?? 'forest')
       localStorage.setItem(PLAYER_SESSION_KEY, data.sessionId)
       localStorage.setItem(PLAYER_PARTICIPANT_KEY, data.participantId)
       setHostName(data.hostName)
@@ -202,6 +205,10 @@ export default function JoinView() {
       setPhase('lobby')
       sessionIdRef.current = data.sessionId
       participantIdRef.current = data.participantId
+    })
+
+    socket.on('session:theme', ({ theme }: { theme: string }) => {
+      applyTheme(theme)
     })
 
     socket.on('error', (data: { message: string }) => {
@@ -248,7 +255,9 @@ export default function JoinView() {
         score: number
         nickname: string
         scores?: Player[]
+        theme?: string
       }) => {
+        applyTheme(payload.theme ?? 'forest')
         const savedSessionId = localStorage.getItem(PLAYER_SESSION_KEY) ?? ''
         const savedParticipantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY) ?? ''
         sessionIdRef.current = savedSessionId
@@ -292,22 +301,10 @@ export default function JoinView() {
       socket.off('session:finished')
       socket.off('player:reconnect_success')
       socket.off('player:reconnect_failed')
+      socket.off('session:theme')
+      applyTheme(useThemeStore.getState().theme)
     }
   }, [socket])
-
-  // Sync html/body background to the current phase so iOS safe areas match
-  useEffect(() => {
-    const color =
-      phase === 'question' || phase === 'answered' || phase === 'reveal'
-        ? '#111827'
-        : '#ef3f7f'
-    document.documentElement.style.backgroundColor = color
-    document.body.style.backgroundColor = color
-    return () => {
-      document.documentElement.style.backgroundColor = ''
-      document.body.style.backgroundColor = ''
-    }
-  }, [phase])
 
   // Countdown timer
   useEffect(() => {
@@ -362,7 +359,7 @@ export default function JoinView() {
   // ── Enter ──────────────────────────────────────────────────────────────────
   if (phase === 'enter') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         <h1 className="mb-6 text-4xl font-black text-white">Quizify</h1>
         <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
           {savedSession && (
@@ -411,7 +408,7 @@ export default function JoinView() {
   // ── Lobby ──────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {hostAvatar ? (
           <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
         ) : (
@@ -432,7 +429,7 @@ export default function JoinView() {
   // ── Finished ──────────────────────────────────────────────────────────────
   if (phase === 'finished') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-indigo-600 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {hostAvatar ? (
           <img src={hostAvatar} alt={hostName} className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
         ) : (
@@ -450,7 +447,7 @@ export default function JoinView() {
   if (phase === 'reveal') {
     const isFinalRound = currentQuestion !== null && currentQuestion.index + 1 === currentQuestion.total
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-900 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {hostAvatar ? (
           <img
             src={hostAvatar}
@@ -477,7 +474,7 @@ export default function JoinView() {
   // ── Answered ──────────────────────────────────────────────────────────────
   if (phase === 'answered') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-900 px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 text-3xl ring-4 ring-indigo-500/30">
           ✓
         </div>
@@ -493,7 +490,7 @@ export default function JoinView() {
     const { question, index, total } = currentQuestion
 
     return (
-      <div className="flex min-h-dvh flex-col bg-gray-900 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
         {/* Header pill */}
         <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
           <span className="text-sm text-gray-400">

@@ -36,12 +36,13 @@ html.theme-sunset {
   --color-indigo-700: #f8a07e;
   --color-indigo-900: #5c53a5;
   background:
+    radial-gradient(ellipse at 90% 0%, #f3e79b 0%, transparent 35%),
     radial-gradient(ellipse at 85% 10%, #f3e79b 0%, transparent 55%),
     radial-gradient(ellipse at 5% 30%, #fac484 0%, transparent 50%),
     radial-gradient(ellipse at 55% 55%, #ce6693 0%, transparent 55%),
     radial-gradient(ellipse at 15% 90%, #f8a07e 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 100%, #f8a07e 0%, transparent 35%),
     #5c53a5;
-  background-attachment: fixed;
 }
 
 html.theme-forest {
@@ -66,12 +67,13 @@ html.theme-forest {
   --color-indigo-700: #4da284;
   --color-indigo-900: #1d4f60;
   background:
+    radial-gradient(ellipse at 25% 0%, #c4e6c3 0%, transparent 35%),
     radial-gradient(ellipse at 20% 15%, #c4e6c3 0%, transparent 50%),
     radial-gradient(ellipse at 80% 35%, #6dbc90 0%, transparent 55%),
     radial-gradient(ellipse at 15% 80%, #4da284 0%, transparent 50%),
     radial-gradient(ellipse at 75% 85%, #266b6e 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 100%, #4da284 0%, transparent 35%),
     #1d4f60;
-  background-attachment: fixed;
 }
 
 html.theme-rose {
@@ -96,12 +98,13 @@ html.theme-rose {
   --color-indigo-700: #f4a3a8;
   --color-indigo-900: #672044;
   background:
+    radial-gradient(ellipse at 80% 0%, #ffc6c4 0%, transparent 35%),
     radial-gradient(ellipse at 80% 10%, #ffc6c4 0%, transparent 55%),
     radial-gradient(ellipse at 20% 50%, #e38191 0%, transparent 50%),
     radial-gradient(ellipse at 65% 80%, #ad466c 0%, transparent 55%),
     radial-gradient(ellipse at 10% 85%, #8b3058 0%, transparent 45%),
+    radial-gradient(ellipse at 15% 100%, #ad466c 0%, transparent 35%),
     #672044;
-  background-attachment: fixed;
 }
 
 html.theme-peach {
@@ -126,12 +129,13 @@ html.theme-peach {
   --color-indigo-700: color-mix(in srgb, #e15383, black 20%);
   --color-indigo-900: #e15383;
   background:
+    radial-gradient(ellipse at 50% 0%, #fef6b5 0%, transparent 55%),
     radial-gradient(ellipse at 80% 10%, #fef6b5 0%, transparent 55%),
     radial-gradient(ellipse at 15% 40%, #ffc285 0%, transparent 50%),
     radial-gradient(ellipse at 55% 60%, #fa8a76 0%, transparent 55%),
     radial-gradient(ellipse at 70% 90%, #f16d7a 0%, transparent 50%),
-    #e15383;
-  background-attachment: fixed;
+    radial-gradient(ellipse at 30% 100%, #ffa679 0%, transparent 55%),
+    #ffa679;
 }
 
 #root {
