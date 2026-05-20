@@ -43,10 +43,10 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <header className="sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 px-6 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link to="/dashboard" className="text-xl font-black text-indigo-600 hover:opacity-80 transition-opacity">
-            Quizify
-          </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            <Link to="/dashboard" className="text-xl font-black text-indigo-600 hover:opacity-80 transition-opacity">
+              Quizify
+            </Link>
             <select
               value={theme}
               onChange={(e) => setTheme(e.target.value as 'light' | 'dark')}
@@ -55,8 +55,8 @@ export default function Dashboard() {
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </select>
-            <NavDropdown />
           </div>
+          <NavDropdown />
         </div>
       </header>
 
