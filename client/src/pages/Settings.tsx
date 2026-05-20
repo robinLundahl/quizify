@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../store/authStore'
 import api from '../lib/api'
 import NavDropdown from '../components/ui/NavDropdown'
@@ -12,6 +13,7 @@ export default function Settings() {
   const clearUser = useAuthStore((s) => s.clearUser)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
 
   const [nameInput, setNameInput] = useState(user?.name ?? '')
   const [nameSaving, setNameSaving] = useState(false)
@@ -22,7 +24,7 @@ export default function Settings() {
 
   async function handleNameSave() {
     if (!nameInput.trim()) {
-      setNameError('Name cannot be empty.')
+      setNameError(t('settings_page.name') + ' cannot be empty.')
       return
     }
     setNameSaving(true)
@@ -129,11 +131,11 @@ export default function Settings() {
       </header>
 
       <main className="mx-auto max-w-xl px-6 py-12 space-y-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('settings_page.title')}</h1>
 
         {/* Avatar */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Photo</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{t('settings_page.photo')}</h2>
           <div className="flex items-center gap-4">
             {user?.avatar ? (
               <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover" />
@@ -155,7 +157,7 @@ export default function Settings() {
                 disabled={avatarUploading || avatarRemoving || !!cropSrc}
                 className="border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
               >
-                Upload photo
+                {t('settings_page.upload_photo')}
               </button>
               {user?.avatar && !cropSrc && (
                 <button
@@ -163,7 +165,7 @@ export default function Settings() {
                   disabled={avatarUploading || avatarRemoving}
                   className="text-sm text-gray-400 dark:text-gray-500 hover:text-red-500 transition disabled:opacity-50 text-left"
                 >
-                  {avatarRemoving ? 'Removing…' : 'Remove photo'}
+                  {avatarRemoving ? t('settings_page.removing') : t('settings_page.remove_photo')}
                 </button>
               )}
             </div>
@@ -179,15 +181,15 @@ export default function Settings() {
           )}
 
           {avatarError && <p className="text-xs text-red-600">{avatarError}</p>}
-          {!cropSrc && <p className="text-xs text-gray-400 dark:text-gray-500">JPEG, PNG, WebP or GIF · max 2 MB</p>}
+          {!cropSrc && <p className="text-xs text-gray-400 dark:text-gray-500">{t('settings_page.file_hint')}</p>}
         </div>
 
         {/* Account info */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Account</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{t('settings_page.account')}</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Name</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('settings_page.name')}</p>
               <div className="flex items-center gap-2">
                 <input
                   type="text"
@@ -204,25 +206,25 @@ export default function Settings() {
                       disabled={nameSaving}
                       className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition disabled:opacity-50"
                     >
-                      {nameSaving ? 'Saving…' : 'Save'}
+                      {nameSaving ? t('common.saving') : t('common.save')}
                     </button>
                     <button
                       onClick={() => { setNameInput(user?.name ?? ''); setNameError('') }}
                       disabled={nameSaving}
                       className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </button>
                   </>
                 )}
                 {nameSaved && !nameDirty && (
-                  <span className="text-xs text-green-600 dark:text-green-400">Saved</span>
+                  <span className="text-xs text-green-600 dark:text-green-400">{t('common.saved')}</span>
                 )}
               </div>
               {nameError && <p className="mt-1 text-xs text-red-600">{nameError}</p>}
             </div>
             <div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Email</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">{t('settings_page.email')}</p>
               <p className="text-sm text-gray-700 dark:text-gray-300">{user?.email}</p>
             </div>
           </div>
@@ -230,16 +232,16 @@ export default function Settings() {
 
         {/* Danger zone */}
         <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Danger zone</h2>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">{t('settings_page.danger_zone')}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Permanently delete your account and all your quizzes. This cannot be undone.
+            {t('settings_page.danger_hint')}
           </p>
 
           <button
             onClick={() => { setDeleteError(''); setShowDeleteModal(true) }}
             className="border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
           >
-            Delete account
+            {t('settings_page.delete_account')}
           </button>
         </div>
       </main>
@@ -247,9 +249,9 @@ export default function Settings() {
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-lg">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Delete account?</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('settings_page.delete_account_title')}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              Your account and all your quizzes will be permanently deleted. This cannot be undone.
+              {t('settings_page.delete_account_body')}
             </p>
             {deleteError && <p className="mt-3 text-xs text-red-600">{deleteError}</p>}
             <div className="mt-6 flex justify-end gap-3">
@@ -258,14 +260,14 @@ export default function Settings() {
                 disabled={deleting}
                 className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleDeleteAccount}
                 disabled={deleting}
                 className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50"
               >
-                {deleting ? 'Deleting…' : 'Delete account'}
+                {deleting ? t('common.deleting') : t('settings_page.delete_account')}
               </button>
             </div>
           </div>

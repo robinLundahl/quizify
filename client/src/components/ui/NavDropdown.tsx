@@ -1,14 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../../store/authStore'
 import api from '../../lib/api'
+import LangToggle from './LangToggle'
 
 export default function NavDropdown() {
   const user = useAuthStore((s) => s.user)
   const clearUser = useAuthStore((s) => s.clearUser)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -58,19 +61,24 @@ export default function NavDropdown() {
               onClick={() => { setOpen(false); navigate('/dashboard') }}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Dashboard
+              {t('nav.dashboard')}
             </button>
             <button
               onClick={() => { setOpen(false); navigate('/settings') }}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Settings
+              {t('nav.settings')}
             </button>
+            <div className="mx-3 my-1.5 flex items-center justify-between">
+              <span className="text-xs text-gray-400 dark:text-gray-500">{t('nav.language')}</span>
+              <LangToggle />
+            </div>
+            <div className="my-1 h-px bg-gray-100 dark:bg-gray-700" />
             <button
               onClick={handleLogout}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              Log out
+              {t('nav.logout')}
             </button>
           </div>
         </div>

@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { getSocket } from '../hooks/useSocket'
 import { useThemeStore } from '../store/themeStore'
+import LangToggle from '../components/ui/LangToggle'
 
 interface Player {
   id: string
@@ -71,6 +73,7 @@ export default function HostView() {
   const navigate = useNavigate()
   const location = useLocation()
   const socket = getSocket()
+  const { t } = useTranslation()
 
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
@@ -205,11 +208,11 @@ export default function HostView() {
   if (rejoinError) {
     const message =
       rejoinError === 'server_restarted'
-        ? 'The server was restarted and the session state was lost.'
-        : 'This session is no longer active.'
+        ? t('host.server_restarted')
+        : t('host.session_inactive')
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
-        <h1 className="mb-4 text-2xl font-black text-red-500 dark:text-red-400">Could not rejoin session</h1>
+        <h1 className="mb-4 text-2xl font-black text-red-500 dark:text-red-400">{t('host.rejoin_error_title')}</h1>
         <p className="mb-8 max-w-sm text-center text-gray-600 dark:text-gray-300">{message}</p>
         <button
           onClick={() => {
@@ -218,25 +221,26 @@ export default function HostView() {
           }}
           className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white transition hover:bg-indigo-700"
         >
-          Back to Dashboard
+          {t('host.back_to_dashboard')}
         </button>
       </div>
     )
   }
 
-  const themeControl = (
-    <div className="fixed top-3 right-3 z-50">
+  const themeAndLangControl = (
+    <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+      <LangToggle />
       <select
         value={theme}
         onChange={(e) => setTheme(e.target.value as Parameters<typeof setTheme>[0])}
         className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs font-medium shadow-sm backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-        <option value="sunset">Sunset</option>
-        <option value="forest">Forest</option>
-        <option value="rose">Rose</option>
-        <option value="peach">Peach</option>
+        <option value="light">{t('host.themes.light')}</option>
+        <option value="dark">{t('host.themes.dark')}</option>
+        <option value="sunset">{t('host.themes.sunset')}</option>
+        <option value="forest">{t('host.themes.forest')}</option>
+        <option value="rose">{t('host.themes.rose')}</option>
+        <option value="peach">{t('host.themes.peach')}</option>
       </select>
     </div>
   )
@@ -245,15 +249,15 @@ export default function HostView() {
   if (phase === 'lobby') {
     return (
       <><div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
-        <h1 className="mb-2 text-4xl font-black tracking-tight text-gray-900 dark:text-gray-100">Game Code</h1>
+        <h1 className="mb-2 text-4xl font-black tracking-tight text-gray-900 dark:text-gray-100">{t('host.game_code')}</h1>
         <p className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-          Go to <span className="font-semibold text-gray-700 dark:text-gray-200">quizify.app/join</span> to join
+          {t('host.join_hint', { url: 'quizify.app/join' })}
         </p>
         <div className="mb-8 rounded-2xl border border-gray-200 dark:border-indigo-500/40 bg-white dark:bg-indigo-600/20 px-10 py-6 text-6xl font-black tracking-widest text-indigo-600 dark:text-indigo-300 shadow-lg">
           {joinCode || '------'}
         </div>
         <p className="mb-6 text-lg font-medium text-gray-600 dark:text-gray-300">
-          Players joined: <span className="font-bold text-gray-900 dark:text-white">{players.length}</span>
+          {t('host.players_joined')} <span className="font-bold text-gray-900 dark:text-white">{players.length}</span>
         </p>
         {players.length > 0 && (
           <div className="mb-8 flex flex-wrap justify-center gap-2 max-w-lg">
@@ -269,10 +273,10 @@ export default function HostView() {
           disabled={players.length === 0}
           className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-40"
         >
-          Start Game
+          {t('host.start_game')}
         </button>
       </div>
-      {themeControl}
+      {themeAndLangControl}
     </>
     )
   }
@@ -283,7 +287,7 @@ export default function HostView() {
     return (
       <>
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
-        <h1 className="mb-8 text-4xl font-black text-gray-900 dark:text-gray-100">Final Leaderboard</h1>
+        <h1 className="mb-8 text-4xl font-black text-gray-900 dark:text-gray-100">{t('host.final_leaderboard')}</h1>
         <div className="w-full max-w-md space-y-3">
           {leaderboard.map((p, i) => (
             <div
@@ -294,7 +298,7 @@ export default function HostView() {
                 <span className="text-xl">{medals[i] ?? `${i + 1}.`}</span>
                 {p.nickname}
               </span>
-              <span className="text-gray-600 dark:text-gray-300">{p.score.toLocaleString()} pts</span>
+              <span className="text-gray-600 dark:text-gray-300">{p.score.toLocaleString()} {t('common.pts')}</span>
             </div>
           ))}
         </div>
@@ -303,17 +307,17 @@ export default function HostView() {
             onClick={() => navigate(`/results/${sessionId}`)}
             className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700"
           >
-            View Results
+            {t('host.view_results')}
           </button>
           <button
             onClick={() => navigate('/dashboard')}
             className="rounded-xl border border-gray-300 dark:border-gray-600 px-8 py-3 text-lg font-bold text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
           >
-            Dashboard
+            {t('nav.dashboard')}
           </button>
         </div>
       </div>
-      {themeControl}
+      {themeAndLangControl}
       </>
     )
   }
@@ -325,13 +329,13 @@ export default function HostView() {
       <div className="flex min-h-screen flex-col items-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="w-full max-w-2xl">
           <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-500">
-            Question {currentQuestion.index + 1} / {currentQuestion.total} — Results
+            {t('host.results_header', { index: currentQuestion.index + 1, total: currentQuestion.total })}
           </p>
           <h2 className="mb-6 text-center text-2xl font-bold text-gray-900 dark:text-white">{currentQuestion.question.text}</h2>
 
           {correctAnswer?.type === 'OPEN_ENDED' && (
             <div className="mb-6 rounded-2xl border border-yellow-200 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/20 p-6 text-center text-yellow-700 dark:text-yellow-300">
-              Open-ended — all participants received full points.
+              {t('host.open_ended_reveal')}
             </div>
           )}
           {correctAnswer?.optionText && (
@@ -342,12 +346,12 @@ export default function HostView() {
           )}
           {correctAnswer?.type === 'MAP' && (
             <div className="mb-6 rounded-2xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/20 p-6 text-center text-blue-700 dark:text-blue-300">
-              Map answer revealed — scored by distance rings.
+              {t('host.map_reveal')}
             </div>
           )}
           {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
             <div className="mb-6 rounded-2xl border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/20 p-5">
-              <p className="mb-3 text-center text-sm font-semibold text-purple-700 dark:text-purple-300">Correct order</p>
+              <p className="mb-3 text-center text-sm font-semibold text-purple-700 dark:text-purple-300">{t('host.correct_order')}</p>
               <ol className="space-y-1.5">
                 {correctAnswer.items.map((item, i) => (
                   <li key={item.id} className="flex items-center gap-3 rounded-xl bg-gray-100 dark:bg-white/10 px-4 py-2.5">
@@ -359,7 +363,7 @@ export default function HostView() {
             </div>
           )}
 
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Leaderboard</h3>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{t('host.leaderboard')}</h3>
           <div className="mb-8 space-y-2">
             {leaderboard.slice(0, 10).map((p, i) => (
               <div
@@ -376,7 +380,7 @@ export default function HostView() {
                   )}
                   <span className="font-medium text-gray-900 dark:text-white">{p.nickname}</span>
                 </span>
-                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300">{p.score.toLocaleString()} pts</span>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300">{p.score.toLocaleString()} {t('common.pts')}</span>
               </div>
             ))}
           </div>
@@ -385,11 +389,11 @@ export default function HostView() {
             onClick={handleNext}
             className="w-full rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white hover:bg-indigo-700 transition-colors"
           >
-            {currentQuestion.index + 1 < currentQuestion.total ? 'Next Question →' : 'Show Final Results'}
+            {currentQuestion.index + 1 < currentQuestion.total ? t('host.next_question') : t('host.show_final_results')}
           </button>
         </div>
       </div>
-      {themeControl}
+      {themeAndLangControl}
       </>
     )
   }
@@ -403,7 +407,7 @@ export default function HostView() {
         <div className="w-full max-w-2xl">
           <div className="mb-4 flex items-center justify-between rounded-xl bg-gray-100 dark:bg-white/5 px-4 py-2.5">
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Question {index + 1} / {total}
+              {t('host.question_header', { index: index + 1, total })}
             </span>
             <span
               className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}
@@ -411,7 +415,7 @@ export default function HostView() {
               {timeLeft}s
             </span>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {answerCount} answered
+              {answerCount} {t('host.answered')}
             </span>
           </div>
 
@@ -443,7 +447,7 @@ export default function HostView() {
 
           {question.type === 'TRUE_FALSE' && (
             <div className="grid grid-cols-2 gap-3">
-              {['True', 'False'].map((label, i) => (
+              {[t('common.true'), t('common.false')].map((label, i) => (
                 <div
                   key={label}
                   className={`${OPTION_COLORS[i]} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold text-white`}
@@ -456,19 +460,19 @@ export default function HostView() {
 
           {question.type === 'OPEN_ENDED' && (
             <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
-              Open-ended — players type their answer
+              {t('host.open_ended_info')}
             </div>
           )}
 
           {question.type === 'MAP' && (
             <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
-              Map question — players pin a location
+              {t('host.map_info')}
             </div>
           )}
 
           {question.type === 'RANKING' && (
             <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-4 text-gray-600 dark:text-gray-300">
-              <p className="mb-3 text-center text-sm">Ranking question — players drag items into order</p>
+              <p className="mb-3 text-center text-sm">{t('host.ranking_info')}</p>
               {question.rankingItems && (
                 <ol className="space-y-2">
                   {question.rankingItems.map((item, i) => (
@@ -483,7 +487,7 @@ export default function HostView() {
           )}
         </div>
       </div>
-      {themeControl}
+      {themeAndLangControl}
       </>
     )
   }

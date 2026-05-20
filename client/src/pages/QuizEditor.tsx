@@ -17,6 +17,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavDropdown from '../components/ui/NavDropdown'
 import {
@@ -67,16 +68,14 @@ interface FormState {
   correctAnswers: string[]
 }
 
-const TYPE_LABELS: Record<QuestionType, string> = {
-  MULTIPLE_CHOICE: 'Multiple choice',
-  TRUE_FALSE: 'True / False',
-  OPEN_ENDED: 'Open-ended',
-  IMAGE: 'Image',
-  MAP: 'Map',
-  RANKING: 'Ranking',
-}
-
-const QUESTION_TYPES = Object.keys(TYPE_LABELS) as QuestionType[]
+const QUESTION_TYPES: QuestionType[] = [
+  'MULTIPLE_CHOICE',
+  'TRUE_FALSE',
+  'OPEN_ENDED',
+  'IMAGE',
+  'MAP',
+  'RANKING',
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -204,7 +203,6 @@ function MapInitializer({ center, zoom }: { center: [number, number]; zoom: numb
 
 function ringFillOpacity(index: number, total: number): number {
   if (total === 1) return 0.35
-  // innermost (index 0 after sort) gets 0.40, outermost gets 0.08
   return 0.40 - (index / (total - 1)) * 0.32
 }
 
@@ -219,6 +217,7 @@ function MapPicker({
   rings: RingField[]
   onChange: (lat: string, lng: string) => void
 }) {
+  const { t } = useTranslation()
   const parsedLat = parseFloat(lat)
   const parsedLng = parseFloat(lng)
   const hasPin = !isNaN(parsedLat) && !isNaN(parsedLng)
@@ -236,7 +235,7 @@ function MapPicker({
   return (
     <div>
       <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-        Click the map to place the correct answer pin
+        {t('quiz_editor.map_pin_label')}
       </label>
       <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700" style={{ height: 280 }}>
         <MapContainer center={[0, 0]} zoom={2} style={{ height: '100%', width: '100%' }}>
@@ -282,7 +281,7 @@ function MapPicker({
       {hasPin ? (
         <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{parsedLat.toFixed(5)}, {parsedLng.toFixed(5)}</p>
       ) : (
-        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">No pin placed yet</p>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{t('quiz_editor.no_pin')}</p>
       )}
     </div>
   )
@@ -303,6 +302,7 @@ function SortableRankingEditorItem({
   onLabelChange: (label: string) => void
   onRemove: () => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   return (
     <div
@@ -315,7 +315,7 @@ function SortableRankingEditorItem({
         {...attributes}
         {...listeners}
         className="cursor-grab touch-none p-1 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 active:cursor-grabbing"
-        aria-label="Drag to reorder"
+        aria-label={t('quiz_editor.drag_to_reorder')}
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
           <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
@@ -328,7 +328,7 @@ function SortableRankingEditorItem({
         type="text"
         value={item.label}
         onChange={(e) => onLabelChange(e.target.value)}
-        placeholder={`Item ${index + 1}`}
+        placeholder={t('quiz_editor.option_placeholder', { n: index + 1 })}
         className="flex-1 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
       {showRemove && (
@@ -358,6 +358,7 @@ function QuestionForm({
   onCancel: () => void
   isSaving: boolean
 }) {
+  const { t } = useTranslation()
   const [form, setForm] = useState<FormState>(initial)
   const rankingSensors = useSensors(useSensor(PointerSensor))
   const imageInputRef = useRef<HTMLInputElement>(null)
@@ -464,24 +465,24 @@ function QuestionForm({
     <form onSubmit={handleSubmit} className="rounded-xl bg-gray-50 dark:bg-gray-700/50 p-4 space-y-4">
       <div className="flex gap-3">
         <div className="flex-1">
-          <label className={LABEL_CLS}>Type</label>
+          <label className={LABEL_CLS}>{t('quiz_editor.type_label')}</label>
           <select
             value={form.type}
             onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
             className={`w-full ${INPUT_CLS} pr-8`}
           >
-            {QUESTION_TYPES.map((t) => (
-              <option key={t} value={t}>{TYPE_LABELS[t]}</option>
+            {QUESTION_TYPES.map((qtype) => (
+              <option key={qtype} value={qtype}>{t(`quiz_editor.types.${qtype}`)}</option>
             ))}
           </select>
         </div>
         <div>
           <div className="mb-1.5 flex items-center gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Time (s)</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t('quiz_editor.time_label')}</span>
             <span className="group relative flex items-center">
               <span className="cursor-default text-xs text-gray-400 hover:text-gray-600">ⓘ</span>
               <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 w-52 -translate-x-1/2 rounded-xl bg-gray-900 px-3 py-2 text-xs font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                The amount of seconds a player has to answer a question. The quicker they respond, the more points they score.
+                {t('quiz_editor.time_tooltip')}
               </span>
             </span>
           </div>
@@ -496,7 +497,7 @@ function QuestionForm({
         </div>
         {form.type !== 'MAP' && (
           <div>
-            <label className={LABEL_CLS}>Points</label>
+            <label className={LABEL_CLS}>{t('quiz_editor.points_label')}</label>
             <input
               type="number"
               min={1}
@@ -510,20 +511,20 @@ function QuestionForm({
       </div>
 
       <div>
-        <label className={LABEL_CLS}>Question</label>
+        <label className={LABEL_CLS}>{t('quiz_editor.question_label')}</label>
         <textarea
           required
           rows={2}
           value={form.text}
           onChange={(e) => set({ text: e.target.value })}
-          placeholder="Enter your question..."
+          placeholder={t('quiz_editor.question_placeholder')}
           className={`w-full ${INPUT_CLS}`}
         />
       </div>
 
       {(form.type === 'IMAGE' || form.type === 'RANKING' || form.type === 'OPEN_ENDED' || form.type === 'TRUE_FALSE') && (
         <div>
-          <label className={LABEL_CLS}>Image</label>
+          <label className={LABEL_CLS}>{t('quiz_editor.image_label')}</label>
           <input
             ref={imageInputRef}
             type="file"
@@ -541,13 +542,13 @@ function QuestionForm({
               disabled={isUploadingImage}
               className="rounded-xl border border-gray-200 dark:border-gray-600 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
             >
-              {isUploadingImage ? 'Uploading…' : '↑ Upload image'}
+              {isUploadingImage ? t('quiz_editor.uploading') : t('quiz_editor.upload_image')}
             </button>
             <input
               type="url"
               value={form.imageUrl}
               onChange={(e) => set({ imageUrl: e.target.value })}
-              placeholder="or paste a URL…"
+              placeholder={t('quiz_editor.paste_url')}
               className={`flex-1 ${INPUT_CLS}`}
             />
           </div>
@@ -564,7 +565,7 @@ function QuestionForm({
                 onClick={() => set({ imageUrl: '' })}
                 className="text-xs text-gray-400 hover:text-red-500"
               >
-                Remove
+                {t('quiz_editor.remove')}
               </button>
             </div>
           )}
@@ -574,7 +575,7 @@ function QuestionForm({
       {form.type === 'OPEN_ENDED' && (
         <div className="space-y-2">
           <label className={LABEL_CLS}>
-            Accepted answers <span className="font-normal normal-case text-gray-400">(leave empty to award points to everyone)</span>
+            {t('quiz_editor.accepted_answers')} <span className="font-normal normal-case text-gray-400">{t('quiz_editor.accepted_answers_hint')}</span>
           </label>
           {form.correctAnswers.map((answer, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -582,7 +583,7 @@ function QuestionForm({
                 type="text"
                 value={answer}
                 onChange={(e) => setCorrectAnswerText(i, e.target.value)}
-                placeholder={`Answer ${i + 1}`}
+                placeholder={t('quiz_editor.answer_placeholder', { n: i + 1 })}
                 className={`flex-1 ${INPUT_CLS}`}
               />
               <button type="button" onClick={() => removeCorrectAnswer(i)} className="text-gray-400 hover:text-red-500">
@@ -591,14 +592,14 @@ function QuestionForm({
             </div>
           ))}
           <button type="button" onClick={addCorrectAnswer} className="text-sm text-indigo-600 hover:underline">
-            + Add answer
+            {t('quiz_editor.add_answer')}
           </button>
         </div>
       )}
 
       {(form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') && (
         <div className="space-y-2">
-          <label className={LABEL_CLS}>Answer options</label>
+          <label className={LABEL_CLS}>{t('quiz_editor.answer_options')}</label>
           {form.options.map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
               <input
@@ -607,13 +608,13 @@ function QuestionForm({
                 checked={opt.isCorrect}
                 onChange={() => setCorrectOption(i)}
                 className="accent-indigo-600"
-                title="Mark as correct"
+                title={t('quiz_editor.mark_correct')}
               />
               <input
                 type="text"
                 value={opt.text}
                 onChange={(e) => setOptionText(i, e.target.value)}
-                placeholder={`Option ${i + 1}`}
+                placeholder={t('quiz_editor.option_placeholder', { n: i + 1 })}
                 className={`flex-1 ${INPUT_CLS}`}
               />
               {form.options.length > 2 && (
@@ -625,7 +626,7 @@ function QuestionForm({
           ))}
           {form.options.length < 4 && (
             <button type="button" onClick={addOption} className="text-sm text-indigo-600 hover:underline">
-              + Add option
+              {t('quiz_editor.add_option')}
             </button>
           )}
         </div>
@@ -633,7 +634,7 @@ function QuestionForm({
 
       {form.type === 'TRUE_FALSE' && (
         <div>
-          <label className={`${LABEL_CLS} mb-2`}>Correct answer</label>
+          <label className={`${LABEL_CLS} mb-2`}>{t('quiz_editor.correct_answer')}</label>
           <div className="flex gap-4">
             {(['true', 'false'] as const).map((val) => (
               <label key={val} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -645,7 +646,7 @@ function QuestionForm({
                   onChange={() => set({ correctAnswer: val })}
                   className="accent-indigo-600"
                 />
-                {val === 'true' ? 'True' : 'False'}
+                {val === 'true' ? t('common.true') : t('common.false')}
               </label>
             ))}
           </div>
@@ -663,7 +664,7 @@ function QuestionForm({
 
           <div>
             <label className={`${LABEL_CLS} mb-2`}>
-              Scoring rings (up to 4) — smallest ring wins
+              {t('quiz_editor.scoring_rings')}
             </label>
             <div className="space-y-2">
               {form.mapRings.map((ring, i) => (
@@ -681,7 +682,7 @@ function QuestionForm({
                     placeholder="km"
                     className={`w-20 ${INPUT_CLS}`}
                   />
-                  <span className="text-xs text-gray-400 dark:text-gray-500">km →</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{t('quiz_editor.km_arrow')}</span>
                   <input
                     type="number"
                     min={0}
@@ -691,7 +692,7 @@ function QuestionForm({
                     placeholder="pts"
                     className={`w-20 ${INPUT_CLS}`}
                   />
-                  <span className="text-xs text-gray-400 dark:text-gray-500">pts</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">{t('common.pts')}</span>
                   {form.mapRings.length > 1 && (
                     <button
                       type="button"
@@ -705,7 +706,7 @@ function QuestionForm({
               ))}
               {form.mapRings.length < 4 && (
                 <button type="button" onClick={addRing} className="text-sm text-indigo-600 hover:underline">
-                  + Add ring
+                  {t('quiz_editor.add_ring')}
                 </button>
               )}
             </div>
@@ -716,7 +717,7 @@ function QuestionForm({
       {form.type === 'RANKING' && (
         <div className="space-y-2">
           <label className={LABEL_CLS}>
-            Items in correct order (top = position 1)
+            {t('quiz_editor.ranking_label')}
           </label>
           <DndContext
             sensors={rankingSensors}
@@ -745,10 +746,10 @@ function QuestionForm({
             </SortableContext>
           </DndContext>
           <button type="button" onClick={addRankingItem} className="text-sm text-indigo-600 hover:underline">
-            + Add item
+            {t('quiz_editor.add_item')}
           </button>
           {form.rankingItems.length < 2 && (
-            <p className="text-xs text-red-500">At least 2 items required</p>
+            <p className="text-xs text-red-500">{t('quiz_editor.min_items')}</p>
           )}
         </div>
       )}
@@ -759,14 +760,14 @@ function QuestionForm({
           onClick={onCancel}
           className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
-          Cancel
+          {t('common.cancel')}
         </button>
         <button
           type="submit"
           disabled={isSaving}
           className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {isSaving ? 'Saving…' : 'Save question'}
+          {isSaving ? t('common.saving') : t('quiz_editor.save_question')}
         </button>
       </div>
     </form>
@@ -790,6 +791,7 @@ function QuestionCard({
   onEdit: () => void
   onClose: () => void
 }) {
+  const { t } = useTranslation()
   const updateQuestion = useUpdateQuestion(quizId)
   const deleteQuestion = useDeleteQuestion(quizId)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -824,7 +826,7 @@ function QuestionCard({
             {...attributes}
             {...listeners}
             className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 active:cursor-grabbing"
-            aria-label="Drag to reorder"
+            aria-label={t('quiz_editor.drag_to_reorder')}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
               <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
@@ -836,7 +838,7 @@ function QuestionCard({
             <div className="mb-1.5 flex items-center gap-2">
               <span className="text-xs font-medium text-gray-400 dark:text-gray-500">Q{index + 1}</span>
               <span className="rounded-lg bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
-                {TYPE_LABELS[question.type]}
+                {t(`quiz_editor.types.${question.type}`)}
               </span>
             </div>
             <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{question.text}</p>
@@ -852,12 +854,12 @@ function QuestionCard({
             )}
             {question.type === 'TRUE_FALSE' && (
               <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                Correct: {question.answerOptions.find((o) => o.isCorrect)?.text ?? '—'}
+                {t('quiz_editor.correct_prefix')} {question.answerOptions.find((o) => o.isCorrect)?.text ?? '—'}
               </p>
             )}
             {question.type === 'OPEN_ENDED' && question.correctAnswers.length > 0 && (
               <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                Accepted: {question.correctAnswers.join(' / ')}
+                {t('quiz_editor.accepted_prefix')} {question.correctAnswers.join(' / ')}
               </p>
             )}
             {question.type === 'MAP' && question.mapQuestion && (
@@ -867,7 +869,7 @@ function QuestionCard({
                 </p>
                 {question.mapQuestion.rings.map((r, i) => (
                   <p key={r.id} className="text-xs text-gray-400 dark:text-gray-500">
-                    Ring {i + 1}: {r.radiusKm} km → {r.points} pts
+                    {t('quiz_editor.ring_display', { n: i + 1, radiusKm: r.radiusKm, points: r.points })}
                   </p>
                 ))}
               </div>
@@ -887,14 +889,14 @@ function QuestionCard({
               onClick={onEdit}
               className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
-              Edit
+              {t('common.edit')}
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
               disabled={deleteQuestion.isPending}
               className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors disabled:opacity-50"
             >
-              Delete
+              {t('common.delete')}
             </button>
           </div>
         </div>
@@ -903,9 +905,9 @@ function QuestionCard({
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Delete question?</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('quiz_editor.delete_question_title')}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              <span className="font-medium text-gray-700 dark:text-gray-300">"{question.text}"</span> will be permanently deleted. This cannot be undone.
+              {t('quiz_editor.delete_question_body', { text: question.text })}
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
@@ -913,14 +915,14 @@ function QuestionCard({
                 disabled={deleteQuestion.isPending}
                 className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
-                Cancel
+                {t('common.cancel')}
               </button>
               <button
                 onClick={() => deleteQuestion.mutate(question.id, { onSettled: () => setConfirmDelete(false) })}
                 disabled={deleteQuestion.isPending}
                 className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
               >
-                {deleteQuestion.isPending ? 'Deleting…' : 'Delete'}
+                {deleteQuestion.isPending ? t('common.deleting') : t('common.delete')}
               </button>
             </div>
           </div>
@@ -933,11 +935,12 @@ function QuestionCard({
 // ─── Add Question Card ─────────────────────────────────────────────────────────
 
 function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: number; onClose: () => void }) {
+  const { t } = useTranslation()
   const addQuestion = useAddQuestion(quizId)
 
   return (
     <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-5">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">New question</p>
+      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{t('quiz_editor.new_question')}</p>
       <QuestionForm
         initial={blankForm()}
         order={order}
@@ -960,13 +963,14 @@ function QuizMetaForm({
   onSave: (title: string, description?: string) => void
   isSaving: boolean
 }) {
+  const { t } = useTranslation()
   const [title, setTitle] = useState(quiz.title)
   const [description, setDescription] = useState(quiz.description ?? '')
 
   return (
     <section className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-6 space-y-4">
       <div>
-        <label className={LABEL_CLS}>Title</label>
+        <label className={LABEL_CLS}>{t('quiz_editor.title_label')}</label>
         <input
           type="text"
           value={title}
@@ -975,12 +979,12 @@ function QuizMetaForm({
         />
       </div>
       <div>
-        <label className={LABEL_CLS}>Description <span className="font-normal normal-case text-gray-400 dark:text-gray-500">(optional)</span></label>
+        <label className={LABEL_CLS}>{t('quiz_editor.description_label')} <span className="font-normal normal-case text-gray-400 dark:text-gray-500">{t('quiz_editor.description_optional')}</span></label>
         <textarea
           rows={2}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What is this quiz about?"
+          placeholder={t('quiz_editor.description_placeholder')}
           className={`w-full ${INPUT_CLS}`}
         />
       </div>
@@ -990,7 +994,7 @@ function QuizMetaForm({
           disabled={isSaving || !title.trim()}
           className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
-          {isSaving ? 'Saving…' : 'Save'}
+          {isSaving ? t('common.saving') : t('common.save')}
         </button>
       </div>
     </section>
@@ -1002,6 +1006,7 @@ function QuizMetaForm({
 export default function QuizEditor() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data: quiz, isLoading, isError } = useQuiz(id!)
   const updateQuiz = useUpdateQuiz(id!)
   const reorderQuestions = useReorderQuestions(id!)
@@ -1021,14 +1026,14 @@ export default function QuizEditor() {
   }, [quiz, reorderQuestions])
 
   if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400 dark:text-gray-500">Loading…</div>
+    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400 dark:text-gray-500">{t('common.loading')}</div>
   }
 
   if (isError || !quiz) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-gray-500 dark:text-gray-400">
-        <p>Quiz not found.</p>
-        <Link to="/dashboard" className="text-indigo-600 hover:underline">Back to dashboard</Link>
+        <p>{t('quiz_editor.not_found')}</p>
+        <Link to="/dashboard" className="text-indigo-600 hover:underline">{t('quiz_editor.back_to_dashboard')}</Link>
       </div>
     )
   }
@@ -1042,7 +1047,7 @@ export default function QuizEditor() {
               onClick={() => navigate('/dashboard')}
               className="shrink-0 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
-              ← Dashboard
+              {t('quiz_editor.back')}
             </button>
             <span className="shrink-0 text-gray-200 dark:text-gray-700">|</span>
             <span className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{quiz.title}</span>
@@ -1062,7 +1067,7 @@ export default function QuizEditor() {
         <section>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-              Questions ({quiz.questions.length})
+              {t('quiz_editor.questions_count', { count: quiz.questions.length })}
             </h2>
           </div>
 
@@ -1099,7 +1104,7 @@ export default function QuizEditor() {
               onClick={() => { setEditingId(null); setAddingQuestion(true) }}
               className="mt-3 w-full rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-4 text-sm font-semibold text-gray-400 dark:text-gray-500 transition hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/30 hover:text-indigo-600"
             >
-              + Add question
+              {t('quiz_editor.add_question')}
             </button>
           )}
         </section>

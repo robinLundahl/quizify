@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthStore } from '../store/authStore'
+import LangToggle from '../components/ui/LangToggle'
 
 async function registerRequest(name: string, email: string, password: string) {
   const res = await fetch('/api/auth/register', {
@@ -19,6 +21,7 @@ export default function Register() {
   const { user, isLoading } = useAuth()
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -40,7 +43,7 @@ export default function Register() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (password !== confirm) {
-      setConfirmError('Passwords do not match.')
+      setConfirmError(t('register.passwords_no_match'))
       return
     }
     setConfirmError('')
@@ -50,13 +53,16 @@ export default function Register() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">Create an account</h1>
-        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">Join Quizify to create and host quizzes</p>
+        <div className="mb-6 flex justify-end">
+          <LangToggle />
+        </div>
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{t('register.title')}</h1>
+        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('register.subtitle')}</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
             type="text"
-            placeholder="Name"
+            placeholder={t('register.name')}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -64,7 +70,7 @@ export default function Register() {
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t('register.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -72,7 +78,7 @@ export default function Register() {
           />
           <input
             type="password"
-            placeholder="Password (min. 8 characters)"
+            placeholder={t('register.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -82,7 +88,7 @@ export default function Register() {
           <div>
             <input
               type="password"
-              placeholder="Confirm password"
+              placeholder={t('register.confirm_password')}
               value={confirm}
               onChange={(e) => { setConfirm(e.target.value); setConfirmError('') }}
               required
@@ -100,14 +106,14 @@ export default function Register() {
             disabled={mutation.isPending}
             className="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
           >
-            {mutation.isPending ? 'Creating account…' : 'Create account'}
+            {mutation.isPending ? t('register.creating') : t('register.create')}
           </button>
         </form>
 
         <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
-          Already have an account?{' '}
+          {t('register.have_account')}{' '}
           <Link to="/login" className="text-indigo-600 hover:underline">
-            Sign in
+            {t('register.sign_in')}
           </Link>
         </p>
       </div>

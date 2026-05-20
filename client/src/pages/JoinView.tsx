@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import {
@@ -21,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { getSocket } from '../hooks/useSocket'
 import { applyTheme } from '../lib/theme'
 import { useThemeStore } from '../store/themeStore'
+import LangToggle from '../components/ui/LangToggle'
 
 // Fix default leaflet icons
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -101,6 +103,7 @@ function SortableRankingItem({
   disabled: boolean
   onMove: (i: number, dir: -1 | 1) => void
 }) {
+  const { t } = useTranslation()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id })
   return (
     <div
@@ -113,7 +116,7 @@ function SortableRankingItem({
         {...listeners}
         disabled={disabled}
         className="cursor-grab touch-none p-1 text-gray-400 active:cursor-grabbing disabled:cursor-default"
-        aria-label="Drag to reorder"
+        aria-label={t('join.drag_to_reorder')}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <circle cx="5" cy="4" r="1.5" /><circle cx="11" cy="4" r="1.5" />
@@ -128,7 +131,7 @@ function SortableRankingItem({
           onClick={() => onMove(index, -1)}
           disabled={disabled || index === 0}
           className="rounded px-1 text-gray-400 hover:text-white disabled:opacity-20"
-          aria-label="Move up"
+          aria-label={t('join.move_up')}
         >
           ▲
         </button>
@@ -136,7 +139,7 @@ function SortableRankingItem({
           onClick={() => onMove(index, 1)}
           disabled={disabled || index === total - 1}
           className="rounded px-1 text-gray-400 hover:text-white disabled:opacity-20"
-          aria-label="Move down"
+          aria-label={t('join.move_down')}
         >
           ▼
         </button>
@@ -148,6 +151,7 @@ function SortableRankingItem({
 export default function JoinView() {
   const [searchParams] = useSearchParams()
   const socket = getSocket()
+  const { t } = useTranslation()
 
   const [phase, setPhase] = useState<Phase>('enter')
   const [code, setCode] = useState(searchParams.get('code') ?? '')
@@ -309,8 +313,8 @@ export default function JoinView() {
   // Countdown timer
   useEffect(() => {
     if (phase !== 'question' || timeLeft <= 0) return
-    const t = setTimeout(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000)
+    return () => clearTimeout(timer)
   }, [phase, timeLeft])
 
   const handleJoin = useCallback(
@@ -356,28 +360,35 @@ export default function JoinView() {
     submitAnswer(JSON.stringify(rankingOrder.map((i) => i.id)))
   }, [rankingOrder, submitAnswer])
 
+  const langToggle = (
+    <div className="fixed top-3 right-3 z-50">
+      <LangToggle />
+    </div>
+  )
+
   // ── Enter ──────────────────────────────────────────────────────────────────
   if (phase === 'enter') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        {langToggle}
         <h1 className="mb-6 text-4xl font-black text-gray-900 dark:text-white">Quizify</h1>
         <div className="w-full max-w-sm rounded-2xl border border-gray-200/70 dark:border-white/20 bg-white/80 dark:bg-white/10 p-6 backdrop-blur-sm">
           {savedSession && (
             <div className="mb-5 rounded-xl bg-gray-50 dark:bg-white/15 p-4 text-gray-900 dark:text-white">
-              <p className="mb-1 font-semibold">Active session found</p>
-              <p className="mb-3 text-sm opacity-70">You were in a game that may still be running.</p>
+              <p className="mb-1 font-semibold">{t('join.active_session_title')}</p>
+              <p className="mb-3 text-sm opacity-70">{t('join.active_session_body')}</p>
               <button
                 onClick={handleRejoin}
                 className="w-full rounded-xl bg-white py-3 font-bold text-indigo-600 transition hover:bg-indigo-50"
               >
-                Rejoin game
+                {t('join.rejoin_game')}
               </button>
             </div>
           )}
           <form onSubmit={handleJoin} className="space-y-3">
             <input
               type="text"
-              placeholder="Game code"
+              placeholder={t('join.game_code')}
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               maxLength={6}
@@ -385,7 +396,7 @@ export default function JoinView() {
             />
             <input
               type="text"
-              placeholder="Your nickname"
+              placeholder={t('join.your_nickname')}
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               maxLength={20}
@@ -397,7 +408,7 @@ export default function JoinView() {
               disabled={!code.trim() || !nickname.trim()}
               className="w-full rounded-xl bg-white py-4 text-lg font-bold text-indigo-600 transition hover:bg-indigo-50 disabled:opacity-40"
             >
-              Join
+              {t('join.join')}
             </button>
           </form>
         </div>
@@ -409,6 +420,7 @@ export default function JoinView() {
   if (phase === 'lobby') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
+        {langToggle}
         {hostAvatar ? (
           <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/30" />
         ) : (
@@ -417,10 +429,10 @@ export default function JoinView() {
           </div>
         )}
         {hostName && (
-          <p className="mb-5 text-sm text-gray-600 dark:text-white/75">Quiz hosted by {hostName}</p>
+          <p className="mb-5 text-sm text-gray-600 dark:text-white/75">{t('join.hosted_by', { hostName })}</p>
         )}
-        <h2 className="mb-1 text-3xl font-black">Good luck, {nickname}!</h2>
-        <p className="text-base text-gray-500 dark:text-white/60">Waiting for the host to start…</p>
+        <h2 className="mb-1 text-3xl font-black">{t('join.good_luck', { nickname })}</h2>
+        <p className="text-base text-gray-500 dark:text-white/60">{t('join.waiting_for_host')}</p>
         <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-black/10 dark:border-white/20 border-t-gray-800 dark:border-t-white" />
       </div>
     )
@@ -430,6 +442,7 @@ export default function JoinView() {
   if (phase === 'finished') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
+        {langToggle}
         {hostAvatar ? (
           <img src={hostAvatar} alt={hostName} className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/30" />
         ) : (
@@ -437,8 +450,8 @@ export default function JoinView() {
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
-        <h1 className="mb-2 text-3xl font-black">Thanks for playing!</h1>
-        <p className="text-base text-gray-500 dark:text-white/70">Hope you had fun.</p>
+        <h1 className="mb-2 text-3xl font-black">{t('join.thanks_for_playing')}</h1>
+        <p className="text-base text-gray-500 dark:text-white/70">{t('join.hope_you_had_fun')}</p>
       </div>
     )
   }
@@ -448,6 +461,7 @@ export default function JoinView() {
     const isFinalRound = currentQuestion !== null && currentQuestion.index + 1 === currentQuestion.total
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
+        {langToggle}
         {hostAvatar ? (
           <img
             src={hostAvatar}
@@ -461,11 +475,11 @@ export default function JoinView() {
         )}
         {isFinalRound ? (
           <>
-            <p className="text-lg font-bold">Thank you for participating!</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The host will present the winner shortly.</p>
+            <p className="text-lg font-bold">{t('join.thank_you')}</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('join.host_will_present')}</p>
           </>
         ) : (
-          <p className="text-base font-medium text-gray-500 dark:text-gray-400">Waiting for next question…</p>
+          <p className="text-base font-medium text-gray-500 dark:text-gray-400">{t('join.waiting_next_question')}</p>
         )}
       </div>
     )
@@ -475,11 +489,12 @@ export default function JoinView() {
   if (phase === 'answered') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
+        {langToggle}
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 text-3xl ring-4 ring-indigo-500/30">
           ✓
         </div>
-        <p className="text-lg font-bold">Answer submitted!</p>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Waiting for other players…</p>
+        <p className="text-lg font-bold">{t('join.answer_submitted')}</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('join.waiting_players')}</p>
         <div className="mt-8 h-8 w-8 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-400" />
       </div>
     )
@@ -491,6 +506,7 @@ export default function JoinView() {
 
     return (
       <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
+        {langToggle}
         {/* Header pill */}
         <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-black/5 dark:bg-white/5 px-4 py-2.5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -546,7 +562,7 @@ export default function JoinView() {
                     selectedAnswer === opt.id ? 'ring-4 ring-white' : ''
                   }`}
                 >
-                  {opt.text}
+                  {opt.text === 'True' ? t('common.true') : opt.text === 'False' ? t('common.false') : opt.text}
                 </button>
               ))}
             </div>
@@ -558,7 +574,7 @@ export default function JoinView() {
                 value={openText}
                 onChange={(e) => setOpenText(e.target.value)}
                 disabled={!!selectedAnswer}
-                placeholder="Type your answer…"
+                placeholder={t('join.type_answer')}
                 rows={3}
                 className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/8 p-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-60"
               />
@@ -567,14 +583,14 @@ export default function JoinView() {
                 disabled={!openText.trim() || !!selectedAnswer}
                 className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
-                Submit
+                {t('join.submit')}
               </button>
             </div>
           )}
 
           {question.type === 'MAP' && (
             <div className="flex flex-col gap-3">
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400">Tap the map to place your pin</p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t('join.tap_map')}</p>
               <div className="h-72 w-full overflow-hidden rounded-2xl">
                 <MapContainer
                   center={
@@ -598,14 +614,14 @@ export default function JoinView() {
                 disabled={!mapPin || !!selectedAnswer}
                 className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
-                {mapPin ? 'Submit Pin' : 'Tap to place pin first'}
+                {mapPin ? t('join.submit_pin') : t('join.tap_to_place')}
               </button>
             </div>
           )}
 
           {question.type === 'RANKING' && rankingOrder.length > 0 && (
             <div className="flex flex-col gap-3">
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400">Drag or use arrows to put items in the correct order</p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t('join.drag_order')}</p>
               <DndContext
                 sensors={rankingSensors}
                 collisionDetection={closestCenter}
@@ -631,7 +647,7 @@ export default function JoinView() {
                 disabled={!!selectedAnswer}
                 className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
               >
-                Submit Order
+                {t('join.submit_order')}
               </button>
             </div>
           )}

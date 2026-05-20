@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useSessionResults } from '../hooks/useQuizzes'
 
 const MEDAL = ['🥇', '🥈', '🥉']
@@ -6,12 +7,13 @@ const MEDAL = ['🥇', '🥈', '🥉']
 export default function ResultsView() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { data, isLoading, isError } = useSessionResults(sessionId ?? '')
 
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-gray-400 dark:text-gray-500">Loading results…</div>
+        <div className="text-gray-400 dark:text-gray-500">{t('results.loading')}</div>
       </div>
     )
   }
@@ -19,7 +21,7 @@ export default function ResultsView() {
   if (isError || !data) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-gray-500 dark:text-gray-400">Results not found.</div>
+        <div className="text-gray-500 dark:text-gray-400">{t('results.not_found')}</div>
       </div>
     )
   }
@@ -36,20 +38,20 @@ export default function ResultsView() {
           <div>
             <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">{data.quizTitle}</h1>
             {finishedDate && (
-              <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">Finished {finishedDate}</p>
+              <p className="mt-1 text-sm text-gray-400 dark:text-gray-500">{t('results.finished', { date: finishedDate })}</p>
             )}
           </div>
           <button
             onClick={() => navigate('/dashboard')}
             className="border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
-            ← Dashboard
+            {t('results.back')}
           </button>
         </div>
 
         {/* Leaderboard */}
         <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm">
-          <h2 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-100">Final Leaderboard</h2>
+          <h2 className="mb-4 text-base font-semibold text-gray-800 dark:text-gray-100">{t('results.final_leaderboard')}</h2>
           <div className="space-y-2">
             {data.leaderboard.map((p) => (
               <div
@@ -68,19 +70,19 @@ export default function ResultsView() {
                   {MEDAL[p.rank - 1] ?? `${p.rank}.`} {p.nickname}
                 </span>
                 <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
-                  {p.score.toLocaleString()} pts
+                  {p.score.toLocaleString()} {t('common.pts')}
                 </span>
               </div>
             ))}
             {data.leaderboard.length === 0 && (
-              <p className="text-sm text-gray-400 dark:text-gray-500">No participants.</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500">{t('results.no_participants')}</p>
             )}
           </div>
         </div>
 
         {/* Per-question breakdown */}
         <div className="space-y-4">
-          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">Question Breakdown</h2>
+          <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{t('results.question_breakdown')}</h2>
           {data.questions.map((q, i) => {
             const pct =
               q.totalAnswers > 0
@@ -92,19 +94,19 @@ export default function ResultsView() {
                 <div className="mb-3 flex items-start justify-between gap-4">
                   <div>
                     <span className="text-xs font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
-                      Q{i + 1} · {q.type.replace('_', ' ')}
+                      Q{i + 1} · {t(`results.question_types.${q.type}`, { defaultValue: q.type.replace('_', ' ') })}
                     </span>
                     <p className="mt-0.5 font-medium text-gray-800 dark:text-gray-100">{q.text}</p>
                     {q.correctAnswerText && (
                       <p className="mt-1 text-sm text-green-600">
-                        Correct: {q.correctAnswerText}
+                        {t('results.correct_prefix')} {q.correctAnswerText}
                       </p>
                     )}
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="text-2xl font-bold text-gray-800 dark:text-gray-100">{pct}%</p>
                     <p className="text-xs text-gray-400 dark:text-gray-500">
-                      {q.correctAnswers}/{q.totalAnswers} correct
+                      {t('results.correct_count', { correct: q.correctAnswers, total: q.totalAnswers })}
                     </p>
                   </div>
                 </div>
@@ -124,16 +126,16 @@ export default function ResultsView() {
                       <thead className="bg-gray-50 dark:bg-gray-700/50">
                         <tr>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Player
+                            {t('results.player')}
                           </th>
                           <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Answer
+                            {t('results.answer')}
                           </th>
                           <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Points
+                            {t('results.points')}
                           </th>
                           <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400">
-                            Time
+                            {t('results.time')}
                           </th>
                         </tr>
                       </thead>
@@ -147,7 +149,7 @@ export default function ResultsView() {
                               </td>
                               <td className="px-3 py-2 text-gray-500 dark:text-gray-400">
                                 {q.type === 'MAP'
-                                  ? '📍 pin'
+                                  ? t('results.map_pin')
                                   : a.answer.length > 40
                                   ? a.answer.slice(0, 40) + '…'
                                   : a.answer}
@@ -170,7 +172,7 @@ export default function ResultsView() {
                 )}
 
                 {q.totalAnswers === 0 && (
-                  <p className="text-sm text-gray-400 dark:text-gray-500">No answers submitted.</p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500">{t('results.no_answers')}</p>
                 )}
               </div>
             )

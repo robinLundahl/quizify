@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthStore } from '../store/authStore'
+import LangToggle from '../components/ui/LangToggle'
 
 async function loginRequest(email: string, password: string) {
   const res = await fetch('/api/auth/login', {
@@ -19,6 +21,7 @@ export default function Login() {
   const { user, isLoading } = useAuth()
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,8 +40,11 @@ export default function Login() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome to Quizify</h1>
-        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">Sign in to create and host quizzes</p>
+        <div className="mb-6 flex justify-end">
+          <LangToggle />
+        </div>
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{t('login.title')}</h1>
+        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('login.subtitle')}</p>
 
         <div className="flex flex-col gap-3">
           <a
@@ -46,7 +52,7 @@ export default function Login() {
             className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <GoogleIcon />
-            Continue with Google
+            {t('login.continue_with_google')}
           </a>
 
           <div className="flex items-center gap-3">
@@ -61,7 +67,7 @@ export default function Login() {
           >
             <input
               type="email"
-              placeholder="Email"
+              placeholder={t('login.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -69,7 +75,7 @@ export default function Login() {
             />
             <input
               type="password"
-              placeholder="Password"
+              placeholder={t('login.password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -85,14 +91,14 @@ export default function Login() {
               disabled={mutation.isPending}
               className="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
             >
-              {mutation.isPending ? 'Signing in…' : 'Sign in'}
+              {mutation.isPending ? t('login.signing_in') : t('login.sign_in')}
             </button>
           </form>
 
           <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-            No account?{' '}
+            {t('login.no_account')}{' '}
             <Link to="/register" className="text-indigo-600 hover:underline">
-              Create one
+              {t('login.create_one')}
             </Link>
           </p>
         </div>
