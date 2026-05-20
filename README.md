@@ -234,8 +234,10 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-037.md
 │   │   ├── TICKET-038.md
 │   │   ├── TICKET-039.md
-│   │   └── TICKET-040.md
-│   └── README.md
+│   │   ├── TICKET-040.md
+│   │   └── TICKET-041.md
+│   ├── README.md
+│   └── TICKET-041.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -255,6 +257,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── api.ts
 │   │   │   ├── cropImage.ts
 │   │   │   └── theme.ts
+│   │   ├── locales/
+│   │   │   ├── en.json
+│   │   │   └── sv.json
 │   │   ├── pages/
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
@@ -269,6 +274,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── themeStore.ts
 │   │   ├── types/
 │   │   ├── App.tsx
+│   │   ├── i18n.ts
 │   │   ├── index.css
 │   │   └── main.tsx
 │   ├── .gitignore

@@ -506,12 +506,12 @@ export default function JoinView() {
 
     return (
       <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
-        {langToggle}
         {/* Header pill */}
         <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-black/5 dark:bg-white/5 px-4 py-2.5">
           <span className="text-sm text-gray-500 dark:text-gray-400">
             {index + 1} / {total}
           </span>
+          <LangToggle />
           <span
             className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'animate-pulse text-red-400' : 'text-white'}`}
           >
