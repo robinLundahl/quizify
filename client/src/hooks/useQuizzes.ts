@@ -25,13 +25,10 @@ export interface Quiz {
   sessions?: QuizSession[]
 }
 
-export type Translations = Record<string, string> | null
-
 export interface AnswerOption {
   id: string
   text: string
   isCorrect: boolean
-  translations?: Translations
 }
 
 export interface MapRing {
@@ -53,7 +50,6 @@ export interface RankingItem {
   label: string
   correctPosition: number
   order: number
-  translations?: Translations
 }
 
 export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'OPEN_ENDED' | 'IMAGE' | 'MAP' | 'RANKING'
@@ -67,7 +63,6 @@ export interface Question {
   order: number
   timeLimit: number
   points: number
-  translations?: Translations
   answerOptions: AnswerOption[]
   mapQuestion: MapQuestionData | null
   rankingItems: RankingItem[]
@@ -151,11 +146,10 @@ export type QuestionPayload = {
   order?: number
   timeLimit?: number
   points?: number
-  translations?: Translations
-  answerOptions?: { text: string; isCorrect: boolean; translations?: Translations }[]
+  answerOptions?: { text: string; isCorrect: boolean }[]
   correctAnswer?: 'true' | 'false'
   mapQuestion?: { lat: number; lng: number; rings: { radiusKm: number; points: number; order: number }[] }
-  rankingItems?: { label: string; correctPosition: number; order: number; translations?: Translations }[]
+  rankingItems?: { label: string; correctPosition: number; order: number }[]
   correctAnswers?: string[]
 }
 

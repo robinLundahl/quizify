@@ -122,7 +122,7 @@ router.post('/:id/questions', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, translations } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
   const question = await prisma.question.create({
     data: {
       quizId: req.params.id,
@@ -133,7 +133,6 @@ router.post('/:id/questions', async (req, res) => {
       timeLimit: timeLimit ?? 20,
       points: points ?? 1000,
       correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
-      ...(translations ? { translations } : {}),
       ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
     include: {
@@ -170,7 +169,7 @@ router.put('/:id/questions/:qid', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, translations } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
 
   await prisma.answerOption.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.mapQuestion.deleteMany({ where: { questionId: req.params.qid } })
@@ -186,7 +185,6 @@ router.put('/:id/questions/:qid', async (req, res) => {
       timeLimit,
       points,
       correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
-      ...(translations ? { translations } : {}),
       ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
     },
     include: {
@@ -210,11 +208,10 @@ router.delete('/:id/questions/:qid', async (req, res) => {
   res.status(204).send()
 })
 
-type Translations = Record<string, string>
-type AnswerOptionInput = { text: string; isCorrect: boolean; translations?: Translations }
+type AnswerOptionInput = { text: string; isCorrect: boolean }
 type MapRingInput = { radiusKm: number; points: number; order: number }
 type MapQuestionInput = { lat: number; lng: number; rings?: MapRingInput[] }
-type RankingItemInput = { label: string; correctPosition: number; order: number; translations?: Translations }
+type RankingItemInput = { label: string; correctPosition: number; order: number }
 
 function buildRelations(
   type: string,
@@ -234,11 +231,7 @@ function buildRelations(
     }
   }
   if ((type === 'MULTIPLE_CHOICE' || type === 'IMAGE') && answerOptions?.length) {
-    return {
-      answerOptions: {
-        create: answerOptions.map(o => ({ text: o.text, isCorrect: o.isCorrect, ...(o.translations ? { translations: o.translations } : {}) })),
-      },
-    }
+    return { answerOptions: { create: answerOptions } }
   }
   if (type === 'MAP' && mapQuestion) {
     return {
@@ -254,11 +247,7 @@ function buildRelations(
     }
   }
   if (type === 'RANKING' && rankingItems?.length) {
-    return {
-      rankingItems: {
-        create: rankingItems.map(r => ({ label: r.label, correctPosition: r.correctPosition, order: r.order, ...(r.translations ? { translations: r.translations } : {}) })),
-      },
-    }
+    return { rankingItems: { create: rankingItems } }
   }
   return {}
 }

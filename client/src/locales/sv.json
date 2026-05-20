@@ -189,10 +189,7 @@
     "delete_question_title": "Ta bort fråga?",
     "delete_question_body": "\"{{text}}\" kommer att tas bort permanent. Detta kan inte ångras.",
     "not_found": "Quiz hittades inte.",
-    "back_to_dashboard": "Tillbaka till instrumentpanelen",
-    "translate_btn": "Översätt till {{lang}}",
-    "translating": "Översätter…",
-    "translate_error": "Översättning misslyckades. Försök igen."
+    "back_to_dashboard": "Tillbaka till instrumentpanelen"
   },
   "results": {
     "loading": "Laddar resultat…",

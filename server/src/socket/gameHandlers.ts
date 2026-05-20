@@ -1,8 +1,6 @@
 import type { Server, Socket } from 'socket.io'
 import { prisma } from '../lib/prisma.js'
 
-type Translations = Record<string, string> | null
-
 interface QuestionData {
   id: string
   text: string
@@ -10,14 +8,13 @@ interface QuestionData {
   imageUrl: string | null
   timeLimit: number
   points: number
-  translations: Translations
-  answerOptions: { id: string; text: string; isCorrect: boolean; translations: Translations }[]
+  answerOptions: { id: string; text: string; isCorrect: boolean }[]
   mapQuestion: {
     lat: number
     lng: number
     rings: { radiusKm: number; points: number; order: number }[]
   } | null
-  rankingItems: { id: string; label: string; correctPosition: number; translations: Translations }[]
+  rankingItems: { id: string; label: string; correctPosition: number }[]
   correctAnswers: string[]
 }
 
@@ -104,7 +101,7 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
   }, q.timeLimit * 1000)
 
   const shuffledRankingItems = q.rankingItems.length
-    ? [...q.rankingItems].sort(() => Math.random() - 0.5).map(({ id, label, translations }) => ({ id, label, translations }))
+    ? [...q.rankingItems].sort(() => Math.random() - 0.5).map(({ id, label }) => ({ id, label }))
     : null
 
   io.to(sessionId).emit('session:question', {
@@ -115,8 +112,7 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
       imageUrl: q.imageUrl,
       timeLimit: q.timeLimit,
       points: q.points,
-      translations: q.translations,
-      answerOptions: q.answerOptions.map(({ id, text, translations }) => ({ id, text, translations })),
+      answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
       mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
       rankingItems: shuffledRankingItems,
     },
