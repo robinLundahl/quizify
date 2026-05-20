@@ -91,8 +91,8 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-6 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <Link to="/dashboard" className="text-lg font-bold text-indigo-600 hover:opacity-80 transition-opacity">Quizify</Link>
           <NavDropdown />
@@ -100,16 +100,16 @@ export default function Settings() {
       </header>
 
       <main className="mx-auto max-w-xl px-6 py-12 space-y-8">
-        <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
 
         {/* Avatar */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">Photo</h2>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Photo</h2>
           <div className="flex items-center gap-4">
             {user?.avatar ? (
               <img src={user.avatar} alt={user.name} className="h-16 w-16 rounded-full object-cover" />
             ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 text-2xl font-semibold text-indigo-600">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-2xl font-semibold text-indigo-600">
                 {user?.name?.[0]?.toUpperCase() ?? '?'}
               </div>
             )}
@@ -124,7 +124,7 @@ export default function Settings() {
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={avatarUploading || avatarRemoving || !!cropSrc}
-                className="border border-gray-300 text-gray-600 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 transition disabled:opacity-50"
+                className="border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
               >
                 Upload photo
               </button>
@@ -132,7 +132,7 @@ export default function Settings() {
                 <button
                   onClick={handleAvatarRemove}
                   disabled={avatarUploading || avatarRemoving}
-                  className="text-sm text-gray-400 hover:text-red-500 transition disabled:opacity-50 text-left"
+                  className="text-sm text-gray-400 dark:text-gray-500 hover:text-red-500 transition disabled:opacity-50 text-left"
                 >
                   {avatarRemoving ? 'Removing…' : 'Remove photo'}
                 </button>
@@ -150,34 +150,34 @@ export default function Settings() {
           )}
 
           {avatarError && <p className="text-xs text-red-600">{avatarError}</p>}
-          {!cropSrc && <p className="text-xs text-gray-400">JPEG, PNG, WebP or GIF · max 2 MB</p>}
+          {!cropSrc && <p className="text-xs text-gray-400 dark:text-gray-500">JPEG, PNG, WebP or GIF · max 2 MB</p>}
         </div>
 
         {/* Account info */}
-        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">Account</h2>
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Account</h2>
           <div className="space-y-3">
             <div>
-              <p className="text-xs text-gray-400 mb-1">Name</p>
-              <p className="text-sm text-gray-700">{user?.name}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Name</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{user?.name}</p>
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-1">Email</p>
-              <p className="text-sm text-gray-700">{user?.email}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Email</p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">{user?.email}</p>
             </div>
           </div>
         </div>
 
         {/* Danger zone */}
-        <div className="rounded-xl border border-red-200 bg-white p-5 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900">Danger zone</h2>
-          <p className="text-sm text-gray-500">
+        <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-white dark:bg-gray-800 p-5 shadow-sm space-y-4">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Danger zone</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Permanently delete your account and all your quizzes. This cannot be undone.
           </p>
 
           <button
             onClick={() => { setDeleteError(''); setShowDeleteModal(true) }}
-            className="border border-gray-200 text-gray-500 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
+            className="border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 transition"
           >
             Delete account
           </button>
@@ -186,9 +186,9 @@ export default function Settings() {
 
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-            <h2 className="font-semibold text-gray-900">Delete account?</h2>
-            <p className="mt-2 text-sm text-gray-500">
+          <div className="mx-4 w-full max-w-sm rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-lg">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Delete account?</h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Your account and all your quizzes will be permanently deleted. This cannot be undone.
             </p>
             {deleteError && <p className="mt-3 text-xs text-red-600">{deleteError}</p>}
@@ -196,7 +196,7 @@ export default function Settings() {
               <button
                 onClick={handleCloseDeleteModal}
                 disabled={deleting}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-100 disabled:opacity-50"
+                className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 Cancel
               </button>

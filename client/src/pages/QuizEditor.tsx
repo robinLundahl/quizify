@@ -235,10 +235,10 @@ function MapPicker({
 
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+      <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
         Click the map to place the correct answer pin
       </label>
-      <div className="overflow-hidden rounded-xl border border-gray-200" style={{ height: 280 }}>
+      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700" style={{ height: 280 }}>
         <MapContainer center={[0, 0]} zoom={2} style={{ height: '100%', width: '100%' }}>
           <MapInitializer center={center} zoom={zoom} />
           <TileLayer
@@ -280,9 +280,9 @@ function MapPicker({
         </MapContainer>
       </div>
       {hasPin ? (
-        <p className="mt-1 text-xs text-gray-400">{parsedLat.toFixed(5)}, {parsedLng.toFixed(5)}</p>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{parsedLat.toFixed(5)}, {parsedLng.toFixed(5)}</p>
       ) : (
-        <p className="mt-1 text-xs text-gray-400">No pin placed yet</p>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">No pin placed yet</p>
       )}
     </div>
   )
@@ -314,7 +314,7 @@ function SortableRankingEditorItem({
         type="button"
         {...attributes}
         {...listeners}
-        className="cursor-grab touch-none p-1 text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+        className="cursor-grab touch-none p-1 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 active:cursor-grabbing"
         aria-label="Drag to reorder"
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
@@ -323,13 +323,13 @@ function SortableRankingEditorItem({
           <circle cx="5" cy="12" r="1.5" /><circle cx="11" cy="12" r="1.5" />
         </svg>
       </button>
-      <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-400">{index + 1}</span>
+      <span className="w-5 shrink-0 text-center text-xs font-medium text-gray-400 dark:text-gray-500">{index + 1}</span>
       <input
         type="text"
         value={item.label}
         onChange={(e) => onLabelChange(e.target.value)}
         placeholder={`Item ${index + 1}`}
-        className="flex-1 rounded-xl border border-gray-200 px-3 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        className="flex-1 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
       {showRemove && (
         <button type="button" onClick={onRemove} className="text-gray-400 hover:text-red-500">
@@ -342,8 +342,8 @@ function SortableRankingEditorItem({
 
 // ─── Question Form ─────────────────────────────────────────────────────────────
 
-const INPUT_CLS = 'rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
-const LABEL_CLS = 'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400'
+const INPUT_CLS = 'rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
+const LABEL_CLS = 'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500'
 
 function QuestionForm({
   initial,
@@ -461,7 +461,7 @@ function QuestionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-xl bg-gray-50 p-4 space-y-4">
+    <form onSubmit={handleSubmit} className="rounded-xl bg-gray-50 dark:bg-gray-700/50 p-4 space-y-4">
       <div className="flex gap-3">
         <div className="flex-1">
           <label className={LABEL_CLS}>Type</label>
@@ -539,7 +539,7 @@ function QuestionForm({
               type="button"
               onClick={() => imageInputRef.current?.click()}
               disabled={isUploadingImage}
-              className="rounded-xl border border-gray-200 px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              className="rounded-xl border border-gray-200 dark:border-gray-600 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
             >
               {isUploadingImage ? 'Uploading…' : '↑ Upload image'}
             </button>
@@ -681,7 +681,7 @@ function QuestionForm({
                     placeholder="km"
                     className={`w-20 ${INPUT_CLS}`}
                   />
-                  <span className="text-xs text-gray-400">km →</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">km →</span>
                   <input
                     type="number"
                     min={0}
@@ -691,7 +691,7 @@ function QuestionForm({
                     placeholder="pts"
                     className={`w-20 ${INPUT_CLS}`}
                   />
-                  <span className="text-xs text-gray-400">pts</span>
+                  <span className="text-xs text-gray-400 dark:text-gray-500">pts</span>
                   {form.mapRings.length > 1 && (
                     <button
                       type="button"
@@ -753,11 +753,11 @@ function QuestionForm({
         </div>
       )}
 
-      <div className="flex justify-end gap-2 border-t border-gray-200 pt-4">
+      <div className="flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700 pt-4">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 transition-colors"
+          className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           Cancel
         </button>
@@ -806,7 +806,7 @@ function QuestionCard({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      className="rounded-2xl bg-white shadow-sm"
+      className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm"
     >
       {isEditing ? (
         <div className="p-5">
@@ -823,7 +823,7 @@ function QuestionCard({
           <button
             {...attributes}
             {...listeners}
-            className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 hover:text-gray-500 active:cursor-grabbing"
+            className="mt-0.5 shrink-0 cursor-grab touch-none p-1 text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 active:cursor-grabbing"
             aria-label="Drag to reorder"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -834,39 +834,39 @@ function QuestionCard({
           </button>
           <div className="min-w-0 flex-1">
             <div className="mb-1.5 flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-400">Q{index + 1}</span>
-              <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+              <span className="text-xs font-medium text-gray-400 dark:text-gray-500">Q{index + 1}</span>
+              <span className="rounded-lg bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-400">
                 {TYPE_LABELS[question.type]}
               </span>
             </div>
-            <p className="text-sm font-medium text-gray-800">{question.text}</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{question.text}</p>
             {(question.type === 'MULTIPLE_CHOICE' || question.type === 'IMAGE') && (
               <ul className="mt-2 space-y-1">
                 {question.answerOptions.map((opt) => (
-                  <li key={opt.id} className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <span className={opt.isCorrect ? 'text-green-500' : 'text-gray-300'}>●</span>
+                  <li key={opt.id} className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <span className={opt.isCorrect ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'}>●</span>
                     {opt.text}
                   </li>
                 ))}
               </ul>
             )}
             {question.type === 'TRUE_FALSE' && (
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                 Correct: {question.answerOptions.find((o) => o.isCorrect)?.text ?? '—'}
               </p>
             )}
             {question.type === 'OPEN_ENDED' && question.correctAnswers.length > 0 && (
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
                 Accepted: {question.correctAnswers.join(' / ')}
               </p>
             )}
             {question.type === 'MAP' && question.mapQuestion && (
               <div className="mt-1 space-y-0.5">
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-gray-400 dark:text-gray-500">
                   {question.mapQuestion.lat.toFixed(4)}, {question.mapQuestion.lng.toFixed(4)}
                 </p>
                 {question.mapQuestion.rings.map((r, i) => (
-                  <p key={r.id} className="text-xs text-gray-400">
+                  <p key={r.id} className="text-xs text-gray-400 dark:text-gray-500">
                     Ring {i + 1}: {r.radiusKm} km → {r.points} pts
                   </p>
                 ))}
@@ -877,7 +877,7 @@ function QuestionCard({
                 {[...question.rankingItems]
                   .sort((a, b) => a.correctPosition - b.correctPosition)
                   .map((r) => (
-                    <li key={r.id} className="text-xs text-gray-500">{r.label}</li>
+                    <li key={r.id} className="text-xs text-gray-500 dark:text-gray-400">{r.label}</li>
                   ))}
               </ol>
             )}
@@ -885,14 +885,14 @@ function QuestionCard({
           <div className="flex shrink-0 gap-1.5">
             <button
               onClick={onEdit}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               Edit
             </button>
             <button
               onClick={() => setConfirmDelete(true)}
               disabled={deleteQuestion.isPending}
-              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors disabled:opacity-50"
             >
               Delete
             </button>
@@ -902,16 +902,16 @@ function QuestionCard({
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h2 className="font-semibold text-gray-900">Delete question?</h2>
-            <p className="mt-2 text-sm text-gray-500">
-              <span className="font-medium text-gray-700">"{question.text}"</span> will be permanently deleted. This cannot be undone.
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Delete question?</h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              <span className="font-medium text-gray-700 dark:text-gray-300">"{question.text}"</span> will be permanently deleted. This cannot be undone.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setConfirmDelete(false)}
                 disabled={deleteQuestion.isPending}
-                className="rounded-xl border border-gray-200 px-4 py-2 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+                className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -936,8 +936,8 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
   const addQuestion = useAddQuestion(quizId)
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm p-5">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">New question</p>
+    <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-5">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">New question</p>
       <QuestionForm
         initial={blankForm()}
         order={order}
@@ -964,7 +964,7 @@ function QuizMetaForm({
   const [description, setDescription] = useState(quiz.description ?? '')
 
   return (
-    <section className="rounded-2xl bg-white shadow-sm p-6 space-y-4">
+    <section className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-6 space-y-4">
       <div>
         <label className={LABEL_CLS}>Title</label>
         <input
@@ -975,7 +975,7 @@ function QuizMetaForm({
         />
       </div>
       <div>
-        <label className={LABEL_CLS}>Description <span className="font-normal normal-case text-gray-400">(optional)</span></label>
+        <label className={LABEL_CLS}>Description <span className="font-normal normal-case text-gray-400 dark:text-gray-500">(optional)</span></label>
         <textarea
           rows={2}
           value={description}
@@ -984,7 +984,7 @@ function QuizMetaForm({
           className={`w-full ${INPUT_CLS}`}
         />
       </div>
-      <div className="flex justify-end border-t border-gray-100 pt-4">
+      <div className="flex justify-end border-t border-gray-100 dark:border-gray-700 pt-4">
         <button
           onClick={() => onSave(title.trim(), description.trim() || undefined)}
           disabled={isSaving || !title.trim()}
@@ -1021,12 +1021,12 @@ export default function QuizEditor() {
   }, [quiz, reorderQuestions])
 
   if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400">Loading…</div>
+    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-400 dark:text-gray-500">Loading…</div>
   }
 
   if (isError || !quiz) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-gray-500">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 text-gray-500 dark:text-gray-400">
         <p>Quiz not found.</p>
         <Link to="/dashboard" className="text-indigo-600 hover:underline">Back to dashboard</Link>
       </div>
@@ -1034,18 +1034,18 @@ export default function QuizEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-100 bg-white/90 px-6 py-4 backdrop-blur-sm">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <header className="sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 px-6 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => navigate('/dashboard')}
-              className="shrink-0 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+              className="shrink-0 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               ← Dashboard
             </button>
-            <span className="shrink-0 text-gray-200">|</span>
-            <span className="truncate text-sm font-semibold text-gray-800">{quiz.title}</span>
+            <span className="shrink-0 text-gray-200 dark:text-gray-700">|</span>
+            <span className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{quiz.title}</span>
           </div>
           <NavDropdown />
         </div>
@@ -1061,7 +1061,7 @@ export default function QuizEditor() {
 
         <section>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Questions ({quiz.questions.length})
             </h2>
           </div>
@@ -1097,7 +1097,7 @@ export default function QuizEditor() {
           {!addingQuestion && (
             <button
               onClick={() => { setEditingId(null); setAddingQuestion(true) }}
-              className="mt-3 w-full rounded-2xl border-2 border-dashed border-gray-200 py-4 text-sm font-semibold text-gray-400 transition hover:border-indigo-300 hover:bg-indigo-50/30 hover:text-indigo-600"
+              className="mt-3 w-full rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 py-4 text-sm font-semibold text-gray-400 dark:text-gray-500 transition hover:border-indigo-300 dark:hover:border-indigo-700 hover:bg-indigo-50/30 hover:text-indigo-600"
             >
               + Add question
             </button>

@@ -141,6 +141,31 @@ rounded-xl border border-gray-200 bg-white p-5 shadow-sm
 
 ---
 
+## Dark Mode
+
+Dark mode is toggled via a `dark` class on `<html>` (controlled by the theme dropdown in the Dashboard header). Tailwind v4 class-based dark variant is enabled via `@custom-variant dark (&:where(.dark, .dark *));` in `index.css`. Theme persists to `localStorage` under key `theme`.
+
+Game-mode screens (`/host`, `/join`) are excluded — they are already full-screen dark or brand-colour and are unaffected by the toggle.
+
+### Surface mapping
+
+| Light token | Dark token | Usage |
+|---|---|---|
+| `bg-gray-50` | `dark:bg-gray-900` | Page background |
+| `bg-white` | `dark:bg-gray-800` | Cards, modals, headers |
+| `border-gray-100` / `border-gray-200` | `dark:border-gray-700` / `dark:border-gray-800` | Borders, dividers |
+| `text-gray-900` | `dark:text-gray-100` | Headings |
+| `text-gray-700` | `dark:text-gray-300` | Body text |
+| `text-gray-500` | `dark:text-gray-400` | Secondary text |
+| `text-gray-400` | `dark:text-gray-500` | Tertiary / metadata |
+| `bg-gray-100` | `dark:bg-gray-700` | Hover states, inline tags |
+| `bg-indigo-50` | `dark:bg-indigo-900/30` | Soft brand tints |
+| `bg-white/90` | `dark:bg-gray-900/90` | Sticky header (blur) |
+
+Brand colours (`indigo-600/700`) and semantic colours (green, red, yellow) are unchanged in both modes.
+
+---
+
 ## Design Principles
 
 1. **Indigo = action.** Any interactive element that moves the user forward is indigo.

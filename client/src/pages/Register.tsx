@@ -48,10 +48,10 @@ export default function Register() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">Create an account</h1>
-        <p className="mb-8 text-center text-sm text-gray-500">Join Quizify to create and host quizzes</p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg">
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">Create an account</h1>
+        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">Join Quizify to create and host quizzes</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <input
@@ -60,7 +60,7 @@ export default function Register() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <input
             type="email"
@@ -68,7 +68,7 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <input
             type="password"
@@ -77,7 +77,7 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <div>
             <input
@@ -86,7 +86,7 @@ export default function Register() {
               value={confirm}
               onChange={(e) => { setConfirm(e.target.value); setConfirmError('') }}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             {confirmError && <p className="mt-1 text-xs text-red-600">{confirmError}</p>}
           </div>
@@ -104,7 +104,7 @@ export default function Register() {
           </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-gray-500">
+        <p className="mt-4 text-center text-xs text-gray-500 dark:text-gray-400">
           Already have an account?{' '}
           <Link to="/login" className="text-indigo-600 hover:underline">
             Sign in

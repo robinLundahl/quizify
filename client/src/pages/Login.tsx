@@ -35,24 +35,24 @@ export default function Login() {
   if (user) return <Navigate to="/dashboard" replace />
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-lg">
-        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">Welcome to Quizify</h1>
-        <p className="mb-8 text-center text-sm text-gray-500">Sign in to create and host quizzes</p>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg">
+        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">Welcome to Quizify</h1>
+        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">Sign in to create and host quizzes</p>
 
         <div className="flex flex-col gap-3">
           <a
             href="/api/auth/google"
-            className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:bg-gray-50 dark:hover:bg-gray-600"
           >
             <GoogleIcon />
             Continue with Google
           </a>
 
           <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-400">or</span>
-            <div className="h-px flex-1 bg-gray-200" />
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+            <span className="text-xs text-gray-400 dark:text-gray-500">or</span>
+            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           </div>
 
           <form
@@ -65,7 +65,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
             <input
               type="password"
@@ -73,7 +73,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
 
             {mutation.isError && (
@@ -89,7 +89,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p className="text-center text-xs text-gray-500">
+          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
             No account?{' '}
             <Link to="/register" className="text-indigo-600 hover:underline">
               Create one
