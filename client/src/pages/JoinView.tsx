@@ -106,7 +106,7 @@ function SortableRankingItem({
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 }}
-      className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3"
+      className="flex items-center gap-2 rounded-2xl bg-gray-100 dark:bg-white/10 px-3 py-3"
     >
       <button
         {...attributes}
@@ -122,7 +122,7 @@ function SortableRankingItem({
         </svg>
       </button>
       <span className="w-5 shrink-0 text-center text-xs font-bold text-gray-400">{index + 1}</span>
-      <span className="flex-1 text-sm font-medium text-white">{item.label}</span>
+      <span className="flex-1 text-sm font-medium text-gray-800 dark:text-white">{item.label}</span>
       <div className="flex flex-col gap-0.5">
         <button
           onClick={() => onMove(index, -1)}
@@ -360,10 +360,10 @@ export default function JoinView() {
   if (phase === 'enter') {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-        <h1 className="mb-6 text-4xl font-black text-white">Quizify</h1>
-        <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+        <h1 className="mb-6 text-4xl font-black text-gray-900 dark:text-white">Quizify</h1>
+        <div className="w-full max-w-sm rounded-2xl border border-gray-200/70 dark:border-white/20 bg-white/80 dark:bg-white/10 p-6 backdrop-blur-sm">
           {savedSession && (
-            <div className="mb-5 rounded-xl bg-white/15 p-4 text-white">
+            <div className="mb-5 rounded-xl bg-gray-50 dark:bg-white/15 p-4 text-gray-900 dark:text-white">
               <p className="mb-1 font-semibold">Active session found</p>
               <p className="mb-3 text-sm opacity-70">You were in a game that may still be running.</p>
               <button
@@ -391,7 +391,7 @@ export default function JoinView() {
               maxLength={20}
               className="w-full rounded-xl bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
             />
-            {error && <p className="text-center text-sm font-medium text-red-200">{error}</p>}
+            {error && <p className="text-center text-sm font-medium text-red-600 dark:text-red-200">{error}</p>}
             <button
               type="submit"
               disabled={!code.trim() || !nickname.trim()}
@@ -408,20 +408,20 @@ export default function JoinView() {
   // ── Lobby ──────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
         {hostAvatar ? (
-          <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
+          <img src={hostAvatar} alt={hostName} className="mb-3 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/30" />
         ) : (
-          <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/30">
+          <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-2xl font-bold ring-4 ring-black/10 dark:ring-white/30">
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
         {hostName && (
-          <p className="mb-5 text-sm opacity-75">Quiz hosted by {hostName}</p>
+          <p className="mb-5 text-sm text-gray-600 dark:text-white/75">Quiz hosted by {hostName}</p>
         )}
         <h2 className="mb-1 text-3xl font-black">Good luck, {nickname}!</h2>
-        <p className="text-base opacity-60">Waiting for the host to start…</p>
-        <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-white/20 border-t-white" />
+        <p className="text-base text-gray-500 dark:text-white/60">Waiting for the host to start…</p>
+        <div className="mt-8 h-10 w-10 animate-spin rounded-full border-4 border-black/10 dark:border-white/20 border-t-gray-800 dark:border-t-white" />
       </div>
     )
   }
@@ -429,16 +429,16 @@ export default function JoinView() {
   // ── Finished ──────────────────────────────────────────────────────────────
   if (phase === 'finished') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
         {hostAvatar ? (
-          <img src={hostAvatar} alt={hostName} className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-white/30" />
+          <img src={hostAvatar} alt={hostName} className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/30" />
         ) : (
-          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/30">
+          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-2xl font-bold ring-4 ring-black/10 dark:ring-white/30">
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
         <h1 className="mb-2 text-3xl font-black">Thanks for playing!</h1>
-        <p className="text-base opacity-70">Hope you had fun.</p>
+        <p className="text-base text-gray-500 dark:text-white/70">Hope you had fun.</p>
       </div>
     )
   }
@@ -447,25 +447,25 @@ export default function JoinView() {
   if (phase === 'reveal') {
     const isFinalRound = currentQuestion !== null && currentQuestion.index + 1 === currentQuestion.total
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
         {hostAvatar ? (
           <img
             src={hostAvatar}
             alt={hostName}
-            className="mb-5 h-20 w-20 animate-pulse rounded-full object-cover ring-4 ring-white/20"
+            className="mb-5 h-20 w-20 animate-pulse rounded-full object-cover ring-4 ring-black/10 dark:ring-white/20"
           />
         ) : (
-          <div className="mb-5 flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-white/20 text-2xl font-bold ring-4 ring-white/20">
+          <div className="mb-5 flex h-20 w-20 animate-pulse items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-2xl font-bold ring-4 ring-black/10 dark:ring-white/20">
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
         {isFinalRound ? (
           <>
-            <p className="text-lg font-bold text-white">Thank you for participating!</p>
-            <p className="mt-1 text-sm text-gray-500">The host will present the winner shortly.</p>
+            <p className="text-lg font-bold">Thank you for participating!</p>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">The host will present the winner shortly.</p>
           </>
         ) : (
-          <p className="text-base font-medium text-gray-400">Waiting for next question…</p>
+          <p className="text-base font-medium text-gray-500 dark:text-gray-400">Waiting for next question…</p>
         )}
       </div>
     )
@@ -474,12 +474,12 @@ export default function JoinView() {
   // ── Answered ──────────────────────────────────────────────────────────────
   if (phase === 'answered') {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
         <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/20 text-3xl ring-4 ring-indigo-500/30">
           ✓
         </div>
-        <p className="text-lg font-bold text-white">Answer submitted!</p>
-        <p className="mt-1 text-sm text-gray-500">Waiting for other players…</p>
+        <p className="text-lg font-bold">Answer submitted!</p>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Waiting for other players…</p>
         <div className="mt-8 h-8 w-8 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-400" />
       </div>
     )
@@ -490,10 +490,10 @@ export default function JoinView() {
     const { question, index, total } = currentQuestion
 
     return (
-      <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-white">
+      <div className="flex min-h-dvh flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-gray-900 dark:text-white">
         {/* Header pill */}
-        <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
-          <span className="text-sm text-gray-400">
+        <div className="mx-4 mt-3 flex items-center justify-between rounded-xl bg-black/5 dark:bg-white/5 px-4 py-2.5">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {index + 1} / {total}
           </span>
           <span
@@ -560,7 +560,7 @@ export default function JoinView() {
                 disabled={!!selectedAnswer}
                 placeholder="Type your answer…"
                 rows={3}
-                className="w-full rounded-2xl border border-white/10 bg-white/8 p-4 text-white placeholder-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-60"
+                className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/8 p-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-60"
               />
               <button
                 onClick={() => submitAnswer(openText)}
@@ -574,7 +574,7 @@ export default function JoinView() {
 
           {question.type === 'MAP' && (
             <div className="flex flex-col gap-3">
-              <p className="text-center text-sm text-gray-400">Tap the map to place your pin</p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">Tap the map to place your pin</p>
               <div className="h-72 w-full overflow-hidden rounded-2xl">
                 <MapContainer
                   center={
@@ -605,7 +605,7 @@ export default function JoinView() {
 
           {question.type === 'RANKING' && rankingOrder.length > 0 && (
             <div className="flex flex-col gap-3">
-              <p className="text-center text-sm text-gray-400">Drag or use arrows to put items in the correct order</p>
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400">Drag or use arrows to put items in the correct order</p>
               <DndContext
                 sensors={rankingSensors}
                 collisionDetection={closestCenter}

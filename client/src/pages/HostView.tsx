@@ -73,6 +73,7 @@ export default function HostView() {
   const socket = getSocket()
 
   const theme = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
   const [phase, setPhase] = useState<Phase>('lobby')
   const locationState = location.state as { code?: string; rejoin?: boolean; status?: string } | null
   const joinCode = locationState?.code ?? ''
@@ -223,10 +224,27 @@ export default function HostView() {
     )
   }
 
+  const themeControl = (
+    <div className="fixed top-3 right-3 z-50">
+      <select
+        value={theme}
+        onChange={(e) => setTheme(e.target.value as Parameters<typeof setTheme>[0])}
+        className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs font-medium shadow-sm backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        <option value="light">Light</option>
+        <option value="dark">Dark</option>
+        <option value="sunset">Sunset</option>
+        <option value="forest">Forest</option>
+        <option value="rose">Rose</option>
+        <option value="peach">Peach</option>
+      </select>
+    </div>
+  )
+
   // ── Lobby ─────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+      <><div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
         <h1 className="mb-2 text-4xl font-black tracking-tight text-gray-900 dark:text-gray-100">Game Code</h1>
         <p className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
           Go to <span className="font-semibold text-gray-700 dark:text-gray-200">quizify.app/join</span> to join
@@ -254,6 +272,8 @@ export default function HostView() {
           Start Game
         </button>
       </div>
+      {themeControl}
+    </>
     )
   }
 
@@ -261,6 +281,7 @@ export default function HostView() {
   if (phase === 'finished') {
     const medals = ['🥇', '🥈', '🥉']
     return (
+      <>
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
         <h1 className="mb-8 text-4xl font-black text-gray-900 dark:text-gray-100">Final Leaderboard</h1>
         <div className="w-full max-w-md space-y-3">
@@ -292,12 +313,15 @@ export default function HostView() {
           </button>
         </div>
       </div>
+      {themeControl}
+      </>
     )
   }
 
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal' && currentQuestion) {
     return (
+      <>
       <div className="flex min-h-screen flex-col items-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="w-full max-w-2xl">
           <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-500">
@@ -365,6 +389,8 @@ export default function HostView() {
           </button>
         </div>
       </div>
+      {themeControl}
+      </>
     )
   }
 
@@ -372,6 +398,7 @@ export default function HostView() {
   if (currentQuestion) {
     const { question, index, total } = currentQuestion
     return (
+      <>
       <div className="flex min-h-screen flex-col items-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="w-full max-w-2xl">
           <div className="mb-4 flex items-center justify-between rounded-xl bg-gray-100 dark:bg-white/5 px-4 py-2.5">
@@ -456,6 +483,8 @@ export default function HostView() {
           )}
         </div>
       </div>
+      {themeControl}
+      </>
     )
   }
 
