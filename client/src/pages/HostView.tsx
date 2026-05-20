@@ -60,9 +60,9 @@ const OPTION_COLORS = [
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
 
 const RANK_STYLES = [
-  'bg-yellow-400/20 text-yellow-300',
-  'bg-gray-400/20 text-gray-300',
-  'bg-amber-400/20 text-amber-300',
+  'bg-yellow-400/20 text-yellow-700 dark:text-yellow-300',
+  'bg-gray-400/20 text-gray-600 dark:text-gray-300',
+  'bg-amber-400/20 text-amber-700 dark:text-amber-300',
 ]
 
 export default function HostView() {
@@ -199,15 +199,15 @@ export default function HostView() {
         ? 'The server was restarted and the session state was lost.'
         : 'This session is no longer active.'
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 p-6 text-white">
-        <h1 className="mb-4 text-2xl font-black text-red-400">Could not rejoin session</h1>
-        <p className="mb-8 max-w-sm text-center text-gray-300">{message}</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+        <h1 className="mb-4 text-2xl font-black text-red-500 dark:text-red-400">Could not rejoin session</h1>
+        <p className="mb-8 max-w-sm text-center text-gray-600 dark:text-gray-300">{message}</p>
         <button
           onClick={() => {
             localStorage.removeItem(STORAGE_KEY)
             navigate('/dashboard')
           }}
-          className="rounded-xl bg-indigo-500 px-8 py-3 text-lg font-bold hover:bg-indigo-600"
+          className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white transition hover:bg-indigo-700"
         >
           Back to Dashboard
         </button>
@@ -218,21 +218,21 @@ export default function HostView() {
   // ── Lobby ─────────────────────────────────────────────────────────────────
   if (phase === 'lobby') {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 p-6 text-white">
-        <h1 className="mb-2 text-4xl font-black tracking-tight">Game Code</h1>
-        <p className="mb-3 text-sm font-medium text-white/70">
-          Go to <span className="font-semibold">quizify.app/join</span> to join
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+        <h1 className="mb-2 text-4xl font-black tracking-tight text-gray-900 dark:text-gray-100">Game Code</h1>
+        <p className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
+          Go to <span className="font-semibold text-gray-700 dark:text-gray-200">quizify.app/join</span> to join
         </p>
-        <div className="mb-8 rounded-2xl border border-white/25 bg-white/15 px-10 py-6 text-6xl font-black tracking-widest text-white backdrop-blur-sm shadow-lg">
+        <div className="mb-8 rounded-2xl border border-gray-200 dark:border-indigo-500/40 bg-white dark:bg-indigo-600/20 px-10 py-6 text-6xl font-black tracking-widest text-indigo-600 dark:text-indigo-300 shadow-lg">
           {joinCode || '------'}
         </div>
-        <p className="mb-6 text-lg font-medium opacity-80">
-          Players joined: <span className="font-bold">{players.length}</span>
+        <p className="mb-6 text-lg font-medium text-gray-600 dark:text-gray-300">
+          Players joined: <span className="font-bold text-gray-900 dark:text-white">{players.length}</span>
         </p>
         {players.length > 0 && (
           <div className="mb-8 flex flex-wrap justify-center gap-2 max-w-lg">
             {players.map((p) => (
-              <span key={p.id} className="rounded-full bg-white/20 px-4 py-1 text-sm font-medium">
+              <span key={p.id} className="rounded-full bg-indigo-50 dark:bg-gray-700 px-4 py-1 text-sm font-medium text-indigo-700 dark:text-gray-200">
                 {p.nickname}
               </span>
             ))}
@@ -241,7 +241,7 @@ export default function HostView() {
         <button
           onClick={handleStart}
           disabled={players.length === 0}
-          className="rounded-xl bg-white px-8 py-3 text-lg font-bold text-indigo-600 shadow-lg transition hover:bg-indigo-50 disabled:opacity-40"
+          className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-40"
         >
           Start Game
         </button>
@@ -253,32 +253,32 @@ export default function HostView() {
   if (phase === 'finished') {
     const medals = ['🥇', '🥈', '🥉']
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-indigo-600 p-6 text-white">
-        <h1 className="mb-8 text-4xl font-black">Final Leaderboard</h1>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
+        <h1 className="mb-8 text-4xl font-black text-gray-900 dark:text-gray-100">Final Leaderboard</h1>
         <div className="w-full max-w-md space-y-3">
           {leaderboard.map((p, i) => (
             <div
               key={p.id}
-              className="flex items-center justify-between rounded-2xl bg-white/20 px-6 py-4 font-semibold shadow"
+              className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-6 py-4 font-semibold shadow-sm"
             >
-              <span className="flex items-center gap-3">
+              <span className="flex items-center gap-3 text-gray-800 dark:text-gray-100">
                 <span className="text-xl">{medals[i] ?? `${i + 1}.`}</span>
                 {p.nickname}
               </span>
-              <span className="text-white/90">{p.score.toLocaleString()} pts</span>
+              <span className="text-gray-600 dark:text-gray-300">{p.score.toLocaleString()} pts</span>
             </div>
           ))}
         </div>
         <div className="mt-10 flex gap-3">
           <button
             onClick={() => navigate(`/results/${sessionId}`)}
-            className="rounded-xl bg-white px-8 py-3 text-lg font-bold text-indigo-600 shadow-lg transition hover:bg-indigo-50"
+            className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700"
           >
             View Results
           </button>
           <button
             onClick={() => navigate('/dashboard')}
-            className="rounded-xl bg-white/20 px-8 py-3 text-lg font-bold text-white transition hover:bg-white/30"
+            className="rounded-xl border border-gray-300 dark:border-gray-600 px-8 py-3 text-lg font-bold text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             Dashboard
           </button>
@@ -290,49 +290,49 @@ export default function HostView() {
   // ── Reveal ────────────────────────────────────────────────────────────────
   if (phase === 'reveal' && currentQuestion) {
     return (
-      <div className="flex min-h-screen flex-col items-center bg-gray-900 p-6 text-white">
+      <div className="flex min-h-screen flex-col items-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="w-full max-w-2xl">
-          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-500">
+          <p className="mb-2 text-center text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-500">
             Question {currentQuestion.index + 1} / {currentQuestion.total} — Results
           </p>
-          <h2 className="mb-6 text-center text-2xl font-bold">{currentQuestion.question.text}</h2>
+          <h2 className="mb-6 text-center text-2xl font-bold text-gray-900 dark:text-white">{currentQuestion.question.text}</h2>
 
           {correctAnswer?.type === 'OPEN_ENDED' && (
-            <div className="mb-6 rounded-2xl border border-yellow-500/30 bg-yellow-500/20 p-6 text-center text-yellow-300">
+            <div className="mb-6 rounded-2xl border border-yellow-200 dark:border-yellow-500/30 bg-yellow-50 dark:bg-yellow-500/20 p-6 text-center text-yellow-700 dark:text-yellow-300">
               Open-ended — all participants received full points.
             </div>
           )}
           {correctAnswer?.optionText && (
-            <div className="mb-6 rounded-2xl border border-green-500/30 bg-green-500/20 p-6 text-center">
+            <div className="mb-6 rounded-2xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/20 p-6 text-center">
               <div className="mb-2 text-3xl">✓</div>
-              <p className="text-lg font-semibold text-green-400">{correctAnswer.optionText}</p>
+              <p className="text-lg font-semibold text-green-600 dark:text-green-400">{correctAnswer.optionText}</p>
             </div>
           )}
           {correctAnswer?.type === 'MAP' && (
-            <div className="mb-6 rounded-2xl border border-blue-500/30 bg-blue-500/20 p-6 text-center text-blue-300">
+            <div className="mb-6 rounded-2xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/20 p-6 text-center text-blue-700 dark:text-blue-300">
               Map answer revealed — scored by distance rings.
             </div>
           )}
           {correctAnswer?.type === 'RANKING' && correctAnswer.items && (
-            <div className="mb-6 rounded-2xl border border-purple-500/30 bg-purple-500/20 p-5">
-              <p className="mb-3 text-center text-sm font-semibold text-purple-300">Correct order</p>
+            <div className="mb-6 rounded-2xl border border-purple-200 dark:border-purple-500/30 bg-purple-50 dark:bg-purple-500/20 p-5">
+              <p className="mb-3 text-center text-sm font-semibold text-purple-700 dark:text-purple-300">Correct order</p>
               <ol className="space-y-1.5">
                 {correctAnswer.items.map((item, i) => (
-                  <li key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2.5">
-                    <span className="w-5 shrink-0 text-center text-sm font-bold text-purple-300">{i + 1}</span>
-                    <span className="text-sm text-white">{item.label}</span>
+                  <li key={item.id} className="flex items-center gap-3 rounded-xl bg-gray-100 dark:bg-white/10 px-4 py-2.5">
+                    <span className="w-5 shrink-0 text-center text-sm font-bold text-purple-600 dark:text-purple-300">{i + 1}</span>
+                    <span className="text-sm text-gray-800 dark:text-white">{item.label}</span>
                   </li>
                 ))}
               </ol>
             </div>
           )}
 
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-400">Leaderboard</h3>
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Leaderboard</h3>
           <div className="mb-8 space-y-2">
             {leaderboard.slice(0, 10).map((p, i) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between rounded-xl bg-white/8 px-4 py-2.5"
+                className="flex items-center justify-between rounded-xl border border-gray-100 dark:border-transparent bg-white dark:bg-white/8 px-4 py-2.5"
               >
                 <span className="flex items-center gap-2.5">
                   {i < 3 ? (
@@ -342,16 +342,16 @@ export default function HostView() {
                   ) : (
                     <span className="w-7 text-sm text-gray-500">{i + 1}.</span>
                   )}
-                  <span className="font-medium text-white">{p.nickname}</span>
+                  <span className="font-medium text-gray-900 dark:text-white">{p.nickname}</span>
                 </span>
-                <span className="text-sm font-bold text-indigo-300">{p.score.toLocaleString()} pts</span>
+                <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300">{p.score.toLocaleString()} pts</span>
               </div>
             ))}
           </div>
 
           <button
             onClick={handleNext}
-            className="w-full rounded-2xl bg-indigo-500 py-4 text-lg font-bold hover:bg-indigo-600 transition-colors"
+            className="w-full rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white hover:bg-indigo-700 transition-colors"
           >
             {currentQuestion.index + 1 < currentQuestion.total ? 'Next Question →' : 'Show Final Results'}
           </button>
@@ -364,18 +364,18 @@ export default function HostView() {
   if (currentQuestion) {
     const { question, index, total } = currentQuestion
     return (
-      <div className="flex min-h-screen flex-col items-center bg-gray-900 p-6 text-white">
+      <div className="flex min-h-screen flex-col items-center bg-gray-50 dark:bg-gray-900 p-6">
         <div className="w-full max-w-2xl">
-          <div className="mb-4 flex items-center justify-between rounded-xl bg-white/5 px-4 py-2.5">
-            <span className="text-sm text-gray-400">
+          <div className="mb-4 flex items-center justify-between rounded-xl bg-gray-100 dark:bg-white/5 px-4 py-2.5">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               Question {index + 1} / {total}
             </span>
             <span
-              className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}
+              className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}
             >
               {timeLeft}s
             </span>
-            <span className="text-sm text-gray-400">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {answerCount} answered
             </span>
           </div>
@@ -388,14 +388,14 @@ export default function HostView() {
             />
           )}
 
-          <h2 className="mb-6 text-center text-2xl font-bold leading-snug">{question.text}</h2>
+          <h2 className="mb-6 text-center text-2xl font-bold leading-snug text-gray-900 dark:text-white">{question.text}</h2>
 
           {(question.type === 'MULTIPLE_CHOICE' || question.type === 'IMAGE') && (
             <div className="grid grid-cols-2 gap-3">
               {question.answerOptions.map((opt, i) => (
                 <div
                   key={opt.id}
-                  className={`${OPTION_COLORS[i % 4]} flex min-h-[6rem] items-center rounded-2xl p-4 font-semibold`}
+                  className={`${OPTION_COLORS[i % 4]} flex min-h-[6rem] items-center rounded-2xl p-4 font-semibold text-white`}
                 >
                   <span className="mr-3 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/20 text-sm font-bold">
                     {OPTION_LETTERS[i % 4]}
@@ -411,7 +411,7 @@ export default function HostView() {
               {['True', 'False'].map((label, i) => (
                 <div
                   key={label}
-                  className={`${OPTION_COLORS[i]} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold`}
+                  className={`${OPTION_COLORS[i]} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold text-white`}
                 >
                   {label}
                 </div>
@@ -420,26 +420,26 @@ export default function HostView() {
           )}
 
           {question.type === 'OPEN_ENDED' && (
-            <div className="rounded-2xl bg-white/10 p-6 text-center text-gray-300">
+            <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
               Open-ended — players type their answer
             </div>
           )}
 
           {question.type === 'MAP' && (
-            <div className="rounded-2xl bg-white/10 p-6 text-center text-gray-300">
+            <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
               Map question — players pin a location
             </div>
           )}
 
           {question.type === 'RANKING' && (
-            <div className="rounded-2xl bg-white/10 p-4 text-gray-300">
+            <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-4 text-gray-600 dark:text-gray-300">
               <p className="mb-3 text-center text-sm">Ranking question — players drag items into order</p>
               {question.rankingItems && (
                 <ol className="space-y-2">
                   {question.rankingItems.map((item, i) => (
-                    <li key={item.id} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-2">
-                      <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-400">{i + 1}</span>
-                      <span className="text-sm">{item.label}</span>
+                    <li key={item.id} className="flex items-center gap-3 rounded-xl bg-gray-200 dark:bg-white/10 px-4 py-2">
+                      <span className="w-5 shrink-0 text-center text-sm font-bold text-gray-500 dark:text-gray-400">{i + 1}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-200">{item.label}</span>
                     </li>
                   ))}
                 </ol>
