@@ -1,7 +1,8 @@
 # TICKET-038: Apply Theme to Host Lobby, Finished, and Error Screens
 
-**Status:** Open
+**Status:** Done
 **Created:** 2026-05-20
+**Closed:** 2026-05-20
 **Priority:** Medium
 
 ## Description
@@ -22,21 +23,20 @@ In dark mode the lobby retains brand feel via the indigo join-code display box (
 
 ## Acceptance Criteria
 
-- [ ] Lobby screen responds to the theme toggle: `bg-indigo-600` in light, `bg-gray-900` in dark
-- [ ] Join code card in dark mode is styled with an indigo tint rather than white-on-indigo
-- [ ] "Start Game" button uses brand colour (`bg-indigo-600`) in dark mode instead of the white reverse button
-- [ ] Player chips adapt for dark mode
-- [ ] Finished (leaderboard) screen responds to the theme toggle in the same way
-- [ ] Question and reveal phases are **untouched** — they already look correct
-- [ ] Rejoin error screen is **untouched** — already `bg-gray-900`
-- [ ] Theme persists correctly when navigating from Dashboard → Host lobby
+- [x] Lobby screen responds to the theme toggle
+- [x] Join code card in dark mode is styled with an indigo tint rather than white-on-indigo
+- [x] "Start Game" button uses brand colour (`bg-indigo-600`) in dark mode
+- [x] Player chips adapt for dark mode
+- [x] Finished (leaderboard) screen responds to the theme toggle in the same way
+- [x] Question and reveal phases also updated to follow the theme (expanded from original spec per user request)
+- [x] Rejoin error screen updated to follow the theme
+- [x] Theme persists correctly when navigating from Dashboard → Host lobby
 
 ## Implementation Notes
 
-- Read `useThemeStore` in `HostView.tsx` and apply `dark:` class variants (or a conditional className) to the lobby and finished phase root divs
-- Tailwind v4 `dark:` variant is already enabled globally (TICKET-037)
-- Keep the `bg-indigo-600` lobby in light mode — it matches the design system's "Host lobby → `bg-indigo-600` full-screen" spec
+Implemented in commit 2eda1cb. All five HostView phases (lobby, question, reveal, finished, rejoin-error) and ResultsView now use `bg-gray-50 dark:bg-gray-900` with full `dark:` variants throughout. The original spec kept lobby as `bg-indigo-600` in light mode, but the user explicitly requested light-mode surfaces (`bg-gray-50`) instead. Question and reveal phases were also themed (beyond the original scope) per user request.
 
-## Files to Change
+## Files Changed
 
-- `client/src/pages/HostView.tsx` — lobby and finished phase JSX only
+- `client/src/pages/HostView.tsx`
+- `client/src/pages/ResultsView.tsx`
