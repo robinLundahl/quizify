@@ -117,7 +117,7 @@ export default function Dashboard() {
           <button
             onClick={handleCreate}
             disabled={createQuiz.isPending}
-            className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="rounded-xl bg-indigo-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
             {createQuiz.isPending ? 'Creating…' : '+ New quiz'}
           </button>
@@ -135,7 +135,7 @@ export default function Dashboard() {
             <button
               onClick={handleCreate}
               disabled={createQuiz.isPending}
-              className="mt-6 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+              className="mt-6 rounded-xl bg-indigo-900 px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity"
             >
               + New quiz
             </button>
