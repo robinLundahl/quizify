@@ -13,6 +13,35 @@ export default function Settings() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
+  const [nameInput, setNameInput] = useState(user?.name ?? '')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameError, setNameError] = useState('')
+  const [nameSaved, setNameSaved] = useState(false)
+
+  const nameDirty = nameInput.trim() !== (user?.name ?? '')
+
+  async function handleNameSave() {
+    if (!nameInput.trim()) {
+      setNameError('Name cannot be empty.')
+      return
+    }
+    setNameSaving(true)
+    setNameError('')
+    setNameSaved(false)
+    try {
+      const res = await api.patch<{ id: string; name: string; email: string; avatar: string | null }>('/auth/me', { name: nameInput.trim() })
+      if (user) setUser({ ...user, name: res.data.name })
+      setNameInput(res.data.name)
+      setNameSaved(true)
+      setTimeout(() => setNameSaved(false), 2000)
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
+      setNameError(msg ?? 'Failed to save. Please try again.')
+    } finally {
+      setNameSaving(false)
+    }
+  }
+
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
@@ -159,7 +188,38 @@ export default function Settings() {
           <div className="space-y-3">
             <div>
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Name</p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">{user?.name}</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => { setNameInput(e.target.value); setNameError(''); setNameSaved(false) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && nameDirty) handleNameSave() }}
+                  disabled={nameSaving}
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-transparent px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                />
+                {nameDirty && (
+                  <>
+                    <button
+                      onClick={handleNameSave}
+                      disabled={nameSaving}
+                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 transition disabled:opacity-50"
+                    >
+                      {nameSaving ? 'Saving…' : 'Save'}
+                    </button>
+                    <button
+                      onClick={() => { setNameInput(user?.name ?? ''); setNameError('') }}
+                      disabled={nameSaving}
+                      className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
+                {nameSaved && !nameDirty && (
+                  <span className="text-xs text-green-600 dark:text-green-400">Saved</span>
+                )}
+              </div>
+              {nameError && <p className="mt-1 text-xs text-red-600">{nameError}</p>}
             </div>
             <div>
               <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">Email</p>

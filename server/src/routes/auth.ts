@@ -133,6 +133,19 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar })
 })
 
+router.patch('/me', requireAuth, async (req: Request, res: Response) => {
+  const { name } = req.body as { name?: string }
+  if (!name?.trim()) {
+    res.status(400).json({ error: 'Name cannot be empty.' })
+    return
+  }
+  const user = await prisma.user.update({
+    where: { id: req.userId },
+    data: { name: name.trim() },
+  })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar })
+})
+
 router.patch('/avatar', requireAuth, upload.single('avatar'), async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ error: 'No file uploaded.' })
