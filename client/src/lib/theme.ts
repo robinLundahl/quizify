@@ -1,4 +1,4 @@
-export const COLOR_THEMES = ['sunset', 'forest', 'rose', 'peach']
+export const COLOR_THEMES = ['sunset', 'forest', 'rose', 'peach', 'ocean']
 
 const THEME_CHROME_COLORS: Record<string, string> = {
   light: '#ffffff',
@@ -7,6 +7,7 @@ const THEME_CHROME_COLORS: Record<string, string> = {
   forest: '#1d4f60',
   rose: '#672044',
   peach: '#ffa679',
+  ocean: '#287274',
 }
 
 export function applyTheme(theme: string) {

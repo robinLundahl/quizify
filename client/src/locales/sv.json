@@ -105,7 +105,8 @@
       "sunset": "Solnedgång",
       "forest": "Skog",
       "rose": "Ros",
-      "peach": "Persika"
+      "peach": "Persika",
+      "ocean": "Hav"
     }
   },
   "join": {
@@ -134,7 +135,8 @@
     "submit": "Skicka",
     "drag_to_reorder": "Dra för att ordna om",
     "move_up": "Flytta upp",
-    "move_down": "Flytta ned"
+    "move_down": "Flytta ned",
+    "reconnect_failed": "Kunde inte återansluta. Sessionen kan ha avslutats."
   },
   "quiz_editor": {
     "types": {

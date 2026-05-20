@@ -60,6 +60,7 @@ export default function Dashboard() {
               <option value="forest">{t('host.themes.forest')}</option>
               <option value="rose">{t('host.themes.rose')}</option>
               <option value="peach">{t('host.themes.peach')}</option>
+              <option value="ocean">{t('host.themes.ocean')}</option>
             </select>
           </div>
           <NavDropdown />

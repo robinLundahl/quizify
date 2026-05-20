@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
-@custom-variant themed (&:where(.theme-sunset, .theme-forest, .theme-rose, .theme-peach, .theme-sunset *, .theme-forest *, .theme-rose *, .theme-peach *));
+@custom-variant themed (&:where(.theme-sunset, .theme-forest, .theme-rose, .theme-peach, .theme-ocean, .theme-sunset *, .theme-forest *, .theme-rose *, .theme-peach *, .theme-ocean *));
 
 html,
 body {
@@ -141,6 +141,37 @@ html.theme-peach {
     radial-gradient(ellipse at 70% 90%, #f16d7a 0%, transparent 50%),
     radial-gradient(ellipse at 30% 100%, #ffa679 0%, transparent 55%),
     #ffa679;
+}
+
+html.theme-ocean {
+  --color-gray-50: #ffffff;
+  --color-gray-100: #ffffff;
+  --color-gray-200: #ffffff;
+  --color-gray-300: #ffffff;
+  --color-gray-400: rgba(255, 255, 255, 0.75);
+  --color-gray-500: rgba(255, 255, 255, 0.55);
+  --color-gray-600: #63a6a0;
+  --color-gray-700: color-mix(in srgb, #448c8a, black 10%);
+  --color-gray-800: color-mix(in srgb, #287274, black 15%);
+  --color-gray-900: transparent;
+  --color-gray-950: transparent;
+  --color-white: #fff;
+  --color-indigo-50: #e4f1e1;
+  --color-indigo-100: #b4d9cc;
+  --color-indigo-300: #b4d9cc;
+  --color-indigo-400: #89c0b6;
+  --color-indigo-500: #63a6a0;
+  --color-indigo-600: #89c0b6;
+  --color-indigo-700: #63a6a0;
+  --color-indigo-900: #287274;
+  background:
+    radial-gradient(ellipse at 15% 0%, #e4f1e1 0%, transparent 40%),
+    radial-gradient(ellipse at 75% 10%, #b4d9cc 0%, transparent 45%),
+    radial-gradient(ellipse at 40% 40%, #89c0b6 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 60%, #448c8a 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, #287274 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 100%, #0d585f 0%, transparent 40%),
+    #0d585f;
 }
 
 #root {

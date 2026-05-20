@@ -105,7 +105,8 @@
       "sunset": "Sunset",
       "forest": "Forest",
       "rose": "Rose",
-      "peach": "Peach"
+      "peach": "Peach",
+      "ocean": "Ocean"
     }
   },
   "join": {
@@ -134,7 +135,8 @@
     "submit": "Submit",
     "drag_to_reorder": "Drag to reorder",
     "move_up": "Move up",
-    "move_down": "Move down"
+    "move_down": "Move down",
+    "reconnect_failed": "Could not reconnect. The session may have ended."
   },
   "quiz_editor": {
     "types": {

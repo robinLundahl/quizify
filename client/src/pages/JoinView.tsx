@@ -157,6 +157,7 @@ export default function JoinView() {
   const [code, setCode] = useState(searchParams.get('code') ?? '')
   const [nickname, setNickname] = useState('')
   const [error, setError] = useState('')
+  const [errorKey, setErrorKey] = useState('')
   const [hostName, setHostName] = useState('')
   const [hostAvatar, setHostAvatar] = useState<string | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
@@ -292,7 +293,7 @@ export default function JoinView() {
       localStorage.removeItem(PLAYER_SESSION_KEY)
       localStorage.removeItem(PLAYER_PARTICIPANT_KEY)
       setSavedSession(null)
-      setError('Could not reconnect — the session may have ended.')
+      setErrorKey('join.reconnect_failed')
     })
 
     return () => {
@@ -321,6 +322,7 @@ export default function JoinView() {
     (e: React.FormEvent) => {
       e.preventDefault()
       setError('')
+      setErrorKey('')
       if (!code.trim() || !nickname.trim()) return
       socket.emit('player:join', { code: code.trim().toUpperCase(), nickname: nickname.trim() })
     },
@@ -402,7 +404,7 @@ export default function JoinView() {
               maxLength={20}
               className="w-full rounded-xl bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
             />
-            {error && <p className="text-center text-sm font-medium text-red-600 dark:text-red-200">{error}</p>}
+            {(error || errorKey) && <p className="text-center text-sm font-medium text-red-600 dark:text-red-200">{errorKey ? t(errorKey) : error}</p>}
             <button
               type="submit"
               disabled={!code.trim() || !nickname.trim()}
