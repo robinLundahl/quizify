@@ -56,7 +56,7 @@
     "question_count_other": "{{count}} frågor",
     "host": "Starta",
     "past_sessions": "Tidigare sessioner",
-    "results": "Resultat →",
+    "results": "Resultat",
     "delete_quiz_title": "Ta bort quiz?",
     "delete_quiz_body": "\"{{title}}\" kommer att tas bort permanent. Detta kan inte ångras."
   },

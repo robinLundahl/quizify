@@ -56,7 +56,7 @@
     "question_count_other": "{{count}} questions",
     "host": "Host",
     "past_sessions": "Past sessions",
-    "results": "Results →",
+    "results": "Results",
     "delete_quiz_title": "Delete quiz?",
     "delete_quiz_body": "\"{{title}}\" will be permanently deleted. This cannot be undone."
   },
