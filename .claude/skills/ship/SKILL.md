@@ -47,7 +47,34 @@ npm run lint --prefix client
 - If ESLint exits with **errors** (exit code ≥ 1): print the violations and stop. Do not commit.
 - Warnings are acceptable — continue if only warnings are present.
 
-## Step 5 — Commit
+## Step 5 — Security review
+
+Run a security review on the staged changes before committing.
+
+1. Get the staged diff: `git diff --staged`
+2. Read the changed files in full where needed to understand context.
+3. Check for the following in the changed code:
+   - **Hardcoded secrets or credentials** (API keys, passwords, tokens, private keys)
+   - **SQL injection risks** (raw string interpolation into queries)
+   - **XSS vulnerabilities** (unsanitised user input rendered as HTML)
+   - **Insecure auth/authorization patterns** (missing auth checks, broken access control)
+   - **Sensitive data exposure** (tokens, PII, or passwords logged or returned in API responses)
+
+For each issue found, note the file, line number, severity (Critical / High / Medium / Low), and a brief description.
+
+**If any Critical or High issues are found:**
+- Print the findings clearly.
+- Ask the user: "Would you like me to fix this now, or should I abort the ship?"
+- Do not proceed to commit until the user responds.
+
+**If only Medium or Low issues are found:**
+- Print them as warnings.
+- Continue to the commit step.
+
+**If no issues are found:**
+- State "Security review passed." and continue.
+
+## Step 6 — Commit
 
 All checks passed. Now commit:
 
@@ -59,7 +86,7 @@ All checks passed. Now commit:
      `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
 3. Create the commit.
 
-## Step 6 — Archive completed backlog tickets
+## Step 7 — Archive completed backlog tickets
 
 After a successful commit, check `backlog/` for open tickets that relate to the shipped changes:
 
@@ -70,7 +97,7 @@ After a successful commit, check `backlog/` for open tickets that relate to the 
    - Stage and commit the archive move in a separate commit: `Archive TICKET-NNN (<short reason>)`
 4. If no tickets match, skip silently — do not mention it.
 
-## Step 7 — Report
+## Step 8 — Report
 
 Summarise the result:
 - Which checks ran and passed
