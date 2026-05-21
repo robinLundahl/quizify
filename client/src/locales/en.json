@@ -145,7 +145,8 @@
       "OPEN_ENDED": "Open-ended",
       "IMAGE": "Image",
       "MAP": "Map",
-      "RANKING": "Ranking"
+      "RANKING": "Ranking",
+      "AUDIO": "Audio"
     },
     "type_label": "Type",
     "time_label": "Time (s)",
@@ -215,7 +216,8 @@
       "OPEN_ENDED": "Open Ended",
       "IMAGE": "Image",
       "MAP": "Map",
-      "RANKING": "Ranking"
+      "RANKING": "Ranking",
+      "AUDIO": "Audio"
     }
   }
 }

@@ -52,7 +52,14 @@ export interface RankingItem {
   order: number
 }
 
-export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'OPEN_ENDED' | 'IMAGE' | 'MAP' | 'RANKING'
+export type QuestionType = 'MULTIPLE_CHOICE' | 'TRUE_FALSE' | 'OPEN_ENDED' | 'IMAGE' | 'MAP' | 'RANKING' | 'AUDIO'
+
+export interface AudioQuestionData {
+  id: string
+  url: string
+  platform: string
+  embedUrl: string
+}
 
 export interface Question {
   id: string
@@ -65,6 +72,7 @@ export interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: MapQuestionData | null
+  audioQuestion: AudioQuestionData | null
   rankingItems: RankingItem[]
   correctAnswers: string[]
 }
@@ -151,6 +159,7 @@ export type QuestionPayload = {
   mapQuestion?: { lat: number; lng: number; rings: { radiusKm: number; points: number; order: number }[] }
   rankingItems?: { label: string; correctPosition: number; order: number }[]
   correctAnswers?: string[]
+  audioUrl?: string
 }
 
 export function useAddQuestion(quizId: string) {

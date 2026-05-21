@@ -51,6 +51,7 @@ interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
+  audioQuestion: { url: string; platform: string; embedUrl: string } | null
   rankingItems: RankingItem[] | null
 }
 
@@ -229,6 +230,7 @@ export default function JoinView() {
       setSelectedAnswer('')
       setMapPin(null)
       setOpenText('')
+
       setRankingOrder(payload.question.rankingItems ?? [])
       setPhase('question')
       const remaining = Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000))
@@ -277,6 +279,7 @@ export default function JoinView() {
           setSelectedAnswer('')
           setMapPin(null)
           setOpenText('')
+    
           setRankingOrder(payload.question.rankingItems ?? [])
           setTimeLeft(Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000)))
           setPhase('question')
@@ -549,6 +552,26 @@ export default function JoinView() {
                   {opt.text === 'True' ? t('common.true') : opt.text === 'False' ? t('common.false') : opt.text}
                 </button>
               ))}
+            </div>
+          )}
+
+          {question.type === 'AUDIO' && (
+            <div className="flex flex-col gap-3">
+              <textarea
+                value={openText}
+                onChange={(e) => setOpenText(e.target.value)}
+                disabled={!!selectedAnswer}
+                placeholder={t('join.type_answer')}
+                rows={3}
+                className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/8 p-4 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30 disabled:opacity-60"
+              />
+              <button
+                onClick={() => submitAnswer(openText)}
+                disabled={!openText.trim() || !!selectedAnswer}
+                className="w-full rounded-2xl bg-indigo-500 py-4 font-bold text-white transition hover:bg-indigo-600 disabled:opacity-40"
+              >
+                {t('join.submit')}
+              </button>
             </div>
           )}
 

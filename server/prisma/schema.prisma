@@ -45,6 +45,7 @@ enum QuestionType {
   IMAGE
   MAP
   RANKING
+  AUDIO
 }
 
 model Question {
@@ -54,6 +55,7 @@ model Question {
   text      String
   imageUrl       String?
   correctAnswers String[]
+  translations   Json?
   order          Int
   timeLimit      Int          @default(20)
   points         Int          @default(1000)
@@ -61,6 +63,7 @@ model Question {
   quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)
   answerOptions AnswerOption[]
   mapQuestion   MapQuestion?
+  audioQuestion AudioQuestion?
   rankingItems  RankingItem[]
   gameAnswers   GameAnswer[]
 
@@ -68,10 +71,11 @@ model Question {
 }
 
 model AnswerOption {
-  id         String  @id @default(cuid())
-  questionId String
-  text       String
-  isCorrect  Boolean
+  id           String  @id @default(cuid())
+  questionId   String
+  text         String
+  isCorrect    Boolean
+  translations Json?
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
@@ -98,12 +102,23 @@ model MapRing {
   @@index([mapQuestionId, order])
 }
 
+model AudioQuestion {
+  id         String   @id @default(cuid())
+  questionId String   @unique
+  url        String
+  platform   String
+  embedUrl   String
+
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
 model RankingItem {
   id              String @id @default(cuid())
   questionId      String
   label           String
   correctPosition Int
   order           Int
+  translations    Json?
 
   question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 

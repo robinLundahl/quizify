@@ -14,6 +14,7 @@ interface QuestionData {
     lng: number
     rings: { radiusKm: number; points: number; order: number }[]
   } | null
+  audioQuestion: { url: string; platform: string; embedUrl: string } | null
   rankingItems: { id: string; label: string; correctPosition: number }[]
   correctAnswers: string[]
 }
@@ -46,7 +47,7 @@ function scoreAnswer(question: QuestionData, answer: string, responseTimeMs: num
   const timeFraction = Math.max(0, 1 - responseTimeMs / (question.timeLimit * 1000))
   const timeMultiplier = 1.0 + 0.5 * timeFraction
 
-  if (question.type === 'OPEN_ENDED') {
+  if (question.type === 'OPEN_ENDED' || question.type === 'AUDIO') {
     if (!question.correctAnswers.length) return question.points
     const lower = answer.trim().toLowerCase()
     const match = question.correctAnswers.some((a) => lower.includes(a.trim().toLowerCase()))
@@ -114,6 +115,7 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
       points: q.points,
       answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
       mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
+      audioQuestion: q.audioQuestion ?? null,
       rankingItems: shuffledRankingItems,
     },
     index: state.currentIndex,
@@ -130,9 +132,9 @@ function computeCorrectAnswer(q: QuestionData): unknown {
       lng: q.mapQuestion?.lng,
       rings: q.mapQuestion?.rings,
     }
-  } else if (q.type === 'OPEN_ENDED') {
+  } else if (q.type === 'OPEN_ENDED' || q.type === 'AUDIO') {
     return {
-      type: 'OPEN_ENDED',
+      type: q.type,
       optionText: q.correctAnswers.length ? q.correctAnswers.join(' / ') : null,
     }
   } else if (q.type === 'RANKING') {
@@ -177,6 +179,7 @@ function buildQuestionPayload(q: QuestionData) {
     points: q.points,
     answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
     mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
+    audioQuestion: q.audioQuestion ?? null,
     rankingItems: q.rankingItems.length ? q.rankingItems.map(({ id, label }) => ({ id, label })) : null,
   }
 }
@@ -270,6 +273,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
               include: {
                 answerOptions: true,
                 mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+                audioQuestion: true,
                 rankingItems: { orderBy: { correctPosition: 'asc' } },
               },
             },

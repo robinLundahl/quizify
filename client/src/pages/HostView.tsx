@@ -30,6 +30,7 @@ interface Question {
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
+  audioQuestion: { url: string; platform: string; embedUrl: string } | null
   rankingItems: RankingItem[] | null
 }
 
@@ -468,6 +469,23 @@ export default function HostView() {
           {question.type === 'MAP' && (
             <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
               {t('host.map_info')}
+            </div>
+          )}
+
+          {question.type === 'AUDIO' && (
+            <div className="space-y-3">
+              {question.audioQuestion && (
+                <iframe
+                  src={question.audioQuestion.embedUrl}
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  className="w-full rounded-2xl border border-gray-200 dark:border-gray-700"
+                  style={{ height: question.audioQuestion.platform === 'apple' ? 150 : question.audioQuestion.platform === 'youtube' ? 180 : 80 }}
+                  title="Audio player"
+                />
+              )}
+              <div className="rounded-2xl bg-gray-100 dark:bg-white/10 p-6 text-center text-gray-600 dark:text-gray-300">
+                {t('host.open_ended_info')}
+              </div>
             </div>
           )}
 

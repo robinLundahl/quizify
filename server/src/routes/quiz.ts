@@ -4,6 +4,7 @@ import path from 'path'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { prisma } from '../lib/prisma.js'
 import { getSupabase } from '../lib/supabase.js'
+import { parseAudioUrl } from '../lib/audioUrl.js'
 
 const IMAGES_BUCKET = 'question-images'
 
@@ -80,6 +81,7 @@ router.get('/:id', async (req, res) => {
         include: {
           answerOptions: true,
           mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+          audioQuestion: true,
           rankingItems: { orderBy: { correctPosition: 'asc' } },
         },
       },
@@ -122,7 +124,7 @@ router.post('/:id/questions', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
   const question = await prisma.question.create({
     data: {
       quizId: req.params.id,
@@ -132,12 +134,13 @@ router.post('/:id/questions', async (req, res) => {
       order: order ?? 0,
       timeLimit: timeLimit ?? 20,
       points: points ?? 1000,
-      correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
-      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
+      correctAnswers: (type === 'OPEN_ENDED' || type === 'AUDIO') ? (correctAnswers ?? []) : [],
+      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems, audioUrl),
     },
     include: {
       answerOptions: true,
       mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+      audioQuestion: true,
       rankingItems: { orderBy: { correctPosition: 'asc' } },
     },
   })
@@ -169,10 +172,11 @@ router.put('/:id/questions/:qid', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers } = req.body
+  const { type, text, imageUrl, order, timeLimit, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
 
   await prisma.answerOption.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.mapQuestion.deleteMany({ where: { questionId: req.params.qid } })
+  await prisma.audioQuestion.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.rankingItem.deleteMany({ where: { questionId: req.params.qid } })
 
   const updated = await prisma.question.update({
@@ -184,12 +188,13 @@ router.put('/:id/questions/:qid', async (req, res) => {
       order,
       timeLimit,
       points,
-      correctAnswers: type === 'OPEN_ENDED' ? (correctAnswers ?? []) : [],
-      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems),
+      correctAnswers: (type === 'OPEN_ENDED' || type === 'AUDIO') ? (correctAnswers ?? []) : [],
+      ...buildRelations(type, answerOptions, correctAnswer, mapQuestion, rankingItems, audioUrl),
     },
     include: {
       answerOptions: true,
       mapQuestion: true,
+      audioQuestion: true,
       rankingItems: { orderBy: { correctPosition: 'asc' } },
     },
   })
@@ -219,6 +224,7 @@ function buildRelations(
   correctAnswer: string | undefined,
   mapQuestion: MapQuestionInput | undefined,
   rankingItems: RankingItemInput[] | undefined,
+  audioUrl: string | undefined,
 ) {
   if (type === 'TRUE_FALSE') {
     return {
@@ -232,6 +238,12 @@ function buildRelations(
   }
   if ((type === 'MULTIPLE_CHOICE' || type === 'IMAGE') && answerOptions?.length) {
     return { answerOptions: { create: answerOptions } }
+  }
+  if (type === 'AUDIO') {
+    const parsed = audioUrl ? parseAudioUrl(audioUrl) : null
+    return parsed
+      ? { audioQuestion: { create: { url: audioUrl!, platform: parsed.platform, embedUrl: parsed.embedUrl } } }
+      : {}
   }
   if (type === 'MAP' && mapQuestion) {
     return {

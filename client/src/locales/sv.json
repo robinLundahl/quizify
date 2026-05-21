@@ -145,7 +145,8 @@
       "OPEN_ENDED": "Öppet svar",
       "IMAGE": "Bild",
       "MAP": "Karta",
-      "RANKING": "Rankning"
+      "RANKING": "Rankning",
+      "AUDIO": "Ljud"
     },
     "type_label": "Typ",
     "time_label": "Tid (s)",
@@ -215,7 +216,8 @@
       "OPEN_ENDED": "Öppet svar",
       "IMAGE": "Bild",
       "MAP": "Karta",
-      "RANKING": "Rankning"
+      "RANKING": "Rankning",
+      "AUDIO": "Ljud"
     }
   }
 }

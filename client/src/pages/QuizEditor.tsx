@@ -19,6 +19,7 @@ import L from 'leaflet'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
+import { parseAudioUrl } from '../lib/audioUrl'
 import NavDropdown from '../components/ui/NavDropdown'
 import {
   useQuiz,
@@ -66,6 +67,7 @@ interface FormState {
   mapRings: RingField[]
   rankingItems: RankingItemField[]
   correctAnswers: string[]
+  audioUrl: string
 }
 
 const QUESTION_TYPES: QuestionType[] = [
@@ -75,6 +77,7 @@ const QUESTION_TYPES: QuestionType[] = [
   'IMAGE',
   'MAP',
   'RANKING',
+  'AUDIO',
 ]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -99,6 +102,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
       { id: crypto.randomUUID(), label: '' },
     ],
     correctAnswers: [],
+    audioUrl: '',
   }
 }
 
@@ -141,6 +145,10 @@ function questionToForm(q: Question): FormState {
   if (q.type === 'OPEN_ENDED') {
     form.correctAnswers = q.correctAnswers ?? []
   }
+  if (q.type === 'AUDIO') {
+    form.audioUrl = q.audioQuestion?.url ?? ''
+    form.correctAnswers = q.correctAnswers ?? []
+  }
   return form
 }
 
@@ -176,6 +184,13 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
       .filter((r) => r.label.trim())
       .map((r, i) => ({ label: r.label.trim(), correctPosition: i + 1, order: i }))
     return { ...base, imageUrl: form.imageUrl.trim() || undefined, rankingItems: items }
+  }
+  if (form.type === 'AUDIO') {
+    return {
+      ...base,
+      audioUrl: form.audioUrl.trim() || undefined,
+      correctAnswers: form.correctAnswers.filter((a) => a.trim()),
+    }
   }
   return base
 }
@@ -572,7 +587,38 @@ function QuestionForm({
         </div>
       )}
 
-      {form.type === 'OPEN_ENDED' && (
+      {form.type === 'AUDIO' && (
+        <div className="space-y-2">
+          <label className={LABEL_CLS}>Audio URL</label>
+          <input
+            type="url"
+            value={form.audioUrl}
+            onChange={(e) => set({ audioUrl: e.target.value })}
+            placeholder="Paste a Spotify, YouTube, SoundCloud, or Apple Music track URL"
+            className={`w-full ${INPUT_CLS}`}
+          />
+          {form.audioUrl.trim() && (() => {
+            const parsed = parseAudioUrl(form.audioUrl.trim())
+            if (!parsed) {
+              return <p className="text-xs text-red-500">Unsupported URL — paste a direct track link from Spotify, YouTube, SoundCloud, or Apple Music.</p>
+            }
+            return (
+              <div className="space-y-1">
+                <p className="text-xs text-green-600 capitalize">✓ {parsed.platform} track detected</p>
+                <iframe
+                  src={parsed.embedUrl}
+                  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-600"
+                  style={{ height: parsed.platform === 'apple' ? 150 : parsed.platform === 'youtube' ? 180 : 80 }}
+                  title="Audio preview"
+                />
+              </div>
+            )
+          })()}
+        </div>
+      )}
+
+      {(form.type === 'OPEN_ENDED' || form.type === 'AUDIO') && (
         <div className="space-y-2">
           <label className={LABEL_CLS}>
             {t('quiz_editor.accepted_answers')} <span className="font-normal normal-case text-gray-400">{t('quiz_editor.accepted_answers_hint')}</span>
