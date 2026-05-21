@@ -123,9 +123,13 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4">
+      <header className="sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 bg-white/90 dark:bg-gray-900/90 px-6 py-4 backdrop-blur-sm">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <Link to="/dashboard" className="text-lg font-bold text-indigo-600 hover:opacity-80 transition-opacity">Quizify</Link>
+          <div className="flex items-center gap-3">
+            <Link to="/dashboard" className="text-xl font-black text-indigo-600 hover:opacity-80 transition-opacity">Quizify</Link>
+            <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('nav.settings')}</span>
+          </div>
           <NavDropdown />
         </div>
       </header>
