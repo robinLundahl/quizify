@@ -449,10 +449,10 @@ export default function JoinView() {
           <img
             src={hostAvatar}
             alt={hostName}
-            className="mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/20"
+            className={`mb-5 h-20 w-20 rounded-full object-cover ring-4 ring-black/10 dark:ring-white/20 ${!isFinalRound ? 'animate-pulse' : ''}`}
           />
         ) : (
-          <div className="mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-2xl font-bold ring-4 ring-black/10 dark:ring-white/20">
+          <div className={`mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-black/10 dark:bg-white/20 text-2xl font-bold ring-4 ring-black/10 dark:ring-white/20 ${!isFinalRound ? 'animate-pulse' : ''}`}>
             {hostName.charAt(0).toUpperCase()}
           </div>
         )}
