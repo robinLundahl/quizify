@@ -90,7 +90,7 @@
     "map_reveal": "Map answer revealed — scored by distance rings.",
     "correct_order": "Correct order",
     "leaderboard": "Leaderboard",
-    "next_question": "Next Question →",
+    "next_question": "Next Question",
     "show_final_results": "Show Final Results",
     "question_header": "Question {{index}} / {{total}}",
     "answered": "answered",

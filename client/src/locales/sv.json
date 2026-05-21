@@ -90,7 +90,7 @@
     "map_reveal": "Kartsvaret avslöjat — poäng baserat på avstånd.",
     "correct_order": "Rätt ordning",
     "leaderboard": "Poängtavla",
-    "next_question": "Nästa fråga →",
+    "next_question": "Nästa fråga",
     "show_final_results": "Visa slutresultat",
     "question_header": "Fråga {{index}} / {{total}}",
     "answered": "svarade",
