@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string
   avatar: string | null
   plan: 'FREE' | 'PRO'
+  isAdmin: boolean
 }
 
 interface AuthStore {

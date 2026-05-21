@@ -265,7 +265,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-048.md
 │   │   ├── TICKET-049.md
 │   │   └── TICKET-050.md
-│   └── README.md
+│   ├── README.md
+│   └── TICKET-051.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -290,6 +291,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── en.json
 │   │   │   └── sv.json
 │   │   ├── pages/
+│   │   │   ├── AdminPanel.tsx
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
 │   │   │   ├── JoinView.tsx
@@ -330,8 +332,10 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── prisma.ts
 │   │   │   └── supabase.ts
 │   │   ├── middleware/
+│   │   │   ├── requireAdmin.ts
 │   │   │   └── requireAuth.ts
 │   │   ├── routes/
+│   │   │   ├── admin.ts
 │   │   │   ├── auth.ts
 │   │   │   ├── quiz.ts
 │   │   │   └── sessions.ts

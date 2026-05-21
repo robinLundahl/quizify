@@ -17,7 +17,8 @@
     "dashboard": "Instrumentpanel",
     "settings": "Inställningar",
     "logout": "Logga ut",
-    "language": "Språk"
+    "language": "Språk",
+    "admin": "Admin"
   },
   "login": {
     "title": "Välkommen till Quizify",

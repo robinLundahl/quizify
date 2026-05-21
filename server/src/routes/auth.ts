@@ -76,7 +76,7 @@ router.post('/register', async (req: Request, res: Response) => {
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
 })
 
 router.post('/login', async (req: Request, res: Response) => {
@@ -110,7 +110,7 @@ router.post('/login', async (req: Request, res: Response) => {
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
 })
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
@@ -130,7 +130,7 @@ router.get('/me', requireAuth, async (req, res) => {
     res.status(401).json({ error: 'Unauthorized' })
     return
   }
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
 })
 
 router.patch('/me', requireAuth, async (req: Request, res: Response) => {
@@ -143,7 +143,7 @@ router.patch('/me', requireAuth, async (req: Request, res: Response) => {
     where: { id: req.userId },
     data: { name: name.trim() },
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
 })
 
 router.patch('/avatar', requireAuth, upload.single('avatar'), async (req: Request, res: Response) => {

@@ -9,6 +9,9 @@ import { configurePassport } from './lib/passport.js'
 import authRouter from './routes/auth.js'
 import quizRouter from './routes/quiz.js'
 import sessionsRouter from './routes/sessions.js'
+import adminRouter from './routes/admin.js'
+import { requireAuth } from './middleware/requireAuth.js'
+import { requireAdmin } from './middleware/requireAdmin.js'
 
 const app = express()
 const httpServer = createServer(app)
@@ -23,6 +26,7 @@ configurePassport()
 app.use('/api/auth', authRouter)
 app.use('/api/quiz', quizRouter)
 app.use('/api/sessions', sessionsRouter)
+app.use('/api/admin', requireAuth, requireAdmin, adminRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })

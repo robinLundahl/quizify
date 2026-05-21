@@ -17,7 +17,8 @@
     "dashboard": "Dashboard",
     "settings": "Settings",
     "logout": "Log out",
-    "language": "Language"
+    "language": "Language",
+    "admin": "Admin"
   },
   "login": {
     "title": "Welcome to Quizify",

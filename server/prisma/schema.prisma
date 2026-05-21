@@ -22,6 +22,7 @@ model User {
   provider     String
   passwordHash String?
   plan         Plan     @default(FREE)
+  isAdmin      Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   quizzes       Quiz[]

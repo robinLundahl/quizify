@@ -47,7 +47,9 @@ export default function NavDropdown() {
         )}
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user?.name}</span>
         {user?.plan === 'PRO' && (
-          <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">Pro</span>
+          <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">
+            {user.isAdmin ? 'Admin' : 'Pro'}
+          </span>
         )}
         {user?.plan === 'FREE' && (
           <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-300">Free</span>
@@ -75,6 +77,14 @@ export default function NavDropdown() {
             >
               {t('nav.settings')}
             </button>
+            {user?.isAdmin && (
+              <button
+                onClick={() => { setOpen(false); navigate('/admin') }}
+                className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                {t('nav.admin')}
+              </button>
+            )}
             <div className="mx-3 my-1.5 flex items-center justify-between">
               <span className="text-xs text-gray-400 dark:text-gray-500">{t('nav.language')}</span>
               <LangToggle />

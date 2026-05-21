@@ -9,6 +9,7 @@ import QuizEditor from './pages/QuizEditor'
 import HostView from './pages/HostView'
 import JoinView from './pages/JoinView'
 import ResultsView from './pages/ResultsView'
+import AdminPanel from './pages/AdminPanel'
 
 const queryClient = new QueryClient()
 
@@ -26,6 +27,7 @@ export default function App() {
             <Route path="/quiz/:id" element={<QuizEditor />} />
             <Route path="/host/:sessionId" element={<HostView />} />
             <Route path="/results/:sessionId" element={<ResultsView />} />
+            <Route path="/admin" element={<AdminPanel />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
