@@ -5,6 +5,7 @@ import { requireAuth } from '../middleware/requireAuth.js'
 import { prisma } from '../lib/prisma.js'
 import { getSupabase } from '../lib/supabase.js'
 import { parseAudioUrl } from '../lib/audioUrl.js'
+import { FREE_QUIZ_LIMIT, FREE_QUESTION_TYPES } from '../lib/planLimits.js'
 
 const IMAGES_BUCKET = 'question-images'
 
@@ -66,6 +67,14 @@ router.post('/', async (req, res) => {
     res.status(400).json({ error: 'Title is required' })
     return
   }
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
+  if (user?.plan === 'FREE') {
+    const count = await prisma.quiz.count({ where: { ownerId: req.userId! } })
+    if (count >= FREE_QUIZ_LIMIT) {
+      res.status(403).json({ error: 'Free plan is limited to 1 quiz. Upgrade to Pro to create more.' })
+      return
+    }
+  }
   const quiz = await prisma.quiz.create({
     data: { title: title.trim(), description: description?.trim(), ownerId: req.userId! },
   })
@@ -125,6 +134,11 @@ router.post('/:id/questions', async (req, res) => {
     return
   }
   const { type, text, imageUrl, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
+  if (user?.plan === 'FREE' && !FREE_QUESTION_TYPES.includes(type)) {
+    res.status(403).json({ error: 'This question type requires a Pro plan.' })
+    return
+  }
   const question = await prisma.question.create({
     data: {
       quizId: req.params.id,
@@ -174,6 +188,11 @@ router.put('/:id/questions/:qid', async (req, res) => {
     return
   }
   const { type, text, imageUrl, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
+  const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
+  if (user?.plan === 'FREE' && !FREE_QUESTION_TYPES.includes(type)) {
+    res.status(403).json({ error: 'This question type requires a Pro plan.' })
+    return
+  }
 
   await prisma.answerOption.deleteMany({ where: { questionId: req.params.qid } })
   await prisma.mapQuestion.deleteMany({ where: { questionId: req.params.qid } })

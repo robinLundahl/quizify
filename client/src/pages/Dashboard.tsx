@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession, useActiveSessions } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
-import { useThemeStore } from '../store/themeStore'
+import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
+import { useAuthStore } from '../store/authStore'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -16,8 +17,11 @@ export default function Dashboard() {
   const deleteSession = useDeleteSession()
   const [hostingId, setHostingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
+  const [upgradeModal, setUpgradeModal] = useState<string | null>(null)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const user = useAuthStore((s) => s.user)
+  const isFreePlan = user?.plan === 'FREE'
 
   function handleRejoin(sessionId: string, code: string, status: 'ACTIVE' | 'WAITING') {
     if (status === 'ACTIVE') {
@@ -27,8 +31,20 @@ export default function Dashboard() {
   }
 
   async function handleCreate() {
+    if (isFreePlan && (quizzes?.length ?? 0) >= 1) {
+      setUpgradeModal(t('plan.upgrade_quiz_limit'))
+      return
+    }
     const quiz = await createQuiz.mutateAsync({ title: 'Untitled quiz' })
     navigate(`/quiz/${quiz.id}`)
+  }
+
+  function handleThemeChange(value: string) {
+    if (isFreePlan && PRO_ONLY_THEMES.includes(value as typeof PRO_ONLY_THEMES[number])) {
+      setUpgradeModal(t('plan.upgrade_theme'))
+      return
+    }
+    setTheme(value as Parameters<typeof setTheme>[0])
   }
 
   async function handleHost(quizId: string) {
@@ -51,16 +67,16 @@ export default function Dashboard() {
             </Link>
             <select
               value={theme}
-              onChange={(e) => setTheme(e.target.value as Parameters<typeof setTheme>[0])}
+              onChange={(e) => handleThemeChange(e.target.value)}
               className="border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             >
               <option value="light">{t('host.themes.light')}</option>
               <option value="dark">{t('host.themes.dark')}</option>
-              <option value="forest">{t('host.themes.forest')}</option>
-              <option value="ocean">{t('host.themes.ocean')}</option>
-              <option value="sunset">{t('host.themes.sunset')}</option>
-              <option value="peach">{t('host.themes.peach')}</option>
-              <option value="rose">{t('host.themes.rose')}</option>
+              <option value="forest" disabled={isFreePlan}>{t('host.themes.forest')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+              <option value="ocean" disabled={isFreePlan}>{t('host.themes.ocean')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+              <option value="sunset" disabled={isFreePlan}>{t('host.themes.sunset')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+              <option value="peach" disabled={isFreePlan}>{t('host.themes.peach')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+              <option value="rose" disabled={isFreePlan}>{t('host.themes.rose')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
             </select>
           </div>
           <NavDropdown />
@@ -228,6 +244,23 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+
+      {upgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('plan.upgrade_title')}</h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{upgradeModal}</p>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setUpgradeModal(null)}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
+              >
+                {t('plan.got_it')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">

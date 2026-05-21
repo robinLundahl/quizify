@@ -263,9 +263,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-046.md
 │   │   ├── TICKET-047.md
 │   │   ├── TICKET-048.md
-│   │   └── TICKET-049.md
-│   ├── README.md
-│   └── TICKET-050.md
+│   │   ├── TICKET-049.md
+│   │   └── TICKET-050.md
+│   └── README.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -326,6 +326,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── audioUrl.ts
 │   │   │   ├── jwt.ts
 │   │   │   ├── passport.ts
+│   │   │   ├── planLimits.ts
 │   │   │   ├── prisma.ts
 │   │   │   └── supabase.ts
 │   │   ├── middleware/

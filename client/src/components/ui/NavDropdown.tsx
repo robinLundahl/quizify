@@ -46,6 +46,12 @@ export default function NavDropdown() {
           </div>
         )}
         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user?.name}</span>
+        {user?.plan === 'PRO' && (
+          <span className="rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">Pro</span>
+        )}
+        {user?.plan === 'FREE' && (
+          <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-300">Free</span>
+        )}
         <svg
           className={`h-4 w-4 text-gray-400 dark:text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`}
           viewBox="0 0 20 20" fill="currentColor"

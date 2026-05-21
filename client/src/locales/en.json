@@ -110,6 +110,14 @@
       "ocean": "Ocean"
     }
   },
+  "plan": {
+    "pro_only": "Pro",
+    "upgrade_title": "Pro feature",
+    "upgrade_quiz_limit": "Free plan is limited to 1 quiz. Upgrade to Pro to create unlimited quizzes.",
+    "upgrade_question_type": "This question type is only available on the Pro plan.",
+    "upgrade_theme": "This theme is only available on the Pro plan.",
+    "got_it": "Got it"
+  },
   "join": {
     "active_session_title": "Active session found",
     "active_session_body": "You were in a game that may still be running.",

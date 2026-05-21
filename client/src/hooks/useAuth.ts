@@ -2,9 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import api from '../lib/api'
 import { useAuthStore, type AuthUser } from '../store/authStore'
+import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
 
 export function useAuth() {
   const { setUser, clearUser } = useAuthStore()
+  const { theme, setTheme } = useThemeStore()
 
   const { data, isLoading } = useQuery<AuthUser>({
     queryKey: ['me'],
@@ -14,9 +16,15 @@ export function useAuth() {
   })
 
   useEffect(() => {
-    if (data) setUser(data)
-    else if (!isLoading) clearUser()
-  }, [data, isLoading, setUser, clearUser])
+    if (data) {
+      setUser(data)
+      if (data.plan === 'FREE' && PRO_ONLY_THEMES.includes(theme)) {
+        setTheme('light')
+      }
+    } else if (!isLoading) {
+      clearUser()
+    }
+  }, [data, isLoading, setUser, clearUser, theme, setTheme])
 
   // Return data directly from React Query so user and isLoading are always
   // in sync — previously user came from Zustand which updated one render late,

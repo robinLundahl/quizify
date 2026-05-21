@@ -110,6 +110,14 @@
       "ocean": "Hav"
     }
   },
+  "plan": {
+    "pro_only": "Pro",
+    "upgrade_title": "Pro-funktion",
+    "upgrade_quiz_limit": "Gratisplanen är begränsad till 1 quiz. Uppgradera till Pro för att skapa obegränsat med quiz.",
+    "upgrade_question_type": "Den här frågetypen är bara tillgänglig i Pro-planen.",
+    "upgrade_theme": "Det här temat är bara tillgängligt i Pro-planen.",
+    "got_it": "Förstått"
+  },
   "join": {
     "active_session_title": "Aktiv session hittad",
     "active_session_body": "Du var i ett spel som kanske fortfarande pågår.",

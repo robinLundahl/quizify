@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import { parseAudioUrl } from '../lib/audioUrl'
 import NavDropdown from '../components/ui/NavDropdown'
+import { useAuthStore } from '../store/authStore'
 import {
   useQuiz,
   useUpdateQuiz,
@@ -363,6 +364,8 @@ function SortableRankingEditorItem({
 const INPUT_CLS = 'rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
 const LABEL_CLS = 'mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500'
 
+const FREE_QUESTION_TYPES: QuestionType[] = ['MULTIPLE_CHOICE', 'TRUE_FALSE', 'OPEN_ENDED']
+
 function QuestionForm({
   initial,
   order,
@@ -378,6 +381,7 @@ function QuestionForm({
 }) {
   const { t } = useTranslation()
   const [form, setForm] = useState<FormState>(initial)
+  const isFreePlan = useAuthStore((s) => s.user?.plan === 'FREE')
   const rankingSensors = useSensors(useSensor(PointerSensor))
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [isUploadingImage, setIsUploadingImage] = useState(false)
@@ -489,9 +493,15 @@ function QuestionForm({
             onChange={(e) => handleTypeChange(e.target.value as QuestionType)}
             className={`w-full ${INPUT_CLS} pr-8`}
           >
-            {QUESTION_TYPES.map((qtype) => (
-              <option key={qtype} value={qtype}>{t(`quiz_editor.types.${qtype}`)}</option>
-            ))}
+            {QUESTION_TYPES.map((qtype) => {
+              const isProOnly = isFreePlan && !FREE_QUESTION_TYPES.includes(qtype)
+              return (
+                <option key={qtype} value={qtype} disabled={isProOnly}>
+                  {t(`quiz_editor.types.${qtype}`)}
+                  {isProOnly ? ` (${t('plan.pro_only')})` : ''}
+                </option>
+              )
+            })}
           </select>
         </div>
         {form.type !== 'MAP' && (

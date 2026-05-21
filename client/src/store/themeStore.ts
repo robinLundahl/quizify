@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 
-type Theme = 'light' | 'dark' | 'sunset' | 'forest' | 'rose' | 'peach'
+export type Theme = 'light' | 'dark' | 'sunset' | 'forest' | 'rose' | 'peach' | 'ocean'
+
+export const PRO_ONLY_THEMES: Theme[] = ['sunset', 'forest', 'rose', 'peach', 'ocean']
 
 interface ThemeStore {
   theme: Theme
