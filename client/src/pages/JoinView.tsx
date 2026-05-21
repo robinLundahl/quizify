@@ -258,8 +258,12 @@ export default function JoinView() {
         nickname: string
         scores?: Player[]
         theme?: string
+        hostName?: string
+        hostAvatar?: string | null
       }) => {
         applyTheme(payload.theme ?? 'forest')
+        if (payload.hostName) setHostName(payload.hostName)
+        if (payload.hostAvatar !== undefined) setHostAvatar(payload.hostAvatar ?? null)
         const savedSessionId = localStorage.getItem(PLAYER_SESSION_KEY) ?? ''
         const savedParticipantId = localStorage.getItem(PLAYER_PARTICIPANT_KEY) ?? ''
         sessionIdRef.current = savedSessionId

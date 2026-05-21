@@ -352,7 +352,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     const { sessionId, participantId } = data
 
     const [session, participant] = await Promise.all([
-      prisma.gameSession.findUnique({ where: { id: sessionId } }),
+      prisma.gameSession.findUnique({ where: { id: sessionId }, include: { host: { select: { name: true, avatar: true } } } }),
       prisma.participant.findUnique({ where: { id: participantId } }),
     ])
 
@@ -389,6 +389,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         score: participant.score,
         nickname: participant.nickname,
         theme: state.theme,
+        hostName: session.host.name,
+        hostAvatar: session.host.avatar ?? null,
       })
     } else {
       const correctAnswer = computeCorrectAnswer(q)
@@ -415,6 +417,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         scores,
         pointsEarned: myAnswer?.pointsEarned ?? null,
         theme: state.theme,
+        hostName: session.host.name,
+        hostAvatar: session.host.avatar ?? null,
       })
     }
   })
