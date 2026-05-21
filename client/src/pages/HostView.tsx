@@ -55,12 +55,7 @@ type Phase = 'lobby' | 'question' | 'reveal' | 'finished'
 
 const STORAGE_KEY = 'quizify_active_host_session'
 
-const OPTION_COLORS = [
-  'bg-red-400 hover:brightness-110',
-  'bg-blue-400 hover:brightness-110',
-  'bg-yellow-400 hover:brightness-110',
-  'bg-green-400 hover:brightness-110',
-]
+const OPTION_GLASS = 'bg-indigo-500/20 border border-white/20 backdrop-blur-md'
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
 
@@ -454,7 +449,7 @@ export default function HostView() {
               {question.answerOptions.map((opt, i) => (
                 <div
                   key={opt.id}
-                  className={`${OPTION_COLORS[i % 4]} flex min-h-[6rem] items-center rounded-2xl p-4 font-semibold text-white`}
+                  className={`${OPTION_GLASS} flex min-h-[6rem] items-center rounded-2xl p-4 font-semibold text-white`}
                 >
                   <span className="mr-3 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black/20 text-sm font-bold">
                     {OPTION_LETTERS[i % 4]}
@@ -467,10 +462,10 @@ export default function HostView() {
 
           {question.type === 'TRUE_FALSE' && (
             <div className="grid grid-cols-2 gap-3">
-              {[t('common.true'), t('common.false')].map((label, i) => (
+              {[t('common.true'), t('common.false')].map((label) => (
                 <div
                   key={label}
-                  className={`${OPTION_COLORS[i]} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold text-white`}
+                  className={`${OPTION_GLASS} flex min-h-[6rem] items-center justify-center rounded-2xl p-4 text-center text-xl font-bold text-white`}
                 >
                   {label}
                 </div>

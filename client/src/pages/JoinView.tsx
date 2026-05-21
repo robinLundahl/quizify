@@ -74,12 +74,7 @@ type Phase = 'enter' | 'lobby' | 'question' | 'answered' | 'reveal' | 'finished'
 const PLAYER_SESSION_KEY = 'quizify_player_session'
 const PLAYER_PARTICIPANT_KEY = 'quizify_player_participant'
 
-const OPTION_COLORS = [
-  'bg-red-400 active:brightness-75',
-  'bg-blue-400 active:brightness-75',
-  'bg-yellow-400 active:brightness-75',
-  'bg-green-400 active:brightness-75',
-]
+const OPTION_GLASS = 'bg-indigo-500/20 border border-white/20 hover:bg-indigo-500/35 active:bg-indigo-500/45'
 
 const OPTION_LETTERS = ['A', 'B', 'C', 'D']
 
@@ -530,8 +525,8 @@ export default function JoinView() {
                   key={opt.id}
                   onClick={() => submitAnswer(opt.id)}
                   disabled={!!selectedAnswer}
-                  className={`${OPTION_COLORS[i % 4]} flex min-h-[5rem] items-center rounded-2xl p-3 text-left text-sm font-semibold text-white shadow-lg transition disabled:opacity-60 ${
-                    selectedAnswer === opt.id ? 'ring-4 ring-white' : ''
+                  className={`${OPTION_GLASS} flex min-h-[5rem] items-center rounded-2xl p-3 text-left text-sm font-semibold text-white shadow-lg backdrop-blur-md transition disabled:opacity-60 ${
+                    selectedAnswer === opt.id ? 'bg-white/20 ring-4 ring-white' : ''
                   }`}
                 >
                   <span className="mr-2 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-black/20 text-xs font-bold">
@@ -545,13 +540,13 @@ export default function JoinView() {
 
           {question.type === 'TRUE_FALSE' && (
             <div className="grid grid-cols-2 gap-3">
-              {question.answerOptions.map((opt, i) => (
+              {question.answerOptions.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => submitAnswer(opt.id)}
                   disabled={!!selectedAnswer}
-                  className={`${OPTION_COLORS[i % 2]} flex min-h-[5rem] items-center justify-center rounded-2xl p-3 text-center text-2xl font-bold text-white shadow-lg transition disabled:opacity-60 ${
-                    selectedAnswer === opt.id ? 'ring-4 ring-white' : ''
+                  className={`${OPTION_GLASS} flex min-h-[5rem] items-center justify-center rounded-2xl p-3 text-center text-2xl font-bold text-white shadow-lg backdrop-blur-md transition disabled:opacity-60 ${
+                    selectedAnswer === opt.id ? 'bg-white/20 ring-4 ring-white' : ''
                   }`}
                 >
                   {opt.text === 'True' ? t('common.true') : opt.text === 'False' ? t('common.false') : opt.text}
