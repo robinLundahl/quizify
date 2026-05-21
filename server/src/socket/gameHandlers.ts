@@ -28,10 +28,12 @@ interface SessionState {
   questionEndTimer?: ReturnType<typeof setTimeout>
   answeredParticipants: Set<string>
   theme: string
+  hostId: string
 }
 
 const sessions = new Map<string, SessionState>()
 const sessionThemes = new Map<string, string>()
+const sessionHosts = new Map<string, string>() // sessionId → userId (lobby phase)
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371
@@ -198,8 +200,10 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       where: { id: data.sessionId },
     })
     if (!session || session.status !== 'WAITING') return
+    if (socket.data.userId == null || session.hostId !== socket.data.userId) return
     const theme = data.theme ?? 'forest'
     sessionThemes.set(data.sessionId, theme)
+    sessionHosts.set(data.sessionId, socket.data.userId)
     socket.join(data.sessionId)
     io.to(data.sessionId).emit('session:theme', { theme })
     const participants = await prisma.participant.findMany({
@@ -212,6 +216,8 @@ export function registerGameHandlers(io: Server, socket: Socket) {
   // Host updates theme mid-session
   socket.on('host:set_theme', (data: { sessionId: string; theme: string }) => {
     const { sessionId, theme } = data
+    const ownerId = sessions.get(sessionId)?.hostId ?? sessionHosts.get(sessionId)
+    if (socket.data.userId == null || socket.data.userId !== ownerId) return
     const state = sessions.get(sessionId)
     if (state) state.theme = theme
     sessionThemes.set(sessionId, theme)
@@ -225,6 +231,10 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     const session = await prisma.gameSession.findUnique({ where: { id: sessionId } })
     if (!session || session.status !== 'ACTIVE') {
       socket.emit('host:rejoin_failed', { reason: 'session_not_active' })
+      return
+    }
+    if (socket.data.userId == null || session.hostId !== socket.data.userId) {
+      socket.emit('host:rejoin_failed', { reason: 'unauthorized' })
       return
     }
 
@@ -295,6 +305,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     })
 
     if (!session || session.status !== 'WAITING') return
+    if (socket.data.userId == null || session.hostId !== socket.data.userId) return
     if (session.quiz.questions.length === 0) return
 
     await prisma.gameSession.update({
@@ -309,9 +320,11 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       questionEnded: false,
       answeredParticipants: new Set(),
       theme: sessionThemes.get(sessionId) ?? 'forest',
+      hostId: session.hostId,
     }
     sessions.set(sessionId, state)
     sessionThemes.delete(sessionId)
+    sessionHosts.delete(sessionId)
 
     socket.join(sessionId)
     io.to(sessionId).emit('session:started')
@@ -323,6 +336,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     const { sessionId } = data
     const state = sessions.get(sessionId)
     if (!state) return
+    if (socket.data.userId == null || socket.data.userId !== state.hostId) return
 
     await endQuestion(io, sessionId, state)
 
@@ -470,6 +484,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
   socket.on('host:stop_question', async (data: { sessionId: string }) => {
     const state = sessions.get(data.sessionId)
     if (!state) return
+    if (socket.data.userId == null || socket.data.userId !== state.hostId) return
     await endQuestion(io, data.sessionId, state)
   })
 
@@ -478,11 +493,12 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     'player:answer',
     async (data: {
       sessionId: string
-      participantId: string
       questionId: string
       answer: string
     }) => {
-      const { sessionId, participantId, questionId, answer } = data
+      const { sessionId, questionId, answer } = data
+      const participantId = socket.data.participantId
+      if (!participantId) return
       const state = sessions.get(sessionId)
       if (!state || state.questionEnded) return
       if (state.answeredParticipants.has(participantId)) return
