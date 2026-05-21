@@ -1,0 +1,1 @@
+ALTER TABLE "Question" ADD COLUMN "useTimer" BOOLEAN NOT NULL DEFAULT true;

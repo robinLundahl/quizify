@@ -94,6 +94,7 @@
     "show_final_results": "Visa slutresultat",
     "question_header": "Fråga {{index}} / {{total}}",
     "answered": "svarade",
+    "stop_question": "Stoppa",
     "open_ended_info": "Öppet svar — spelare skriver sitt svar",
     "map_info": "Kartfråga — spelare markerar en plats",
     "ranking_info": "Rankningsfråga — spelare drar föremål i ordning",
@@ -136,7 +137,8 @@
     "drag_to_reorder": "Dra för att ordna om",
     "move_up": "Flytta upp",
     "move_down": "Flytta ned",
-    "reconnect_failed": "Kunde inte återansluta. Sessionen kan ha avslutats."
+    "reconnect_failed": "Kunde inte återansluta. Sessionen kan ha avslutats.",
+    "no_timer": "Ingen timer"
   },
   "quiz_editor": {
     "types": {
@@ -149,6 +151,7 @@
       "AUDIO": "Ljud"
     },
     "type_label": "Typ",
+    "use_timer_label": "Använd timer",
     "time_label": "Tid (s)",
     "time_tooltip": "Antalet sekunder en spelare har på sig att svara. Ju snabbare de svarar, desto mer poäng får de.",
     "points_label": "Poäng",

@@ -58,6 +58,7 @@ model Question {
   translations   Json?
   order          Int
   timeLimit      Int          @default(20)
+  useTimer       Boolean      @default(true)
   points         Int          @default(1000)
 
   quiz          Quiz           @relation(fields: [quizId], references: [id], onDelete: Cascade)

@@ -7,6 +7,7 @@ interface QuestionData {
   type: string
   imageUrl: string | null
   timeLimit: number
+  useTimer: boolean
   points: number
   answerOptions: { id: string; text: string; isCorrect: boolean }[]
   mapQuestion: {
@@ -44,7 +45,9 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
 }
 
 function scoreAnswer(question: QuestionData, answer: string, responseTimeMs: number): number {
-  const timeFraction = Math.max(0, 1 - responseTimeMs / (question.timeLimit * 1000))
+  const timeFraction = question.useTimer
+    ? Math.max(0, 1 - responseTimeMs / (question.timeLimit * 1000))
+    : 0
   const timeMultiplier = 1.0 + 0.5 * timeFraction
 
   if (question.type === 'OPEN_ENDED' || question.type === 'AUDIO') {
@@ -95,11 +98,13 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
   const q = state.questions[state.currentIndex]
   state.questionStartedAt = Date.now()
   state.questionEnded = false
-  const endsAt = state.questionStartedAt + q.timeLimit * 1000
+  const endsAt = q.useTimer ? state.questionStartedAt + q.timeLimit * 1000 : 0
 
-  state.questionEndTimer = setTimeout(() => {
-    void endQuestion(io, sessionId, state)
-  }, q.timeLimit * 1000)
+  if (q.useTimer) {
+    state.questionEndTimer = setTimeout(() => {
+      void endQuestion(io, sessionId, state)
+    }, q.timeLimit * 1000)
+  }
 
   const shuffledRankingItems = q.rankingItems.length
     ? [...q.rankingItems].sort(() => Math.random() - 0.5).map(({ id, label }) => ({ id, label }))
@@ -112,6 +117,7 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
       type: q.type,
       imageUrl: q.imageUrl,
       timeLimit: q.timeLimit,
+      useTimer: q.useTimer,
       points: q.points,
       answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
       mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
@@ -176,6 +182,7 @@ function buildQuestionPayload(q: QuestionData) {
     type: q.type,
     imageUrl: q.imageUrl,
     timeLimit: q.timeLimit,
+    useTimer: q.useTimer,
     points: q.points,
     answerOptions: q.answerOptions.map(({ id, text }) => ({ id, text })),
     mapQuestion: q.mapQuestion ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng } : null,
@@ -230,7 +237,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     const questionPayload = buildQuestionPayload(q)
 
     if (!state.questionEnded) {
-      const endsAt = state.questionStartedAt + q.timeLimit * 1000
+      const endsAt = q.useTimer ? state.questionStartedAt + q.timeLimit * 1000 : 0
       socket.emit('host:rejoin_success', {
         phase: 'question',
         question: questionPayload,
@@ -367,7 +374,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     const alreadyAnswered = state.answeredParticipants.has(participantId)
 
     if (!state.questionEnded) {
-      const endsAt = state.questionStartedAt + q.timeLimit * 1000
+      const endsAt = q.useTimer ? state.questionStartedAt + q.timeLimit * 1000 : 0
       socket.emit('player:reconnect_success', {
         phase: alreadyAnswered ? 'answered' : 'question',
         question: buildQuestionPayload(q),
@@ -450,6 +457,13 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     io.to(session.id).emit('session:player_joined', { nickname, count })
   })
 
+  // Host manually stops an untimed question (reveals answer without advancing)
+  socket.on('host:stop_question', async (data: { sessionId: string }) => {
+    const state = sessions.get(data.sessionId)
+    if (!state) return
+    await endQuestion(io, data.sessionId, state)
+  })
+
   // Player submits an answer
   socket.on(
     'player:answer',
@@ -469,7 +483,9 @@ export function registerGameHandlers(io: Server, socket: Socket) {
 
       state.answeredParticipants.add(participantId)
 
-      const responseTimeMs = Math.min(Date.now() - state.questionStartedAt, q.timeLimit * 1000)
+      const responseTimeMs = q.useTimer
+        ? Math.min(Date.now() - state.questionStartedAt, q.timeLimit * 1000)
+        : Date.now() - state.questionStartedAt
       const earned = scoreAnswer(q, answer, responseTimeMs)
 
       await prisma.$transaction([

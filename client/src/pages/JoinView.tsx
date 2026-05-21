@@ -48,6 +48,7 @@ interface Question {
   type: string
   imageUrl: string | null
   timeLimit: number
+  useTimer: boolean
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
@@ -499,11 +500,15 @@ export default function JoinView() {
             {index + 1} / {total}
           </span>
           <LangToggle />
-          <span
-            className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'animate-pulse text-red-400' : 'text-white'}`}
-          >
-            {timeLeft}s
-          </span>
+          {question.useTimer ? (
+            <span
+              className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'animate-pulse text-red-400' : 'text-white'}`}
+            >
+              {timeLeft}s
+            </span>
+          ) : (
+            <span className="text-sm font-medium text-gray-400 dark:text-gray-500">{t('join.no_timer')}</span>
+          )}
         </div>
 
         {/* Question content */}

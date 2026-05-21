@@ -69,6 +69,7 @@ export interface Question {
   imageUrl: string | null
   order: number
   timeLimit: number
+  useTimer: boolean
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: MapQuestionData | null
@@ -153,6 +154,7 @@ export type QuestionPayload = {
   imageUrl?: string
   order?: number
   timeLimit?: number
+  useTimer?: boolean
   points?: number
   answerOptions?: { text: string; isCorrect: boolean }[]
   correctAnswer?: 'true' | 'false'

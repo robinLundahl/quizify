@@ -94,6 +94,7 @@
     "show_final_results": "Show Final Results",
     "question_header": "Question {{index}} / {{total}}",
     "answered": "answered",
+    "stop_question": "Stop",
     "open_ended_info": "Open-ended — players type their answer",
     "map_info": "Map question — players pin a location",
     "ranking_info": "Ranking question — players drag items into order",
@@ -136,7 +137,8 @@
     "drag_to_reorder": "Drag to reorder",
     "move_up": "Move up",
     "move_down": "Move down",
-    "reconnect_failed": "Could not reconnect. The session may have ended."
+    "reconnect_failed": "Could not reconnect. The session may have ended.",
+    "no_timer": "No timer"
   },
   "quiz_editor": {
     "types": {
@@ -149,6 +151,7 @@
       "AUDIO": "Audio"
     },
     "type_label": "Type",
+    "use_timer_label": "Use timer",
     "time_label": "Time (s)",
     "time_tooltip": "The amount of seconds a player has to answer a question. The quicker they respond, the more points they score.",
     "points_label": "Points",

@@ -27,6 +27,7 @@ interface Question {
   type: string
   imageUrl: string | null
   timeLimit: number
+  useTimer: boolean
   points: number
   answerOptions: AnswerOption[]
   mapQuestion: { lat: number; lng: number } | null
@@ -204,6 +205,10 @@ export default function HostView() {
 
   const handleNext = useCallback(() => {
     socket.emit('host:next', { sessionId })
+  }, [socket, sessionId])
+
+  const handleStop = useCallback(() => {
+    socket.emit('host:stop_question', { sessionId })
   }, [socket, sessionId])
 
   if (rejoinError) {
@@ -411,11 +416,13 @@ export default function HostView() {
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {t('host.question_header', { index: index + 1, total })}
             </span>
-            <span
-              className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}
-            >
-              {timeLeft}s
-            </span>
+            {question.useTimer && (
+              <span
+                className={`text-2xl font-black tabular-nums transition-colors ${timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-gray-900 dark:text-white'}`}
+              >
+                {timeLeft}s
+              </span>
+            )}
             <span className="text-sm text-gray-500 dark:text-gray-400">
               {answerCount} {t('host.answered')}
             </span>
@@ -503,6 +510,15 @@ export default function HostView() {
                 </ol>
               )}
             </div>
+          )}
+
+          {!question.useTimer && (
+            <button
+              onClick={handleStop}
+              className="mt-6 w-full rounded-2xl bg-indigo-600 py-4 text-lg font-bold text-white hover:bg-indigo-700 transition-colors"
+            >
+              {t('host.stop_question')}
+            </button>
           )}
         </div>
       </div>

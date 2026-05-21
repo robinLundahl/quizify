@@ -59,6 +59,7 @@ interface FormState {
   text: string
   imageUrl: string
   timeLimit: number
+  useTimer: boolean
   points: number
   options: { text: string; isCorrect: boolean }[]
   correctAnswer: 'true' | 'false'
@@ -88,6 +89,7 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     text: '',
     imageUrl: '',
     timeLimit: 20,
+    useTimer: true,
     points: 1,
     options: [
       { text: '', isCorrect: true },
@@ -111,6 +113,7 @@ function questionToForm(q: Question): FormState {
   form.text = q.text
   form.imageUrl = q.imageUrl ?? ''
   form.timeLimit = q.timeLimit
+  form.useTimer = q.useTimer
   form.points = q.points
 
   if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE') {
@@ -153,7 +156,7 @@ function questionToForm(q: Question): FormState {
 }
 
 function formToPayload(form: FormState, order: number): QuestionPayload {
-  const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, points: form.points, order }
+  const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, useTimer: form.useTimer, points: form.points, order }
 
   if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'OPEN_ENDED') return {
@@ -491,25 +494,6 @@ function QuestionForm({
             ))}
           </select>
         </div>
-        <div>
-          <div className="mb-1.5 flex items-center gap-1">
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t('quiz_editor.time_label')}</span>
-            <span className="group relative flex items-center">
-              <span className="cursor-default text-xs text-gray-400 hover:text-gray-600">ⓘ</span>
-              <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1.5 w-52 -translate-x-1/2 rounded-xl bg-gray-900 px-3 py-2 text-xs font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
-                {t('quiz_editor.time_tooltip')}
-              </span>
-            </span>
-          </div>
-          <input
-            type="number"
-            min={5}
-            max={120}
-            value={form.timeLimit}
-            onChange={(e) => set({ timeLimit: Number(e.target.value) })}
-            className={`w-20 ${INPUT_CLS}`}
-          />
-        </div>
         {form.type !== 'MAP' && (
           <div>
             <label className={LABEL_CLS}>{t('quiz_editor.points_label')}</label>
@@ -523,6 +507,35 @@ function QuestionForm({
             />
           </div>
         )}
+        <div>
+          <label className="mb-1.5 flex cursor-pointer items-center gap-2">
+            <input
+              type="checkbox"
+              checked={form.useTimer}
+              onChange={(e) => set({ useTimer: e.target.checked })}
+              className="h-4 w-4 rounded accent-indigo-600"
+            />
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">{t('quiz_editor.use_timer_label')}</span>
+          </label>
+          {form.useTimer && (
+            <div className="mt-1 flex items-center gap-1">
+              <input
+                type="number"
+                min={5}
+                max={120}
+                value={form.timeLimit}
+                onChange={(e) => set({ timeLimit: Number(e.target.value) })}
+                className={`w-20 ${INPUT_CLS}`}
+              />
+              <span className="group relative flex items-center">
+                <span className="cursor-default text-xs text-gray-400 hover:text-gray-600">ⓘ</span>
+                <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 w-52 -translate-y-1/2 rounded-xl bg-gray-900 px-3 py-2 text-xs font-normal normal-case tracking-normal text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  {t('quiz_editor.time_tooltip')}
+                </span>
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
