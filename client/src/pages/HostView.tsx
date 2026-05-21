@@ -237,11 +237,11 @@ export default function HostView() {
       >
         <option value="light">{t('host.themes.light')}</option>
         <option value="dark">{t('host.themes.dark')}</option>
-        <option value="sunset">{t('host.themes.sunset')}</option>
         <option value="forest">{t('host.themes.forest')}</option>
-        <option value="rose">{t('host.themes.rose')}</option>
-        <option value="peach">{t('host.themes.peach')}</option>
         <option value="ocean">{t('host.themes.ocean')}</option>
+        <option value="sunset">{t('host.themes.sunset')}</option>
+        <option value="peach">{t('host.themes.peach')}</option>
+        <option value="rose">{t('host.themes.rose')}</option>
       </select>
     </div>
   )
