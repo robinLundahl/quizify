@@ -202,6 +202,11 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     sessionThemes.set(data.sessionId, theme)
     socket.join(data.sessionId)
     io.to(data.sessionId).emit('session:theme', { theme })
+    const participants = await prisma.participant.findMany({
+      where: { sessionId: data.sessionId },
+      select: { nickname: true },
+    })
+    socket.emit('host:joined', { participants: participants.map((p) => p.nickname) })
   })
 
   // Host updates theme mid-session

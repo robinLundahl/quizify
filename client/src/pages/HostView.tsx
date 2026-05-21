@@ -102,6 +102,10 @@ export default function HostView() {
       socket.emit('host:join', { sessionId, theme })
     }
 
+    socket.on('host:joined', ({ participants }: { participants: string[] }) => {
+      setPlayers(participants.map((nickname) => ({ id: nickname, nickname, score: 0 })))
+    })
+
     socket.on('session:player_joined', ({ nickname, count }: { nickname: string; count: number }) => {
       setPlayers((prev) => {
         if (prev.some((p) => p.nickname === nickname)) return prev
@@ -176,6 +180,7 @@ export default function HostView() {
     })
 
     return () => {
+      socket.off('host:joined')
       socket.off('session:player_joined')
       socket.off('session:started')
       socket.off('session:question')
@@ -281,6 +286,12 @@ export default function HostView() {
           className="rounded-xl bg-indigo-600 px-8 py-3 text-lg font-bold text-white shadow-lg transition hover:bg-indigo-700 disabled:opacity-40"
         >
           {t('host.start_game')}
+        </button>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="mt-4 rounded-xl border border-gray-300 dark:border-gray-600 px-8 py-3 text-lg font-bold text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+        >
+          {t('nav.dashboard')}
         </button>
       </div>
       {themeAndLangControl}
