@@ -206,6 +206,15 @@
     "not_found": "Quiz hittades inte.",
     "back_to_dashboard": "Tillbaka till instrumentpanelen"
   },
+  "admin": {
+    "users": "Användare",
+    "search_placeholder": "Sök på namn eller e-post…",
+    "no_users": "Inga användare hittades.",
+    "plan_pro": "Pro",
+    "plan_free": "Gratis",
+    "make_pro": "Gör till Pro",
+    "make_free": "Gör till Gratis"
+  },
   "results": {
     "loading": "Laddar resultat…",
     "not_found": "Resultat hittades inte.",

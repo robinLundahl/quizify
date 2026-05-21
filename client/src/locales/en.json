@@ -206,6 +206,15 @@
     "not_found": "Quiz not found.",
     "back_to_dashboard": "Back to dashboard"
   },
+  "admin": {
+    "users": "Users",
+    "search_placeholder": "Search by name or email…",
+    "no_users": "No users found.",
+    "plan_pro": "Pro",
+    "plan_free": "Free",
+    "make_pro": "Make Pro",
+    "make_free": "Make Free"
+  },
   "results": {
     "loading": "Loading results…",
     "not_found": "Results not found.",

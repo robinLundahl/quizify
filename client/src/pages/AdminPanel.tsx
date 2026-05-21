@@ -61,12 +61,12 @@ export default function AdminPanel() {
 
       <main className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Users</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{t('admin.users')}</h1>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email…"
+            placeholder={t('admin.search_placeholder')}
             className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 w-64"
           />
         </div>
@@ -78,7 +78,7 @@ export default function AdminPanel() {
         {users && (
           <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm overflow-hidden">
             {users.length === 0 ? (
-              <p className="p-5 text-sm text-gray-500 dark:text-gray-400">No users found.</p>
+              <p className="p-5 text-sm text-gray-500 dark:text-gray-400">{t('admin.no_users')}</p>
             ) : (
               <ul className="divide-y divide-gray-100 dark:divide-gray-700">
                 {users.map((u) => (
@@ -98,7 +98,7 @@ export default function AdminPanel() {
                         </span>
                         {u.isAdmin && (
                           <span className="rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-semibold text-gray-600 dark:text-gray-300">
-                            Admin
+                            {t('nav.admin')}
                           </span>
                         )}
                       </div>
@@ -112,7 +112,7 @@ export default function AdminPanel() {
                           : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                       }`}
                     >
-                      {u.plan === 'PRO' ? 'Pro' : 'Free'}
+                      {u.plan === 'PRO' ? t('admin.plan_pro') : t('admin.plan_free')}
                     </span>
 
                     {u.plan === 'FREE' ? (
@@ -121,7 +121,7 @@ export default function AdminPanel() {
                         disabled={setPlan.isPending}
                         className="bg-indigo-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition flex-shrink-0"
                       >
-                        Make Pro
+                        {t('admin.make_pro')}
                       </button>
                     ) : (
                       <button
@@ -129,7 +129,7 @@ export default function AdminPanel() {
                         disabled={setPlan.isPending || u.isAdmin}
                         className="border border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-40 transition flex-shrink-0"
                       >
-                        Make Free
+                        {t('admin.make_free')}
                       </button>
                     )}
                   </li>
