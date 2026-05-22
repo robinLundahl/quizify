@@ -27,6 +27,41 @@ Wire up Stripe Checkout so users can self-serve upgrade to PRO, with the plan ac
 
 ---
 
+## Stripe Dashboard setup (do this before coding)
+
+### 1. Enable Test mode
+Toggle **Test mode** on in the top-right of the Stripe dashboard. All steps below must be done in test mode first.
+
+### 2. Get API keys
+**Dashboard → Developers → API keys**
+- Copy the **Secret key** (`sk_test_...`) → `STRIPE_SECRET_KEY` in `server/.env`
+- No publishable key needed — Stripe Checkout is fully server-side.
+
+### 3. Create a Product + Price
+**Dashboard → Product catalog → + Add product**
+- Name: e.g. "Quizify Pro"
+- Pricing model: **Recurring**, billing period: Monthly
+- After saving, copy the **Price ID** (`price_...`) → `STRIPE_PRICE_ID_PRO` in `server/.env`
+
+### 4. Create a Webhook endpoint (production only)
+**Dashboard → Developers → Webhooks → + Add endpoint**
+- URL: `https://yourdomain.com/api/webhooks/stripe`
+- Events: `checkout.session.completed`, `customer.subscription.deleted`
+- Copy the **Signing secret** (`whsec_...`) → `STRIPE_WEBHOOK_SECRET` in `server/.env`
+
+> For **local development**, skip the dashboard webhook and use the Stripe CLI instead:
+> ```bash
+> stripe listen --forward-to localhost:3001/api/webhooks/stripe
+> ```
+> This outputs a temporary `whsec_...` to use in `.env` while developing.
+
+### 5. Enable the Customer Portal
+**Dashboard → Settings → Billing → Customer portal**
+- Enable it and configure allowed actions (cancel subscription, update payment method)
+- No URL needed — portal sessions are created via the API.
+
+---
+
 ## Required env vars
 
 Add to `server/.env` and root `.env.example`:
