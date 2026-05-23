@@ -42,7 +42,16 @@
     "creating": "Creating account…",
     "create": "Create account",
     "have_account": "Already have an account?",
-    "sign_in": "Sign in"
+    "sign_in": "Sign in",
+    "check_email_title": "Check your email",
+    "check_email_hint": "We sent a 6-digit code to {{email}}",
+    "enter_code": "Enter code",
+    "verify": "Verify",
+    "verifying": "Verifying…",
+    "resend_code": "Resend code",
+    "resend_in": "Resend in {{s}}s",
+    "invalid_code": "Invalid or expired code. Please try again.",
+    "email_not_verified": "Please verify your email before signing in."
   },
   "dashboard": {
     "active_sessions": "Active sessions",
@@ -213,7 +222,12 @@
     "plan_pro": "Pro",
     "plan_free": "Free",
     "make_pro": "Make Pro",
-    "make_free": "Make Free"
+    "make_free": "Make Free",
+    "delete_user": "Delete",
+    "delete_user_confirm_title": "Delete account?",
+    "delete_user_confirm_body": "This will permanently delete {{name}}'s account and all their data. This cannot be undone.",
+    "delete_user_confirm": "Yes, delete",
+    "deleting_user": "Deleting…"
   },
   "results": {
     "loading": "Loading results…",

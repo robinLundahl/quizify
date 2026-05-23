@@ -22,6 +22,7 @@ export default function AdminPanel() {
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
   const [search, setSearch] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<AdminUser | null>(null)
 
   const { data: users, isLoading } = useQuery<AdminUser[]>({
     queryKey: ['admin-users', search],
@@ -34,6 +35,14 @@ export default function AdminPanel() {
     mutationFn: ({ id, plan }: { id: string; plan: 'FREE' | 'PRO' }) =>
       api.patch(`/admin/users/${id}/plan`, { plan }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+  })
+
+  const deleteUser = useMutation({
+    mutationFn: (id: string) => api.delete(`/admin/users/${id}`),
+    onSuccess: () => {
+      setConfirmDelete(null)
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    },
   })
 
   if (user && !user.isAdmin) {
@@ -132,6 +141,15 @@ export default function AdminPanel() {
                         {t('admin.make_free')}
                       </button>
                     )}
+
+                    {!u.isAdmin && (
+                      <button
+                        onClick={() => setConfirmDelete(u)}
+                        className="rounded-lg px-3 py-1.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition flex-shrink-0"
+                      >
+                        {t('admin.delete_user')}
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -139,6 +157,35 @@ export default function AdminPanel() {
           </div>
         )}
       </main>
+
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl mx-4">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+              {t('admin.delete_user_confirm_title')}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              {t('admin.delete_user_confirm_body', { name: confirmDelete.name })}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleteUser.isPending}
+                className="rounded-lg border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition"
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={() => deleteUser.mutate(confirmDelete.id)}
+                disabled={deleteUser.isPending}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition"
+              >
+                {deleteUser.isPending ? t('admin.deleting_user') : t('admin.delete_user_confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

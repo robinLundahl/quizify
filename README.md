@@ -278,6 +278,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── hero.png
 │   │   │   └── vite.svg
 │   │   ├── components/
+│   │   │   ├── auth/
 │   │   │   ├── quiz/
 │   │   │   └── ui/
 │   │   ├── hooks/
@@ -328,6 +329,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── controllers/
 │   │   ├── lib/
 │   │   │   ├── audioUrl.ts
+│   │   │   ├── email.ts
 │   │   │   ├── jwt.ts
 │   │   │   ├── passport.ts
 │   │   │   ├── planLimits.ts

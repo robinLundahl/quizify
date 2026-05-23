@@ -5,14 +5,22 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
 import { useAuthStore } from '../store/authStore'
 import LangToggle from '../components/ui/LangToggle'
+import VerifyEmailStep from '../components/auth/VerifyEmailStep'
 
-async function loginRequest(email: string, password: string) {
+type LoginResult =
+  | { emailNotVerified: true; userId: string }
+  | { id: string; name: string; email: string; avatar: string | null; plan: 'FREE' | 'PRO'; isAdmin: boolean }
+
+async function loginRequest(email: string, password: string): Promise<LoginResult> {
   const res = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   })
   const data = await res.json()
+  if (res.status === 403 && data.error === 'email_not_verified') {
+    return { emailNotVerified: true, userId: data.userId as string }
+  }
   if (!res.ok) throw new Error(data.error ?? 'Login failed.')
   return data
 }
@@ -25,10 +33,17 @@ export default function Login() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [step, setStep] = useState<'form' | 'verify'>('form')
+  const [pendingUserId, setPendingUserId] = useState('')
 
   const mutation = useMutation({
     mutationFn: () => loginRequest(email, password),
     onSuccess: (data) => {
+      if ('emailNotVerified' in data) {
+        setPendingUserId(data.userId)
+        setStep('verify')
+        return
+      }
       setUser(data)
       navigate('/dashboard', { replace: true })
     },
@@ -43,65 +58,76 @@ export default function Login() {
         <div className="mb-6 flex justify-end">
           <LangToggle />
         </div>
-        <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{t('login.title')}</h1>
-        <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('login.subtitle')}</p>
 
-        <div className="flex flex-col gap-3">
-          <a
-            href="/api/auth/google"
-            className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:bg-gray-50 dark:hover:bg-gray-600"
-          >
-            <GoogleIcon />
-            {t('login.continue_with_google')}
-          </a>
+        {step === 'verify' ? (
+          <VerifyEmailStep
+            email={email}
+            userId={pendingUserId}
+            onSuccess={() => navigate('/dashboard', { replace: true })}
+          />
+        ) : (
+          <>
+            <h1 className="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-gray-100">{t('login.title')}</h1>
+            <p className="mb-8 text-center text-sm text-gray-500 dark:text-gray-400">{t('login.subtitle')}</p>
 
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">or</span>
-            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-          </div>
+            <div className="flex flex-col gap-3">
+              <a
+                href="/api/auth/google"
+                className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:bg-gray-50 dark:hover:bg-gray-600"
+              >
+                <GoogleIcon />
+                {t('login.continue_with_google')}
+              </a>
 
-          <form
-            onSubmit={(e) => { e.preventDefault(); mutation.mutate() }}
-            className="flex flex-col gap-3"
-          >
-            <input
-              type="email"
-              placeholder={t('login.email')}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-            <input
-              type="password"
-              placeholder={t('login.password')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+                <span className="text-xs text-gray-400 dark:text-gray-500">or</span>
+                <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
+              </div>
 
-            {mutation.isError && (
-              <p className="text-xs text-red-600">{(mutation.error as Error).message}</p>
-            )}
+              <form
+                onSubmit={(e) => { e.preventDefault(); mutation.mutate() }}
+                className="flex flex-col gap-3"
+              >
+                <input
+                  type="email"
+                  placeholder={t('login.email')}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <input
+                  type="password"
+                  placeholder={t('login.password')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
 
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
-            >
-              {mutation.isPending ? t('login.signing_in') : t('login.sign_in')}
-            </button>
-          </form>
+                {mutation.isError && (
+                  <p className="text-xs text-red-600">{(mutation.error as Error).message}</p>
+                )}
 
-          <p className="text-center text-xs text-gray-500 dark:text-gray-400">
-            {t('login.no_account')}{' '}
-            <Link to="/register" className="text-indigo-600 hover:underline">
-              {t('login.create_one')}
-            </Link>
-          </p>
-        </div>
+                <button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="w-full bg-indigo-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition"
+                >
+                  {mutation.isPending ? t('login.signing_in') : t('login.sign_in')}
+                </button>
+              </form>
+
+              <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                {t('login.no_account')}{' '}
+                <Link to="/register" className="text-indigo-600 hover:underline">
+                  {t('login.create_one')}
+                </Link>
+              </p>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

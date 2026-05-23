@@ -7,6 +7,7 @@ import { signToken } from '../lib/jwt.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { prisma } from '../lib/prisma.js'
 import { getSupabase, AVATARS_BUCKET } from '../lib/supabase.js'
+import { sendVerificationEmail } from '../lib/email.js'
 import type { User } from '../generated/prisma/client.js'
 
 const router = Router()
@@ -69,14 +70,16 @@ router.post('/register', async (req: Request, res: Response) => {
     data: { name: name.trim(), email, provider: 'email', passwordHash },
   })
 
-  const token = signToken(user.id)
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+  await prisma.emailVerification.upsert({
+    where: { userId: user.id },
+    create: { userId: user.id, code, expiresAt },
+    update: { code, expiresAt },
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+  await sendVerificationEmail(email, code)
+
+  res.json({ pending: true, userId: user.id })
 })
 
 router.post('/login', async (req: Request, res: Response) => {
@@ -103,6 +106,11 @@ router.post('/login', async (req: Request, res: Response) => {
     return
   }
 
+  if (!user.emailVerified) {
+    res.status(403).json({ error: 'email_not_verified', userId: user.id })
+    return
+  }
+
   const token = signToken(user.id)
   res.cookie('token', token, {
     httpOnly: true,
@@ -111,6 +119,60 @@ router.post('/login', async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+})
+
+router.post('/verify-email', async (req: Request, res: Response) => {
+  const { userId, code } = req.body as { userId?: string; code?: string }
+  if (!userId || !code) {
+    res.status(400).json({ error: 'userId and code are required.' })
+    return
+  }
+
+  const verification = await prisma.emailVerification.findUnique({ where: { userId } })
+  if (!verification || verification.code !== code || verification.expiresAt < new Date()) {
+    res.status(400).json({ error: 'Invalid or expired code.' })
+    return
+  }
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: { emailVerified: true },
+  })
+  await prisma.emailVerification.delete({ where: { userId } })
+
+  const token = signToken(user.id)
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+})
+
+router.post('/resend-verification', async (req: Request, res: Response) => {
+  const { userId } = req.body as { userId?: string }
+  if (!userId) {
+    res.status(400).json({ error: 'userId is required.' })
+    return
+  }
+
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user || user.provider !== 'email' || user.emailVerified) {
+    res.status(400).json({ error: 'Cannot resend verification.' })
+    return
+  }
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+  await prisma.emailVerification.upsert({
+    where: { userId },
+    create: { userId, code, expiresAt },
+    update: { code, expiresAt },
+  })
+  await sendVerificationEmail(user.email, code)
+
+  res.json({ ok: true })
 })
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))

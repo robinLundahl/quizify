@@ -42,7 +42,16 @@
     "creating": "Skapar konto…",
     "create": "Skapa konto",
     "have_account": "Har du redan ett konto?",
-    "sign_in": "Logga in"
+    "sign_in": "Logga in",
+    "check_email_title": "Kolla din e-post",
+    "check_email_hint": "Vi skickade en 6-siffrig kod till {{email}}",
+    "enter_code": "Ange kod",
+    "verify": "Verifiera",
+    "verifying": "Verifierar…",
+    "resend_code": "Skicka ny kod",
+    "resend_in": "Ny kod om {{s}}s",
+    "invalid_code": "Ogiltig eller utgången kod. Försök igen.",
+    "email_not_verified": "Verifiera din e-post innan du loggar in."
   },
   "dashboard": {
     "active_sessions": "Aktiva sessioner",
@@ -213,7 +222,12 @@
     "plan_pro": "Pro",
     "plan_free": "Gratis",
     "make_pro": "Gör till Pro",
-    "make_free": "Gör till Gratis"
+    "make_free": "Gör till Gratis",
+    "delete_user": "Ta bort",
+    "delete_user_confirm_title": "Ta bort konto?",
+    "delete_user_confirm_body": "Detta tar permanent bort {{name}}s konto och all deras data. Detta kan inte ångras.",
+    "delete_user_confirm": "Ja, ta bort",
+    "deleting_user": "Tar bort…"
   },
   "results": {
     "loading": "Laddar resultat…",

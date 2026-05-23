@@ -42,4 +42,18 @@ router.patch('/users/:id/plan', async (req, res) => {
   res.json(user)
 })
 
+router.delete('/users/:id', async (req, res) => {
+  const target = await prisma.user.findUnique({ where: { id: req.params.id }, select: { id: true, isAdmin: true } })
+  if (!target) {
+    res.status(404).json({ error: 'User not found' })
+    return
+  }
+  if (target.isAdmin) {
+    res.status(403).json({ error: 'Cannot delete an admin account.' })
+    return
+  }
+  await prisma.user.delete({ where: { id: target.id } })
+  res.json({ ok: true })
+})
+
 export default router

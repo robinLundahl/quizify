@@ -15,19 +15,31 @@ enum Plan {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  avatar       String?
-  provider     String
-  passwordHash String?
-  plan         Plan     @default(FREE)
-  isAdmin      Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  avatar        String?
+  provider      String
+  passwordHash  String?
+  plan          Plan     @default(FREE)
+  isAdmin       Boolean  @default(false)
+  emailVerified Boolean  @default(false)
+  createdAt     DateTime @default(now())
 
-  quizzes       Quiz[]
-  participants  Participant[]
-  hostedSessions GameSession[]
+  quizzes           Quiz[]
+  participants      Participant[]
+  hostedSessions    GameSession[]
+  emailVerification EmailVerification?
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 // ─── Quiz & Questions ─────────────────────────────────────────────────────────
