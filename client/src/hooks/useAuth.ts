@@ -18,8 +18,8 @@ export function useAuth() {
   useEffect(() => {
     if (data) {
       setUser(data)
-      const storedTheme = localStorage.getItem('theme')
-      if (data.isAdmin && (!storedTheme || storedTheme === 'light' || storedTheme === 'forest')) {
+      if (data.isAdmin && !sessionStorage.getItem('theme_admin_set')) {
+        sessionStorage.setItem('theme_admin_set', '1')
         setTheme('ocean')
       } else if (data.plan === 'FREE' && PRO_ONLY_THEMES.includes(theme)) {
         setTheme('light')

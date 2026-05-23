@@ -29,6 +29,8 @@ export default function NavDropdown() {
     await api.post('/auth/logout')
     clearUser()
     queryClient.clear()
+    sessionStorage.removeItem('theme_admin_set')
+    localStorage.removeItem('theme_admin_set')
     navigate('/login')
   }
 
