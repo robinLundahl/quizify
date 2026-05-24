@@ -352,7 +352,10 @@ Exactly 4 answer options per question, exactly 1 correct.${withImage ? ' The ima
     return
   }
 
-  const rawQuestions = parsed as RawQuestion[]
+  const rawQuestions = (parsed as RawQuestion[]).map((q) => ({
+    ...q,
+    answerOptions: q.answerOptions.slice().sort(() => Math.random() - 0.5),
+  }))
 
   const imageUrls: (string | null)[] = withImage
     ? await Promise.all(rawQuestions.map((q) => fetchPexelsImage(q.imageSearchQuery ?? q.text)))
