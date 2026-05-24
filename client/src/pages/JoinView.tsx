@@ -375,7 +375,7 @@ export default function JoinView() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center px-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         {langToggle}
-        <h1 className="mb-6 text-4xl font-black text-gray-900 dark:text-white">Quizify</h1>
+        <h1 className="mb-6 text-4xl font-black text-gray-900 dark:text-white">QuizCraft</h1>
         <div className="w-full max-w-sm rounded-2xl border border-gray-200/70 dark:border-white/20 bg-white/80 dark:bg-white/10 p-6 backdrop-blur-sm">
           {savedSession && (
             <div className="mb-5 rounded-xl bg-gray-50 dark:bg-white/15 p-4 text-gray-900 dark:text-white">

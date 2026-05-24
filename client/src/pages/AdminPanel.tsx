@@ -59,7 +59,7 @@ export default function AdminPanel() {
               onClick={() => navigate('/dashboard')}
               className="text-xl font-black text-indigo-600 hover:opacity-80 transition-opacity"
             >
-              Quizify
+              QuizCraft
             </button>
             <span className="text-sm text-gray-400 dark:text-gray-500">/</span>
             <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">{t('nav.admin')}</span>

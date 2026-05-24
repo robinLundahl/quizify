@@ -63,7 +63,7 @@ export default function Dashboard() {
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="text-xl font-black text-indigo-600 hover:opacity-80 transition-opacity">
-              Quizify
+              QuizCraft
             </Link>
             <select
               value={theme}

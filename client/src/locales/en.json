@@ -21,7 +21,7 @@
     "admin": "Admin"
   },
   "login": {
-    "title": "Welcome to Quizify",
+    "title": "Welcome to QuizCraft",
     "subtitle": "Sign in to create and host quizzes",
     "continue_with_google": "Continue with Google",
     "email": "Email",
@@ -33,7 +33,7 @@
   },
   "register": {
     "title": "Create an account",
-    "subtitle": "Join Quizify to create and host quizzes",
+    "subtitle": "Join QuizCraft to create and host quizzes",
     "name": "Name",
     "email": "Email",
     "password": "Password (min. 8 characters)",

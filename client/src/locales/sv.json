@@ -21,7 +21,7 @@
     "admin": "Admin"
   },
   "login": {
-    "title": "Välkommen till Quizify",
+    "title": "Välkommen till QuizCraft",
     "subtitle": "Logga in för att skapa och starta quiz",
     "continue_with_google": "Fortsätt med Google",
     "email": "E-post",
@@ -33,7 +33,7 @@
   },
   "register": {
     "title": "Skapa ett konto",
-    "subtitle": "Gå med i Quizify för att skapa och starta quiz",
+    "subtitle": "Gå med i QuizCraft för att skapa och starta quiz",
     "name": "Namn",
     "email": "E-post",
     "password": "Lösenord (min. 8 tecken)",
