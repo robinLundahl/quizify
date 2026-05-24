@@ -258,7 +258,7 @@ export default function HostView() {
       <><div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 p-6">
         <h1 className="mb-2 text-4xl font-black tracking-tight text-gray-900 dark:text-gray-100">{t('host.game_code')}</h1>
         <p className="mb-3 text-sm font-medium text-gray-500 dark:text-gray-400">
-          {t('host.join_hint', { url: 'quizify.app/join' })}
+          {t('host.join_hint', { url: 'quizcraft.app/join' })}
         </p>
         <div className="mb-8 rounded-2xl border border-gray-200 dark:border-indigo-500/40 bg-white dark:bg-indigo-600/20 px-10 py-6 text-6xl font-black tracking-widest text-indigo-600 dark:text-indigo-300 shadow-lg">
           {joinCode || '------'}
