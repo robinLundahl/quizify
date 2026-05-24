@@ -1025,13 +1025,47 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
 // ─── Quiz Meta Form ────────────────────────────────────────────────────────────
 
 const AI_CATEGORIES = [
-  'Historia', 'Vetenskap', 'Sport', 'Geografi', 'Film & TV', 'Musik',
-  'Mat & Dryck', 'Teknik', 'Litteratur', 'Allmänkunskap', 'Matematik',
-  'Fysik', 'Kemi', 'Sociala studier', 'Språk', 'Konst & litteratur',
-  'AI', 'Säkerhet', 'Kommunikation', 'Design', 'Ekonomi',
-  'Bank & försäkring', 'Marknadsföring & sälj', 'Juridik', 'Jordbruk',
-  'Nutrition & dietetik', 'Resa & turism', 'Kultur & tradition',
-  'Dans', 'Teater', 'Underhållning',
+  { value: 'History',             key: 'cat_history' },
+  { value: 'Science',             key: 'cat_science' },
+  { value: 'Sports',              key: 'cat_sports' },
+  { value: 'Geography',           key: 'cat_geography' },
+  { value: 'Film & TV',           key: 'cat_film_tv' },
+  { value: 'Music',               key: 'cat_music' },
+  { value: 'Food & Drink',        key: 'cat_food_drink' },
+  { value: 'Technology',          key: 'cat_technology' },
+  { value: 'Literature',          key: 'cat_literature' },
+  { value: 'General Knowledge',   key: 'cat_general_knowledge' },
+  { value: 'Mathematics',         key: 'cat_mathematics' },
+  { value: 'Physics',             key: 'cat_physics' },
+  { value: 'Chemistry',           key: 'cat_chemistry' },
+  { value: 'Social Studies',      key: 'cat_social_studies' },
+  { value: 'Languages',           key: 'cat_languages' },
+  { value: 'Art & Literature',    key: 'cat_art_literature' },
+  { value: 'AI',                  key: 'cat_ai' },
+  { value: 'Security',            key: 'cat_security' },
+  { value: 'Communication',       key: 'cat_communication' },
+  { value: 'Design',              key: 'cat_design' },
+  { value: 'Economics',           key: 'cat_economics' },
+  { value: 'Banking & Insurance', key: 'cat_banking' },
+  { value: 'Marketing & Sales',   key: 'cat_marketing' },
+  { value: 'Law',                 key: 'cat_law' },
+  { value: 'Agriculture',         key: 'cat_agriculture' },
+  { value: 'Nutrition',           key: 'cat_nutrition' },
+  { value: 'Travel & Tourism',    key: 'cat_travel' },
+  { value: 'Culture & Tradition', key: 'cat_culture' },
+  { value: 'Dance',               key: 'cat_dance' },
+  { value: 'Theatre',             key: 'cat_theatre' },
+  { value: 'Entertainment',       key: 'cat_entertainment' },
+]
+
+const AI_LANGUAGES = [
+  { value: 'Swedish',    key: 'lang_swedish' },
+  { value: 'English',   key: 'lang_english' },
+  { value: 'Norwegian', key: 'lang_norwegian' },
+  { value: 'Danish',    key: 'lang_danish' },
+  { value: 'German',    key: 'lang_german' },
+  { value: 'French',    key: 'lang_french' },
+  { value: 'Spanish',   key: 'lang_spanish' },
 ]
 
 function QuizMetaForm({
@@ -1049,8 +1083,8 @@ function QuizMetaForm({
   const [aiOpen, setAiOpen] = useState(false)
   const [showProMessage, setShowProMessage] = useState(false)
   const [topic, setTopic] = useState('')
-  const [category, setCategory] = useState('Historia')
-  const [language, setLanguage] = useState('Svenska')
+  const [category, setCategory] = useState('History')
+  const [language, setLanguage] = useState('Swedish')
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
   const [count, setCount] = useState(10)
   const [withImage, setWithImage] = useState(false)
@@ -1115,7 +1149,7 @@ function QuizMetaForm({
                 className={`w-full ${INPUT_CLS}`}
               >
                 {AI_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c.value} value={c.value}>{t(`quiz_editor.${c.key}`)}</option>
                 ))}
               </select>
             </div>
@@ -1126,8 +1160,8 @@ function QuizMetaForm({
                 onChange={(e) => setLanguage(e.target.value)}
                 className={`w-full ${INPUT_CLS}`}
               >
-                {['Svenska', 'Engelska', 'Norska', 'Danska', 'Tyska', 'Franska', 'Spanska'].map((l) => (
-                  <option key={l} value={l}>{l}</option>
+                {AI_LANGUAGES.map((l) => (
+                  <option key={l.value} value={l.value}>{t(`quiz_editor.${l.key}`)}</option>
                 ))}
               </select>
             </div>
@@ -1138,9 +1172,9 @@ function QuizMetaForm({
                 onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
                 className={`w-full ${INPUT_CLS}`}
               >
-                <option value="easy">Lätt</option>
-                <option value="medium">Medel</option>
-                <option value="hard">Svår</option>
+                <option value="easy">{t('quiz_editor.difficulty_easy')}</option>
+                <option value="medium">{t('quiz_editor.difficulty_medium')}</option>
+                <option value="hard">{t('quiz_editor.difficulty_hard')}</option>
               </select>
             </div>
             <div>
@@ -1162,8 +1196,8 @@ function QuizMetaForm({
                 onChange={(e) => setWithImage(e.target.value === 'true')}
                 className={`w-full ${INPUT_CLS}`}
               >
-                <option value="false">Utan bild</option>
-                <option value="true">Med bild</option>
+                <option value="false">{t('quiz_editor.without_image')}</option>
+                <option value="true">{t('quiz_editor.with_image_option')}</option>
               </select>
             </div>
           </div>
