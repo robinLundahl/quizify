@@ -213,7 +213,20 @@
     "delete_question_title": "Ta bort fråga?",
     "delete_question_body": "\"{{text}}\" kommer att tas bort permanent. Detta kan inte ångras.",
     "not_found": "Quiz hittades inte.",
-    "back_to_dashboard": "Tillbaka till instrumentpanelen"
+    "back_to_dashboard": "Tillbaka till instrumentpanelen",
+    "ai_generate_button": "AI-generera",
+    "ai_panel_topic": "Quizämne",
+    "ai_panel_topic_placeholder": "Ange ett ämne för att generera quiz",
+    "ai_panel_category": "Kategori",
+    "ai_panel_language": "Språk",
+    "ai_panel_difficulty": "Svårighetsgrad",
+    "ai_panel_count": "Frågor",
+    "ai_panel_with_image": "Med bild",
+    "ai_generate_submit": "Generera frågor",
+    "ai_generating": "Genererar…",
+    "ai_pro_only": "Kräver PRO-plan",
+    "ai_quota_exhausted": "Du har använt alla 20 genereringar för den här månaden",
+    "ai_quota_remaining": "{{n}} / 20 genereringar kvar denna månad"
   },
   "admin": {
     "users": "Användare",

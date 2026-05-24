@@ -29,6 +29,7 @@ import {
   useUpdateQuestion,
   useDeleteQuestion,
   useReorderQuestions,
+  useGenerateQuestions,
   type Question,
   type QuestionType,
   type QuestionPayload,
@@ -1023,6 +1024,16 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
 
 // ─── Quiz Meta Form ────────────────────────────────────────────────────────────
 
+const AI_CATEGORIES = [
+  'Historia', 'Vetenskap', 'Sport', 'Geografi', 'Film & TV', 'Musik',
+  'Mat & Dryck', 'Teknik', 'Litteratur', 'Allmänkunskap', 'Matematik',
+  'Fysik', 'Kemi', 'Sociala studier', 'Språk', 'Konst & litteratur',
+  'AI', 'Säkerhet', 'Kommunikation', 'Design', 'Ekonomi',
+  'Bank & försäkring', 'Marknadsföring & sälj', 'Juridik', 'Jordbruk',
+  'Nutrition & dietetik', 'Resa & turism', 'Kultur & tradition',
+  'Dans', 'Teater', 'Underhållning',
+]
+
 function QuizMetaForm({
   quiz,
   onSave,
@@ -1035,6 +1046,27 @@ function QuizMetaForm({
   const { t } = useTranslation()
   const [title, setTitle] = useState(quiz.title)
   const [description, setDescription] = useState(quiz.description ?? '')
+  const [aiOpen, setAiOpen] = useState(false)
+  const [topic, setTopic] = useState('')
+  const [category, setCategory] = useState('Historia')
+  const [language, setLanguage] = useState('Svenska')
+  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
+  const [count, setCount] = useState(10)
+  const [withImage, setWithImage] = useState(false)
+
+  const user = useAuthStore((s) => s.user)
+  const isPro = user?.plan === 'PRO'
+  const generationsUsed = user?.aiGenerationsUsedThisMonth ?? 0
+  const quotaExhausted = generationsUsed >= 20
+  const generateQuestions = useGenerateQuestions(quiz.id)
+
+  const handleGenerate = () => {
+    if (!topic.trim() || generateQuestions.isPending) return
+    generateQuestions.mutate(
+      { topic: topic.trim(), category, language, difficulty, count, withImage },
+      { onSuccess: () => setTopic('') },
+    )
+  }
 
   return (
     <section className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm p-6 space-y-4">
@@ -1048,7 +1080,10 @@ function QuizMetaForm({
         />
       </div>
       <div>
-        <label className={LABEL_CLS}>{t('quiz_editor.description_label')} <span className="font-normal normal-case text-gray-400 dark:text-gray-500">{t('quiz_editor.description_optional')}</span></label>
+        <label className={LABEL_CLS}>
+          {t('quiz_editor.description_label')}{' '}
+          <span className="font-normal normal-case text-gray-400 dark:text-gray-500">{t('quiz_editor.description_optional')}</span>
+        </label>
         <textarea
           rows={2}
           value={description}
@@ -1057,7 +1092,107 @@ function QuizMetaForm({
           className={`w-full ${INPUT_CLS}`}
         />
       </div>
-      <div className="flex justify-end border-t border-gray-100 dark:border-gray-700 pt-4">
+
+      {aiOpen && isPro && (
+        <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-4 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2">
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
+              <input
+                type="text"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
+                className={`w-full ${INPUT_CLS}`}
+              />
+            </div>
+            <div>
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_category')}</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className={`w-full ${INPUT_CLS}`}
+              >
+                {AI_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_language')}</label>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                className={`w-full ${INPUT_CLS}`}
+              >
+                {['Svenska', 'Engelska', 'Norska', 'Danska', 'Tyska', 'Franska', 'Spanska'].map((l) => (
+                  <option key={l} value={l}>{l}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_difficulty')}</label>
+              <select
+                value={difficulty}
+                onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+                className={`w-full ${INPUT_CLS}`}
+              >
+                <option value="easy">Lätt</option>
+                <option value="medium">Medel</option>
+                <option value="hard">Svår</option>
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_count')}</label>
+              <select
+                value={count}
+                onChange={(e) => setCount(Number(e.target.value))}
+                className={`w-full ${INPUT_CLS}`}
+              >
+                {[5, 10, 15, 20].map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_with_image')}</label>
+              <select
+                value={withImage ? 'true' : 'false'}
+                onChange={(e) => setWithImage(e.target.value === 'true')}
+                className={`w-full ${INPUT_CLS}`}
+              >
+                <option value="false">Utan bild</option>
+                <option value="true">Med bild</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {quotaExhausted
+                ? t('quiz_editor.ai_quota_exhausted')
+                : t('quiz_editor.ai_quota_remaining', { n: 20 - generationsUsed })}
+            </p>
+            <button
+              onClick={handleGenerate}
+              disabled={generateQuestions.isPending || quotaExhausted || !topic.trim()}
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {generateQuestions.isPending ? t('quiz_editor.ai_generating') : t('quiz_editor.ai_generate_submit')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
+        <button
+          onClick={() => isPro && setAiOpen((o) => !o)}
+          disabled={!isPro}
+          title={!isPro ? t('quiz_editor.ai_pro_only') : undefined}
+          className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {t('quiz_editor.ai_generate_button')}
+        </button>
         <button
           onClick={() => onSave(title.trim(), description.trim() || undefined)}
           disabled={isSaving || !title.trim()}

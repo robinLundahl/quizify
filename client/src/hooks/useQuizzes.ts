@@ -175,6 +175,29 @@ export function useAddQuestion(quizId: string) {
   })
 }
 
+export interface GenerateQuestionsPayload {
+  topic: string
+  category: string
+  language: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  count: number
+  withImage: boolean
+}
+
+export function useGenerateQuestions(quizId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: GenerateQuestionsPayload) => {
+      const { data } = await api.post<Question[]>(`/quiz/${quizId}/generate`, body)
+      return data
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['quiz', quizId] })
+      qc.invalidateQueries({ queryKey: ['me'] })
+    },
+  })
+}
+
 export function useUpdateQuestion(quizId: string) {
   const qc = useQueryClient()
   return useMutation({

@@ -3,6 +3,7 @@ import multer from 'multer'
 import path from 'path'
 import { requireAuth } from '../middleware/requireAuth.js'
 import { prisma } from '../lib/prisma.js'
+import { anthropic } from '../lib/anthropic.js'
 import { getSupabase } from '../lib/supabase.js'
 import { parseAudioUrl } from '../lib/audioUrl.js'
 import { FREE_QUIZ_LIMIT, FREE_QUESTION_TYPES } from '../lib/planLimits.js'
@@ -232,6 +233,136 @@ router.delete('/:id/questions/:qid', async (req, res) => {
   }
   await prisma.question.delete({ where: { id: req.params.qid } })
   res.status(204).send()
+})
+
+router.post('/:id/generate', async (req, res) => {
+  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  if (!quiz) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+
+  let user = await prisma.user.findUnique({ where: { id: req.userId! } })
+  if (!user || user.plan !== 'PRO') {
+    res.status(403).json({ error: 'AI generation requires a PRO plan.' })
+    return
+  }
+
+  const now = new Date()
+  if (
+    now.getMonth() !== user.aiGenerationsResetAt.getMonth() ||
+    now.getFullYear() !== user.aiGenerationsResetAt.getFullYear()
+  ) {
+    user = await prisma.user.update({
+      where: { id: req.userId! },
+      data: { aiGenerationsUsedThisMonth: 0, aiGenerationsResetAt: now },
+    })
+  }
+
+  if (user.aiGenerationsUsedThisMonth >= 20) {
+    res.status(429).json({ error: 'Monthly AI generation quota exhausted.' })
+    return
+  }
+
+  const { topic, category, language, difficulty, count, withImage } = req.body as {
+    topic: string
+    category: string
+    language: string
+    difficulty: string
+    count: number
+    withImage: boolean
+  }
+
+  const questionType = withImage ? 'IMAGE' : 'MULTIPLE_CHOICE'
+
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are a quiz question generator. Respond with valid JSON only — an array of objects, no markdown, no explanation.',
+    messages: [
+      {
+        role: 'user',
+        content: `Generate ${count} multiple-choice quiz questions about "${topic}".
+Category: ${category}. Language: ${language}. Difficulty: ${difficulty}.
+Each object must follow this schema:
+{
+  "text": "question text",
+  "answerOptions": [
+    { "text": "option", "isCorrect": true },
+    { "text": "option", "isCorrect": false },
+    { "text": "option", "isCorrect": false },
+    { "text": "option", "isCorrect": false }
+  ]
+}
+Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of ${count} objects.`,
+      },
+    ],
+  })
+
+  const textBlock = message.content.find((b) => b.type === 'text')
+  if (!textBlock || textBlock.type !== 'text') {
+    res.status(502).json({ error: 'AI returned unexpected response format.' })
+    return
+  }
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(textBlock.text)
+  } catch {
+    res.status(502).json({ error: 'AI returned invalid JSON.' })
+    return
+  }
+
+  type RawQuestion = { text: string; answerOptions: { text: string; isCorrect: boolean }[] }
+  const isValid =
+    Array.isArray(parsed) &&
+    (parsed as unknown[]).every((q) => {
+      const item = q as RawQuestion
+      if (typeof item?.text !== 'string') return false
+      if (!Array.isArray(item.answerOptions) || item.answerOptions.length !== 4) return false
+      const correctCount = item.answerOptions.filter((a) => a.isCorrect === true).length
+      return correctCount === 1
+    })
+
+  if (!isValid) {
+    res.status(502).json({ error: 'AI returned malformed question data.' })
+    return
+  }
+
+  const rawQuestions = parsed as RawQuestion[]
+
+  const existingCount = await prisma.question.count({ where: { quizId: req.params.id } })
+
+  const created = await prisma.$transaction(
+    rawQuestions.map((q, i) =>
+      prisma.question.create({
+        data: {
+          quizId: req.params.id,
+          type: questionType,
+          text: q.text,
+          order: existingCount + i,
+          timeLimit: 20,
+          useTimer: true,
+          points: 1000,
+          correctAnswers: [],
+          ...buildRelations(questionType, q.answerOptions, undefined, undefined, undefined, undefined),
+        },
+        include: {
+          answerOptions: true,
+          mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+          audioQuestion: true,
+          rankingItems: { orderBy: { correctPosition: 'asc' } },
+        },
+      })
+    )
+  )
+
+  await prisma.user.update({
+    where: { id: req.userId! },
+    data: { aiGenerationsUsedThisMonth: { increment: 1 } },
+  })
+
+  res.status(201).json(created)
 })
 
 type AnswerOptionInput = { text: string; isCorrect: boolean }

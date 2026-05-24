@@ -3,13 +3,13 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore, type AuthUser } from '../store/authStore'
 import LangToggle from '../components/ui/LangToggle'
 import VerifyEmailStep from '../components/auth/VerifyEmailStep'
 
 type LoginResult =
   | { emailNotVerified: true; userId: string }
-  | { id: string; name: string; email: string; avatar: string | null; plan: 'FREE' | 'PRO'; isAdmin: boolean }
+  | AuthUser
 
 async function loginRequest(email: string, password: string): Promise<LoginResult> {
   const res = await fetch('/api/auth/login', {

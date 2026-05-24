@@ -118,7 +118,7 @@ router.post('/login', async (req: Request, res: Response) => {
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
 })
 
 router.post('/verify-email', async (req: Request, res: Response) => {
@@ -147,7 +147,7 @@ router.post('/verify-email', async (req: Request, res: Response) => {
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
 })
 
 router.post('/resend-verification', async (req: Request, res: Response) => {
@@ -192,7 +192,7 @@ router.get('/me', requireAuth, async (req, res) => {
     res.status(401).json({ error: 'Unauthorized' })
     return
   }
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
 })
 
 router.patch('/me', requireAuth, async (req: Request, res: Response) => {
@@ -205,7 +205,7 @@ router.patch('/me', requireAuth, async (req: Request, res: Response) => {
     where: { id: req.userId },
     data: { name: name.trim() },
   })
-  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin })
+  res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
 })
 
 router.patch('/avatar', requireAuth, upload.single('avatar'), async (req: Request, res: Response) => {

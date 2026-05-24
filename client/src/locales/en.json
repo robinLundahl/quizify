@@ -213,7 +213,20 @@
     "delete_question_title": "Delete question?",
     "delete_question_body": "\"{{text}}\" will be permanently deleted. This cannot be undone.",
     "not_found": "Quiz not found.",
-    "back_to_dashboard": "Back to dashboard"
+    "back_to_dashboard": "Back to dashboard",
+    "ai_generate_button": "AI Generate",
+    "ai_panel_topic": "Quiz topic",
+    "ai_panel_topic_placeholder": "Enter a topic to generate a quiz",
+    "ai_panel_category": "Category",
+    "ai_panel_language": "Language",
+    "ai_panel_difficulty": "Difficulty",
+    "ai_panel_count": "Questions",
+    "ai_panel_with_image": "With image",
+    "ai_generate_submit": "Generate questions",
+    "ai_generating": "Generating…",
+    "ai_pro_only": "Requires PRO plan",
+    "ai_quota_exhausted": "You've used all 20 generations for this month",
+    "ai_quota_remaining": "{{n}} / 20 generations remaining this month"
   },
   "admin": {
     "users": "Users",

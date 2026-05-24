@@ -7,6 +7,7 @@ export interface AuthUser {
   avatar: string | null
   plan: 'FREE' | 'PRO'
   isAdmin: boolean
+  aiGenerationsUsedThisMonth: number
 }
 
 interface AuthStore {
