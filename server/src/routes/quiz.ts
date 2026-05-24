@@ -10,6 +10,15 @@ import { FREE_QUIZ_LIMIT, FREE_QUESTION_TYPES } from '../lib/planLimits.js'
 
 const IMAGES_BUCKET = 'question-images'
 
+function shuffled<T>(arr: T[]): T[] {
+  const result = arr.slice()
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
 async function fetchPexelsImage(query: string): Promise<string | null> {
   const key = process.env.PEXELS_API_KEY
   if (!key) return null
@@ -354,7 +363,7 @@ Exactly 4 answer options per question, exactly 1 correct.${withImage ? ' The ima
 
   const rawQuestions = (parsed as RawQuestion[]).map((q) => ({
     ...q,
-    answerOptions: q.answerOptions.slice().sort(() => Math.random() - 0.5),
+    answerOptions: shuffled(q.answerOptions),
   }))
 
   const imageUrls: (string | null)[] = withImage
