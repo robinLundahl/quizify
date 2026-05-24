@@ -1186,8 +1186,15 @@ function QuizMetaForm({
       )}
 
       {!isPro && showProMessage && (
-        <div className="rounded-xl border border-indigo-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3 text-sm text-indigo-700 dark:text-indigo-300">
-          {t('quiz_editor.ai_pro_message')}
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-indigo-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3 text-sm text-indigo-700 dark:text-indigo-300">
+          <span>{t('quiz_editor.ai_pro_message')}</span>
+          <button
+            onClick={() => setShowProMessage(false)}
+            className="shrink-0 text-indigo-400 dark:text-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
+            aria-label="Stäng"
+          >
+            ✕
+          </button>
         </div>
       )}
 
