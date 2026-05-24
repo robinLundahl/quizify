@@ -73,6 +73,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ```
 ├── .claude/
 │   ├── skills/
+│   │   ├── backlog/
+│   │   │   └── SKILL.md
 │   │   ├── frontend-design/
 │   │   │   └── SKILL.md
 │   │   └── ship/
@@ -117,6 +119,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── console-2026-05-24T07-37-21-755Z.log
 │   ├── console-2026-05-24T07-37-43-465Z.log
 │   ├── console-2026-05-24T07-41-11-338Z.log
+│   ├── console-2026-05-24T07-49-22-045Z.log
+│   ├── console-2026-05-24T08-23-25-801Z.log
 │   ├── page-2026-05-18T14-35-50-838Z.yml
 │   ├── page-2026-05-18T14-36-21-233Z.yml
 │   ├── page-2026-05-18T14-36-58-082Z.yml
@@ -250,7 +254,12 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-24T07-38-08-845Z.png
 │   ├── page-2026-05-24T07-41-11-475Z.yml
 │   ├── page-2026-05-24T07-41-15-386Z.yml
-│   └── page-2026-05-24T07-41-18-928Z.png
+│   ├── page-2026-05-24T07-41-18-928Z.png
+│   ├── page-2026-05-24T07-49-22-229Z.yml
+│   ├── page-2026-05-24T07-49-33-323Z.png
+│   ├── page-2026-05-24T07-49-39-244Z.yml
+│   ├── page-2026-05-24T07-49-43-059Z.yml
+│   └── page-2026-05-24T07-49-48-281Z.png
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -304,10 +313,11 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-050.md
 │   │   ├── TICKET-052.md
 │   │   ├── TICKET-053.md
-│   │   └── TICKET-054.md
+│   │   ├── TICKET-054.md
+│   │   └── TICKET-055.md
 │   ├── README.md
 │   ├── TICKET-051.md
-│   └── TICKET-055.md
+│   └── TICKET-056.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg

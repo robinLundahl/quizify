@@ -10,6 +10,22 @@ import { FREE_QUIZ_LIMIT, FREE_QUESTION_TYPES } from '../lib/planLimits.js'
 
 const IMAGES_BUCKET = 'question-images'
 
+async function fetchPexelsImage(query: string): Promise<string | null> {
+  const key = process.env.PEXELS_API_KEY
+  if (!key) return null
+  try {
+    const res = await fetch(
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+      { headers: { Authorization: key } },
+    )
+    if (!res.ok) return null
+    const data = (await res.json()) as { photos: { src: { large: string } }[] }
+    return data.photos[0]?.src.large ?? null
+  } catch {
+    return null
+  }
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -288,7 +304,7 @@ router.post('/:id/generate', async (req, res) => {
 Category: ${category}. Language: ${language}. Difficulty: ${difficulty}.
 Each object must follow this schema:
 {
-  "text": "question text",
+  "text": "question text",${withImage ? '\n  "imageSearchQuery": "2-5 word English phrase for a relevant stock photo",' : ''}
   "answerOptions": [
     { "text": "option", "isCorrect": true },
     { "text": "option", "isCorrect": false },
@@ -296,7 +312,7 @@ Each object must follow this schema:
     { "text": "option", "isCorrect": false }
   ]
 }
-Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of ${count} objects.`,
+Exactly 4 answer options per question, exactly 1 correct.${withImage ? ' The imageSearchQuery must be a concise English phrase that describes a clear, visually distinct image relevant to the question.' : ''} Return a JSON array of ${count} objects.`,
         },
       ],
     })
@@ -320,7 +336,7 @@ Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of
     return
   }
 
-  type RawQuestion = { text: string; answerOptions: { text: string; isCorrect: boolean }[] }
+  type RawQuestion = { text: string; imageSearchQuery?: string; answerOptions: { text: string; isCorrect: boolean }[] }
   const isValid =
     Array.isArray(parsed) &&
     (parsed as unknown[]).every((q) => {
@@ -338,6 +354,10 @@ Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of
 
   const rawQuestions = parsed as RawQuestion[]
 
+  const imageUrls: (string | null)[] = withImage
+    ? await Promise.all(rawQuestions.map((q) => fetchPexelsImage(q.imageSearchQuery ?? q.text)))
+    : rawQuestions.map(() => null)
+
   const existingCount = await prisma.question.count({ where: { quizId: req.params.id } })
 
   const created = await prisma.$transaction(
@@ -347,6 +367,7 @@ Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of
           quizId: req.params.id,
           type: questionType,
           text: q.text,
+          imageUrl: imageUrls[i] ?? undefined,
           order: existingCount + i,
           timeLimit: 20,
           useTimer: true,
