@@ -1,6 +1,6 @@
 # TICKET-055 — Translate AI generation dropdown options
 
-**Status:** Open  
+**Status:** Done  
 **Type:** Bug  
 **Priority:** Medium
 
@@ -138,16 +138,11 @@ Add all new keys under `quiz_editor` in both `client/src/locales/sv.json` and `e
 
 ## Acceptance criteria
 
-- [ ] All dropdown options display in the current UI language (sv/en)
-- [ ] Switching language updates the option labels immediately without page reload
-- [ ] The values sent to the Claude prompt are unchanged and correct (English category/language names, `easy/medium/hard`, `true/false`)
-- [ ] TypeScript and ESLint pass
+- [x] All dropdown options display in the current UI language (sv/en)
+- [x] Switching language updates the option labels immediately without page reload
+- [x] The values sent to the Claude prompt are unchanged and correct (English category/language names, `easy/medium/hard`, `true/false`)
+- [x] TypeScript and ESLint pass
 
-## Verification
+## Resolution
 
-1. `npm run dev`
-2. Switch UI to English
-3. Open a quiz editor → click AI-generera
-4. Confirm all dropdown options are in English (History, Science, Easy, Medium, Hard, Without image, etc.)
-5. Switch back to Swedish → confirm options revert to Swedish
-6. Generate 1 question in English UI → confirm Claude still returns the correct language and category
+Implemented in commit `4422d35`. `AI_CATEGORIES` refactored to `{ value, key }` objects with English values; `AI_LANGUAGES` array added similarly. All four dropdowns now use `t()` for display labels. State defaults updated from Swedish strings to English equivalents. 42 i18n keys added across `en.json` and `sv.json`. Verified in browser — English UI shows English options, Swedish UI shows Swedish options.
