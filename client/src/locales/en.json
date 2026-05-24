@@ -225,6 +225,7 @@
     "ai_generate_submit": "Generate questions",
     "ai_generating": "Generating…",
     "ai_pro_only": "Requires PRO plan",
+    "ai_pro_message": "AI generation is a PRO feature. Upgrade your account to access it.",
     "ai_quota_exhausted": "You've used all 20 generations for this month",
     "ai_quota_remaining": "{{n}} / 20 generations remaining this month"
   },

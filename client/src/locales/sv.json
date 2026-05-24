@@ -225,6 +225,7 @@
     "ai_generate_submit": "Generera frågor",
     "ai_generating": "Genererar…",
     "ai_pro_only": "Kräver PRO-plan",
+    "ai_pro_message": "AI-generering är en PRO-funktion. Uppgradera ditt konto för att komma åt den.",
     "ai_quota_exhausted": "Du har använt alla 20 genereringar för den här månaden",
     "ai_quota_remaining": "{{n}} / 20 genereringar kvar denna månad"
   },

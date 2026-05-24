@@ -1047,6 +1047,7 @@ function QuizMetaForm({
   const [title, setTitle] = useState(quiz.title)
   const [description, setDescription] = useState(quiz.description ?? '')
   const [aiOpen, setAiOpen] = useState(false)
+  const [showProMessage, setShowProMessage] = useState(false)
   const [topic, setTopic] = useState('')
   const [category, setCategory] = useState('Historia')
   const [language, setLanguage] = useState('Svenska')
@@ -1184,14 +1185,26 @@ function QuizMetaForm({
         </div>
       )}
 
+      {!isPro && showProMessage && (
+        <div className="rounded-xl border border-indigo-100 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3 text-sm text-indigo-700 dark:text-indigo-300">
+          {t('quiz_editor.ai_pro_message')}
+        </div>
+      )}
+
       <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-700 pt-4">
         <button
-          onClick={() => isPro && setAiOpen((o) => !o)}
-          disabled={!isPro}
-          title={!isPro ? t('quiz_editor.ai_pro_only') : undefined}
-          className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          onClick={() => {
+            if (!isPro) { setShowProMessage((v) => !v); return }
+            setAiOpen((o) => !o)
+          }}
+          className="flex items-center gap-2 rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
         >
           {t('quiz_editor.ai_generate_button')}
+          {!isPro && (
+            <span className="rounded-full bg-indigo-100 dark:bg-indigo-900/50 px-1.5 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+              PRO
+            </span>
+          )}
         </button>
         <button
           onClick={() => onSave(title.trim(), description.trim() || undefined)}
