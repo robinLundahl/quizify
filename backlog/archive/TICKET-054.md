@@ -1,6 +1,6 @@
 # TICKET-054 — AI Quiz Generation
 
-**Status:** Open  
+**Status:** Done  
 **Type:** Feature  
 **Priority:** High
 
@@ -174,18 +174,22 @@ Add `@anthropic-ai/sdk` to `server/package.json` dependencies.
 
 ## Acceptance criteria
 
-- [ ] FREE user sees the AI button disabled with a "Kräver PRO-plan" tooltip
-- [ ] PRO user can expand the AI panel by clicking "AI-generera"
-- [ ] All 6 fields are present and functional (topic, category, language, difficulty, count, with image)
-- [ ] Remaining quota (e.g. "18 / 20 genereringar kvar") is shown inside the panel
-- [ ] Clicking "Generera frågor" shows a loading state
-- [ ] After generation, the correct number of MULTIPLE_CHOICE questions appears in the question list
-- [ ] Each generated question has exactly 4 answer options with exactly 1 marked correct
-- [ ] Quota counter increments after each successful generation
-- [ ] At 20 generations used, the submit button is disabled and the exhausted message is shown
-- [ ] Quota resets automatically at the start of a new calendar month
-- [ ] A 502 is returned (not a partial save) if Claude output is malformed; quota is not incremented
-- [ ] A 429 is returned if the quota is exhausted
+- [x] FREE user sees the AI button disabled with a "Kräver PRO-plan" tooltip
+- [x] PRO user can expand the AI panel by clicking "AI-generera"
+- [x] All 6 fields are present and functional (topic, category, language, difficulty, count, with image)
+- [x] Remaining quota (e.g. "18 / 20 genereringar kvar") is shown inside the panel
+- [x] Clicking "Generera frågor" shows a loading state
+- [x] After generation, the correct number of MULTIPLE_CHOICE questions appears in the question list
+- [x] Each generated question has exactly 4 answer options with exactly 1 marked correct
+- [x] Quota counter increments after each successful generation
+- [x] At 20 generations used, the submit button is disabled and the exhausted message is shown
+- [x] Quota resets automatically at the start of a new calendar month
+- [x] A 502 is returned (not a partial save) if Claude output is malformed; quota is not incremented
+- [x] A 429 is returned if the quota is exhausted
+
+## Implementation notes
+
+Shipped in commit 812e24a. `withImage: true` generates IMAGE type questions (same answerOptions structure, imageUrl: null — author adds images manually). Quota refresh is driven by invalidating the `['me']` React Query cache after each successful generation. Server auto-resets the monthly counter on first request of a new calendar month.
 
 ## Verification
 
