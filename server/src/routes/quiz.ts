@@ -275,14 +275,16 @@ router.post('/:id/generate', async (req, res) => {
 
   const questionType = withImage ? 'IMAGE' : 'MULTIPLE_CHOICE'
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
-    system: 'You are a quiz question generator. Respond with valid JSON only — an array of objects, no markdown, no explanation.',
-    messages: [
-      {
-        role: 'user',
-        content: `Generate ${count} multiple-choice quiz questions about "${topic}".
+  let message: Awaited<ReturnType<typeof anthropic.messages.create>>
+  try {
+    message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      system: 'You are a quiz question generator. Respond with valid JSON only — an array of objects, no markdown, no explanation.',
+      messages: [
+        {
+          role: 'user',
+          content: `Generate ${count} multiple-choice quiz questions about "${topic}".
 Category: ${category}. Language: ${language}. Difficulty: ${difficulty}.
 Each object must follow this schema:
 {
@@ -295,9 +297,14 @@ Each object must follow this schema:
   ]
 }
 Exactly 4 answer options per question, exactly 1 correct. Return a JSON array of ${count} objects.`,
-      },
-    ],
-  })
+        },
+      ],
+    })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error'
+    res.status(502).json({ error: `AI service error: ${msg.split('\n')[0]}` })
+    return
+  }
 
   const textBlock = message.content.find((b) => b.type === 'text')
   if (!textBlock || textBlock.type !== 'text') {
