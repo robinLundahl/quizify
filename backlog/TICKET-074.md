@@ -11,7 +11,7 @@ Allow users to rent a quiz for 48 hours. The quiz listing page should show both 
 ## Acceptance criteria
 
 - [ ] Quiz listing page shows a "Rent for 48h" button when `rentalPrice` is set on the listing
-- [ ] Rental initiates a Stripe PaymentIntent with 10% `application_fee_amount`
+- [ ] Rental initiates a Stripe PaymentIntent with 12% `application_fee_amount`
 - [ ] On successful payment, a `QuizRental` record is created with `expiresAt = now + 48h`
 - [ ] Rented quiz is accessible to the user for 48 hours
 - [ ] Content access endpoints check both `QuizPurchase` and active `QuizRental` records

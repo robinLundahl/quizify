@@ -6,7 +6,7 @@
 
 ## Goal
 
-Allow creators to connect a Stripe account so they can receive payouts from quiz sales. Uses Stripe Connect Express, which handles KYC, tax forms, and currency conversion. Creators must complete onboarding before their quiz can be published to the marketplace.
+Allow creators to connect a Stripe account so they can receive payouts from quiz sales. Uses Stripe Connect Express, which handles KYC, tax forms, and currency conversion. Creators must complete onboarding before their quiz can be published to the marketplace. The platform takes a 12% application fee on all transactions.
 
 ## Acceptance criteria
 

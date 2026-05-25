@@ -316,10 +316,36 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-054.md
 │   │   ├── TICKET-055.md
 │   │   ├── TICKET-056.md
-│   │   └── TICKET-057.md
+│   │   ├── TICKET-057.md
+│   │   ├── TICKET-058.md
+│   │   └── TICKET-073.md
 │   ├── README.md
 │   ├── TICKET-051.md
-│   └── TICKET-058.md
+│   ├── TICKET-059.md
+│   ├── TICKET-060.md
+│   ├── TICKET-061.md
+│   ├── TICKET-062.md
+│   ├── TICKET-063.md
+│   ├── TICKET-064.md
+│   ├── TICKET-065.md
+│   ├── TICKET-066.md
+│   ├── TICKET-067.md
+│   ├── TICKET-068.md
+│   ├── TICKET-069.md
+│   ├── TICKET-070.md
+│   ├── TICKET-071.md
+│   ├── TICKET-072.md
+│   ├── TICKET-074.md
+│   ├── TICKET-075.md
+│   ├── TICKET-076.md
+│   ├── TICKET-077.md
+│   ├── TICKET-078.md
+│   ├── TICKET-079.md
+│   ├── TICKET-080.md
+│   ├── TICKET-081.md
+│   ├── TICKET-082.md
+│   ├── TICKET-083.md
+│   └── TICKET-084.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -407,6 +433,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   └── tsconfig.json
 ├── .env.example
 ├── .gitignore
+├── brainstorm-marketplace.md
 ├── CLAUDE.md
 ├── design.md
 ├── package.json

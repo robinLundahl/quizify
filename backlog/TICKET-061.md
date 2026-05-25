@@ -6,13 +6,21 @@
 
 ## Goal
 
-Replace the current landing page at `/` with a public marketplace library. This is the first thing anyone sees when visiting the site — logged in or not. It should surface all published quizzes with filtering and sorting options, and give Pro creator quizzes priority placement.
+Replace the current landing page at `/` with a public marketplace library. This is the first thing anyone sees when visiting the site — logged in or not. It should surface all published quizzes with filtering, sorting, and a free text search field, and give Pro creator quizzes priority placement.
 
 ## Acceptance criteria
 
 - [ ] `/` renders the marketplace library for all users (guest and logged-in)
 - [ ] All published marketplace quizzes are listed
-- [ ] Filterable by: category, language, difficulty, price range, rating, number of questions, estimated playtime
+- [ ] Free text search field for searching quiz topic, title, and description
+- [ ] Filterable by:
+  - Category (fixed enum — 31 values matching `AI_CATEGORIES` in `QuizEditor.tsx`)
+  - Language (fixed list — 7 values matching `AI_LANGUAGES` in `QuizEditor.tsx`)
+  - Difficulty (Easy, Medium, Hard)
+  - Question count (range spans: 1–10, 11–20, 21–30, 31–40, 41–50, 51–60, 61–70, 71–80, 81–90, 91–100)
+  - Price range
+  - Rating
+- [ ] Currency display toggle: USD, SEK, EUR — affects all price displays on the page
 - [ ] Pro creator quizzes appear with priority placement (higher `listingScore`)
 - [ ] Logged-in users see subtle personalisation (e.g. highlights based on purchased categories)
 - [ ] Share button present on each quiz card in the listing

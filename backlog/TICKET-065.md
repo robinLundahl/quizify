@@ -1,4 +1,4 @@
-# TICKET-065 — Implement demo mode
+# TICKET-065 — Implement inline question preview
 
 **Status:** Open  
 **Type:** Feature  
@@ -6,12 +6,12 @@
 
 ## Goal
 
-Allow any user (including guests) to play a short demo of a marketplace quiz before purchasing. The demo serves 1–2 questions in real quiz mode without revealing correct answers. All logic must be enforced server-side.
+Show the first two questions of a marketplace quiz inline on the listing page so users can evaluate the content before purchasing. Correct answers are stripped server-side. Questions beyond the first two are blurred/hidden until the user has purchased or is actively renting the quiz.
 
 ## Acceptance criteria
 
-- [ ] Public endpoint `GET /api/marketplace/:quizId/demo` returns only the designated demo questions
-- [ ] Correct answer identifiers are stripped from demo question payloads
-- [ ] Answers are validated server-side — the endpoint returns correct/incorrect, never the answer itself
-- [ ] Demo is accessible without login
-- [ ] Full quiz content remains gated behind a `QuizPurchase` record
+- [ ] Public endpoint `GET /api/marketplace/:quizId/preview` returns the first two questions of the quiz
+- [ ] Correct answer identifiers are stripped from the payload — never sent to the client
+- [ ] Preview is accessible without login
+- [ ] Questions 3 and beyond are visually blurred or hidden on the listing page with a "Purchase to unlock" overlay
+- [ ] Full quiz content remains gated behind a valid `QuizPurchase` or active `QuizRental` record
