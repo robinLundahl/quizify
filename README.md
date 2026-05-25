@@ -318,7 +318,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-056.md
 │   │   ├── TICKET-057.md
 │   │   ├── TICKET-058.md
-│   │   └── TICKET-073.md
+│   │   ├── TICKET-073.md
+│   │   └── TICKET-084.md
 │   ├── README.md
 │   ├── TICKET-051.md
 │   ├── TICKET-059.md
@@ -344,8 +345,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── TICKET-080.md
 │   ├── TICKET-081.md
 │   ├── TICKET-082.md
-│   ├── TICKET-083.md
-│   └── TICKET-084.md
+│   └── TICKET-083.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
