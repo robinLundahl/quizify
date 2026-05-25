@@ -1128,55 +1128,59 @@ function QuizMetaForm({
         />
       </div>
 
+      <div>
+        <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
+        <input
+          type="text"
+          value={topic}
+          onChange={(e) => setTopic(e.target.value)}
+          placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
+          className={`w-full ${INPUT_CLS}`}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_category')}</label>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            {AI_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>{t(`quiz_editor.${c.key}`)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_language')}</label>
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            {AI_LANGUAGES.map((l) => (
+              <option key={l.value} value={l.value}>{t(`quiz_editor.${l.key}`)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_difficulty')}</label>
+          <select
+            value={difficulty}
+            onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            <option value="easy">{t('quiz_editor.difficulty_easy')}</option>
+            <option value="medium">{t('quiz_editor.difficulty_medium')}</option>
+            <option value="hard">{t('quiz_editor.difficulty_hard')}</option>
+          </select>
+        </div>
+      </div>
+
       {aiOpen && isPro && (
         <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
-              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
-              <input
-                type="text"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
-                className={`w-full ${INPUT_CLS}`}
-              />
-            </div>
-            <div>
-              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_category')}</label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={`w-full ${INPUT_CLS}`}
-              >
-                {AI_CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{t(`quiz_editor.${c.key}`)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_language')}</label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className={`w-full ${INPUT_CLS}`}
-              >
-                {AI_LANGUAGES.map((l) => (
-                  <option key={l.value} value={l.value}>{t(`quiz_editor.${l.key}`)}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_difficulty')}</label>
-              <select
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
-                className={`w-full ${INPUT_CLS}`}
-              >
-                <option value="easy">{t('quiz_editor.difficulty_easy')}</option>
-                <option value="medium">{t('quiz_editor.difficulty_medium')}</option>
-                <option value="hard">{t('quiz_editor.difficulty_hard')}</option>
-              </select>
-            </div>
             <div>
               <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_count')}</label>
               <select
