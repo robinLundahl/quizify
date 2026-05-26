@@ -10,6 +10,7 @@ import HostView from './pages/HostView'
 import JoinView from './pages/JoinView'
 import ResultsView from './pages/ResultsView'
 import AdminPanel from './pages/AdminPanel'
+import Landing from './pages/Landing'
 
 const queryClient = new QueryClient()
 
@@ -18,6 +19,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<JoinView />} />
@@ -29,7 +31,7 @@ export default function App() {
             <Route path="/results/:sessionId" element={<ResultsView />} />
             <Route path="/admin" element={<AdminPanel />} />
           </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

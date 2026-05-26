@@ -18,7 +18,15 @@
     "settings": "Inställningar",
     "logout": "Logga ut",
     "language": "Språk",
-    "admin": "Admin"
+    "admin": "Admin",
+    "login": "Logga in",
+    "signup": "Registrera dig"
+  },
+  "landing": {
+    "headline": "Skapa och håll engagerande quiz",
+    "subheadline": "Bygg quiz, starta liveomgångar och utmana din publik. Allt på ett ställe.",
+    "get_started": "Kom igång gratis",
+    "join_game": "Gå med i ett spel →"
   },
   "login": {
     "title": "Välkommen till QuizCraft",

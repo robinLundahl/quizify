@@ -18,7 +18,15 @@
     "settings": "Settings",
     "logout": "Log out",
     "language": "Language",
-    "admin": "Admin"
+    "admin": "Admin",
+    "login": "Log in",
+    "signup": "Sign up"
+  },
+  "landing": {
+    "headline": "Create and host engaging quizzes",
+    "subheadline": "Build quizzes, host live games, and challenge your audience. All in one place.",
+    "get_started": "Get started free",
+    "join_game": "Join a game →"
   },
   "login": {
     "title": "Welcome to QuizCraft",

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useLocation } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
@@ -29,7 +29,10 @@ export default function Login() {
   const { user, isLoading } = useAuth()
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
+
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo ?? '/dashboard'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -45,12 +48,12 @@ export default function Login() {
         return
       }
       setUser(data)
-      navigate('/dashboard', { replace: true })
+      navigate(returnTo, { replace: true })
     },
   })
 
   if (isLoading) return null
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) return <Navigate to={returnTo} replace />
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -63,7 +66,7 @@ export default function Login() {
           <VerifyEmailStep
             email={email}
             userId={pendingUserId}
-            onSuccess={() => navigate('/dashboard', { replace: true })}
+            onSuccess={() => navigate(returnTo, { replace: true })}
           />
         ) : (
           <>
