@@ -208,4 +208,97 @@ router.get('/:id', async (req, res) => {
   })
 })
 
+// ─── Creator profile (public) ─────────────────────────────────────────────────
+
+router.get('/creator/:id', async (req, res) => {
+  const { id } = req.params
+
+  const creator = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      bio: true,
+      createdAt: true,
+      listings: {
+        where: { status: 'PUBLISHED' },
+        orderBy: { listingScore: 'desc' },
+        include: {
+          quiz: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              category: true,
+              language: true,
+              difficulty: true,
+              _count: { select: { questions: true } },
+            },
+          },
+          purchases: {
+            select: { review: { select: { rating: true } } },
+          },
+          _count: { select: { purchases: true } },
+        },
+      },
+    },
+  })
+
+  if (!creator) {
+    res.status(404).json({ error: 'Creator not found' })
+    return
+  }
+
+  const listings = creator.listings.map((row) => {
+    const ratings = row.purchases
+      .map((p) => p.review?.rating)
+      .filter((r): r is number => r !== undefined && r !== null)
+    const avgRating = ratings.length
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10
+      : null
+    return {
+      id: row.id,
+      price: row.price,
+      currency: row.currency,
+      rentalPrice: row.rentalPrice,
+      listingScore: row.listingScore,
+      createdAt: row.createdAt,
+      quiz: {
+        id: row.quiz.id,
+        title: row.quiz.title,
+        description: row.quiz.description,
+        category: row.quiz.category,
+        language: row.quiz.language,
+        difficulty: row.quiz.difficulty,
+        questionCount: row.quiz._count.questions,
+      },
+      avgRating,
+      reviewCount: ratings.length,
+      purchaseCount: row._count.purchases,
+    }
+  })
+
+  const allRatings = listings.flatMap((l) =>
+    l.avgRating !== null ? [l.avgRating] : []
+  )
+  const overallAvgRating = allRatings.length
+    ? Math.round((allRatings.reduce((a, b) => a + b, 0) / allRatings.length) * 10) / 10
+    : null
+
+  res.json({
+    id: creator.id,
+    name: creator.name,
+    avatar: creator.avatar,
+    bio: creator.bio,
+    createdAt: creator.createdAt,
+    stats: {
+      totalPublished: listings.length,
+      avgRating: overallAvgRating,
+      totalReviews: listings.reduce((sum, l) => sum + l.reviewCount, 0),
+    },
+    listings,
+  })
+})
+
 export default router

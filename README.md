@@ -383,6 +383,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── sv.json
 │   │   ├── pages/
 │   │   │   ├── AdminPanel.tsx
+│   │   │   ├── CreatorProfile.tsx
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
 │   │   │   ├── JoinView.tsx

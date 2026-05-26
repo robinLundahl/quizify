@@ -12,6 +12,7 @@ import ResultsView from './pages/ResultsView'
 import AdminPanel from './pages/AdminPanel'
 import Landing from './pages/Landing'
 import MarketplaceListing from './pages/MarketplaceListing'
+import CreatorProfile from './pages/CreatorProfile'
 
 const queryClient = new QueryClient()
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/join" element={<JoinView />} />
           <Route path="/marketplace/:id" element={<MarketplaceListing />} />
+          <Route path="/creator/:id" element={<CreatorProfile />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />

@@ -18,12 +18,6 @@ export default function NavBar() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <Link
-                  to="/dashboard"
-                  className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  {t('nav.dashboard')}
-                </Link>
                 <NavDropdown />
               </>
             ) : (

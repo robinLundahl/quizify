@@ -74,6 +74,12 @@ export default function NavDropdown() {
               {t('nav.dashboard')}
             </button>
             <button
+              onClick={() => { setOpen(false); navigate('/') }}
+              className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {t('nav.marketplace')}
+            </button>
+            <button
               onClick={() => { setOpen(false); navigate('/settings') }}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >

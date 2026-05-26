@@ -20,7 +20,8 @@
     "language": "Språk",
     "admin": "Admin",
     "login": "Logga in",
-    "signup": "Registrera dig"
+    "signup": "Registrera dig",
+    "marketplace": "Marknadsplats"
   },
   "landing": {
     "headline": "Skapa och håll engagerande quiz",
@@ -367,5 +368,15 @@
       "RANKING": "Rankning",
       "AUDIO": "Ljud"
     }
+  },
+  "creator": {
+    "not_found": "Skaparen hittades inte.",
+    "quizzes_published_one": "{{count}} quiz publicerat",
+    "quizzes_published_other": "{{count}} quiz publicerade",
+    "quizzes_published": "{{count}} quiz publicerade",
+    "avg_rating": "{{rating}} snitt ({{count}} recensioner)",
+    "member_since": "Medlem sedan {{date}}",
+    "published_quizzes": "Publicerade quiz",
+    "no_quizzes": "Inga publicerade quiz ännu."
   }
 }

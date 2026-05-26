@@ -20,7 +20,8 @@
     "language": "Language",
     "admin": "Admin",
     "login": "Log in",
-    "signup": "Sign up"
+    "signup": "Sign up",
+    "marketplace": "Marketplace"
   },
   "landing": {
     "headline": "Create and host engaging quizzes",
@@ -367,5 +368,15 @@
       "RANKING": "Ranking",
       "AUDIO": "Audio"
     }
+  },
+  "creator": {
+    "not_found": "Creator not found.",
+    "quizzes_published_one": "{{count}} quiz published",
+    "quizzes_published_other": "{{count}} quizzes published",
+    "quizzes_published": "{{count}} quizzes published",
+    "avg_rating": "{{rating}} avg ({{count}} reviews)",
+    "member_since": "Member since {{date}}",
+    "published_quizzes": "Published quizzes",
+    "no_quizzes": "No published quizzes yet."
   }
 }
