@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../hooks/useAuth'
@@ -22,7 +22,10 @@ export default function Register() {
   const { user, isLoading } = useAuth()
   const setUser = useAuthStore((s) => s.setUser)
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
+
+  const returnTo = (location.state as { returnTo?: string } | null)?.returnTo ?? '/dashboard'
 
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -41,12 +44,12 @@ export default function Register() {
         return
       }
       setUser(data as never)
-      navigate('/dashboard', { replace: true })
+      navigate(returnTo, { replace: true })
     },
   })
 
   if (isLoading) return null
-  if (user) return <Navigate to="/dashboard" replace />
+  if (user) return <Navigate to={returnTo} replace />
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -69,7 +72,7 @@ export default function Register() {
           <VerifyEmailStep
             email={email}
             userId={pendingUserId}
-            onSuccess={() => navigate('/dashboard', { replace: true })}
+            onSuccess={() => navigate(returnTo, { replace: true })}
           />
         ) : (
           <>
