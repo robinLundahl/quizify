@@ -88,8 +88,15 @@ export default function HostView() {
   const [rejoinError, setRejoinError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (locationState?.themeColor) {
+    if (locationState?.themeColor && isFreePlan) {
+      sessionStorage.setItem('purchasedTheme', '1')
       setTheme(locationState.themeColor as Parameters<typeof setTheme>[0])
+    }
+    return () => {
+      if (sessionStorage.getItem('purchasedTheme')) {
+        sessionStorage.removeItem('purchasedTheme')
+        setTheme('light')
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -242,6 +249,9 @@ export default function HostView() {
     )
   }
 
+  const purchasedTheme = isFreePlan ? (locationState?.themeColor ?? null) : null
+  const isLockedForFree = (val: string) => isFreePlan && PRO_ONLY_THEMES.includes(val as typeof PRO_ONLY_THEMES[number]) && val !== purchasedTheme
+
   const themeAndLangControl = (
     <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
       <LangToggle />
@@ -249,18 +259,18 @@ export default function HostView() {
         value={theme}
         onChange={(e) => {
           const val = e.target.value as Parameters<typeof setTheme>[0]
-          if (isFreePlan && PRO_ONLY_THEMES.includes(val as typeof PRO_ONLY_THEMES[number])) return
+          if (isLockedForFree(val)) return
           setTheme(val)
         }}
         className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs font-medium shadow-sm backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
         <option value="light">{t('host.themes.light')}</option>
         <option value="dark">{t('host.themes.dark')}</option>
-        <option value="forest" disabled={isFreePlan}>{t('host.themes.forest')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
-        <option value="ocean" disabled={isFreePlan}>{t('host.themes.ocean')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
-        <option value="sunset" disabled={isFreePlan}>{t('host.themes.sunset')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
-        <option value="peach" disabled={isFreePlan}>{t('host.themes.peach')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
-        <option value="rose" disabled={isFreePlan}>{t('host.themes.rose')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="forest" disabled={isLockedForFree('forest')}>{t('host.themes.forest')}{isLockedForFree('forest') ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="ocean" disabled={isLockedForFree('ocean')}>{t('host.themes.ocean')}{isLockedForFree('ocean') ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="sunset" disabled={isLockedForFree('sunset')}>{t('host.themes.sunset')}{isLockedForFree('sunset') ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="peach" disabled={isLockedForFree('peach')}>{t('host.themes.peach')}{isLockedForFree('peach') ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="rose" disabled={isLockedForFree('rose')}>{t('host.themes.rose')}{isLockedForFree('rose') ? ` (${t('plan.pro_only')})` : ''}</option>
       </select>
     </div>
   )
