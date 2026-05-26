@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -1025,37 +1025,38 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
 // ─── Quiz Meta Form ────────────────────────────────────────────────────────────
 
 const AI_CATEGORIES = [
-  { value: 'History',             key: 'cat_history' },
-  { value: 'Science',             key: 'cat_science' },
-  { value: 'Sports',              key: 'cat_sports' },
-  { value: 'Geography',           key: 'cat_geography' },
-  { value: 'Film & TV',           key: 'cat_film_tv' },
-  { value: 'Music',               key: 'cat_music' },
-  { value: 'Food & Drink',        key: 'cat_food_drink' },
-  { value: 'Technology',          key: 'cat_technology' },
-  { value: 'Literature',          key: 'cat_literature' },
-  { value: 'General Knowledge',   key: 'cat_general_knowledge' },
-  { value: 'Mathematics',         key: 'cat_mathematics' },
-  { value: 'Physics',             key: 'cat_physics' },
-  { value: 'Chemistry',           key: 'cat_chemistry' },
-  { value: 'Social Studies',      key: 'cat_social_studies' },
-  { value: 'Languages',           key: 'cat_languages' },
-  { value: 'Art & Literature',    key: 'cat_art_literature' },
-  { value: 'AI',                  key: 'cat_ai' },
-  { value: 'Security',            key: 'cat_security' },
-  { value: 'Communication',       key: 'cat_communication' },
-  { value: 'Design',              key: 'cat_design' },
-  { value: 'Economics',           key: 'cat_economics' },
-  { value: 'Banking & Insurance', key: 'cat_banking' },
-  { value: 'Marketing & Sales',   key: 'cat_marketing' },
-  { value: 'Law',                 key: 'cat_law' },
-  { value: 'Agriculture',         key: 'cat_agriculture' },
-  { value: 'Nutrition',           key: 'cat_nutrition' },
-  { value: 'Travel & Tourism',    key: 'cat_travel' },
-  { value: 'Culture & Tradition', key: 'cat_culture' },
-  { value: 'Dance',               key: 'cat_dance' },
-  { value: 'Theatre',             key: 'cat_theatre' },
-  { value: 'Entertainment',       key: 'cat_entertainment' },
+  { value: 'AI',                  key: 'cat_ai' },               // AI
+  { value: 'General Knowledge',   key: 'cat_general_knowledge' },// Allmänkunskap
+  { value: 'Banking & Insurance', key: 'cat_banking' },          // Bank & försäkring
+  { value: 'Dance',               key: 'cat_dance' },            // Dans
+  { value: 'Design',              key: 'cat_design' },           // Design
+  { value: 'Economics',           key: 'cat_economics' },        // Ekonomi
+  { value: 'Film & TV',           key: 'cat_film_tv' },          // Film & TV
+  { value: 'Physics',             key: 'cat_physics' },          // Fysik
+  { value: 'Geography',           key: 'cat_geography' },        // Geografi
+  { value: 'History',             key: 'cat_history' },          // Historia
+  { value: 'Agriculture',         key: 'cat_agriculture' },      // Jordbruk
+  { value: 'Law',                 key: 'cat_law' },              // Juridik
+  { value: 'Chemistry',           key: 'cat_chemistry' },        // Kemi
+  { value: 'Communication',       key: 'cat_communication' },    // Kommunikation
+  { value: 'Art & Literature',    key: 'cat_art_literature' },   // Konst & litteratur
+  { value: 'Culture & Tradition', key: 'cat_culture' },          // Kultur & tradition
+  { value: 'Literature',          key: 'cat_literature' },       // Litteratur
+  { value: 'Marketing & Sales',   key: 'cat_marketing' },        // Marknadsföring & sälj
+  { value: 'Food & Drink',        key: 'cat_food_drink' },       // Mat & Dryck
+  { value: 'Mathematics',         key: 'cat_mathematics' },      // Matematik
+  { value: 'Music',               key: 'cat_music' },            // Musik
+  { value: 'Nutrition',           key: 'cat_nutrition' },        // Nutrition & dietetik
+  { value: 'Travel & Tourism',    key: 'cat_travel' },           // Resa & turism
+  { value: 'Social Studies',      key: 'cat_social_studies' },   // Sociala studier
+  { value: 'Sports',              key: 'cat_sports' },           // Sport
+  { value: 'Languages',           key: 'cat_languages' },        // Språk
+  { value: 'Security',            key: 'cat_security' },         // Säkerhet
+  { value: 'Theatre',             key: 'cat_theatre' },          // Teater
+  { value: 'Technology',          key: 'cat_technology' },       // Teknik
+  { value: 'Entertainment',       key: 'cat_entertainment' },    // Underhållning
+  { value: 'Education',           key: 'cat_education' },        // Utbildning
+  { value: 'Science',             key: 'cat_science' },          // Vetenskap
 ]
 
 const AI_LANGUAGES = [
@@ -1074,18 +1075,22 @@ function QuizMetaForm({
   isSaving,
 }: {
   quiz: QuizWithQuestions
-  onSave: (title: string, description?: string) => void
+  onSave: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   isSaving: boolean
 }) {
   const { t } = useTranslation()
+  const sortedCategories = useMemo(
+    () => [...AI_CATEGORIES].sort((a, b) => t(`quiz_editor.${a.key}`).localeCompare(t(`quiz_editor.${b.key}`))),
+    [t],
+  )
   const [title, setTitle] = useState(quiz.title)
   const [description, setDescription] = useState(quiz.description ?? '')
+  const [quizCategory, setQuizCategory] = useState(quiz.category ?? '')
+  const [quizLanguage, setQuizLanguage] = useState(quiz.language ?? '')
+  const [quizDifficulty, setQuizDifficulty] = useState(quiz.difficulty ?? '')
   const [aiOpen, setAiOpen] = useState(false)
   const [showProMessage, setShowProMessage] = useState(false)
   const [topic, setTopic] = useState('')
-  const [category, setCategory] = useState('History')
-  const [language, setLanguage] = useState('Swedish')
-  const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium')
   const [count, setCount] = useState(10)
   const [withImage, setWithImage] = useState(false)
 
@@ -1098,8 +1103,14 @@ function QuizMetaForm({
   const handleGenerate = () => {
     if (!topic.trim() || generateQuestions.isPending) return
     generateQuestions.mutate(
-      { topic: topic.trim(), category, language, difficulty, count, withImage },
-      { onSuccess: () => setTopic('') },
+      {
+        topic: topic.trim(),
+        category: quizCategory,
+        language: quizLanguage,
+        difficulty: (quizDifficulty || 'medium') as 'easy' | 'medium' | 'hard',
+        count,
+        withImage,
+      },
     )
   }
 
@@ -1128,6 +1139,48 @@ function QuizMetaForm({
         />
       </div>
 
+      <div className="grid grid-cols-3 gap-3">
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_category')}</label>
+          <select
+            value={quizCategory}
+            onChange={(e) => setQuizCategory(e.target.value)}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            <option value="">—</option>
+            {sortedCategories.map((c) => (
+              <option key={c.value} value={c.value}>{t(`quiz_editor.${c.key}`)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_language')}</label>
+          <select
+            value={quizLanguage}
+            onChange={(e) => setQuizLanguage(e.target.value)}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            <option value="">—</option>
+            {AI_LANGUAGES.map((l) => (
+              <option key={l.value} value={l.value}>{t(`quiz_editor.${l.key}`)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_difficulty')}</label>
+          <select
+            value={quizDifficulty}
+            onChange={(e) => setQuizDifficulty(e.target.value)}
+            className={`w-full ${INPUT_CLS}`}
+          >
+            <option value="">—</option>
+            <option value="easy">{t('quiz_editor.difficulty_easy')}</option>
+            <option value="medium">{t('quiz_editor.difficulty_medium')}</option>
+            <option value="hard">{t('quiz_editor.difficulty_hard')}</option>
+          </select>
+        </div>
+      </div>
+
       <div>
         <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
         <input
@@ -1137,45 +1190,6 @@ function QuizMetaForm({
           placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
           className={`w-full ${INPUT_CLS}`}
         />
-      </div>
-
-      <div className="grid grid-cols-3 gap-3">
-        <div>
-          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_category')}</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className={`w-full ${INPUT_CLS}`}
-          >
-            {AI_CATEGORIES.map((c) => (
-              <option key={c.value} value={c.value}>{t(`quiz_editor.${c.key}`)}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_language')}</label>
-          <select
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className={`w-full ${INPUT_CLS}`}
-          >
-            {AI_LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value}>{t(`quiz_editor.${l.key}`)}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_difficulty')}</label>
-          <select
-            value={difficulty}
-            onChange={(e) => setDifficulty(e.target.value as 'easy' | 'medium' | 'hard')}
-            className={`w-full ${INPUT_CLS}`}
-          >
-            <option value="easy">{t('quiz_editor.difficulty_easy')}</option>
-            <option value="medium">{t('quiz_editor.difficulty_medium')}</option>
-            <option value="hard">{t('quiz_editor.difficulty_hard')}</option>
-          </select>
-        </div>
       </div>
 
       {aiOpen && isPro && (
@@ -1252,7 +1266,7 @@ function QuizMetaForm({
           )}
         </button>
         <button
-          onClick={() => onSave(title.trim(), description.trim() || undefined)}
+          onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
           disabled={isSaving || !title.trim()}
           className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
@@ -1322,7 +1336,7 @@ export default function QuizEditor() {
         <QuizMetaForm
           key={quiz.id}
           quiz={quiz}
-          onSave={(title, description) => updateQuiz.mutate({ title, description }, { onSuccess: () => navigate('/dashboard') })}
+          onSave={(title, description, category, language, difficulty) => updateQuiz.mutate({ title, description, category, language, difficulty }, { onSuccess: () => navigate('/dashboard') })}
           isSaving={updateQuiz.isPending}
         />
 

@@ -10,6 +10,7 @@ import authRouter from './routes/auth.js'
 import quizRouter from './routes/quiz.js'
 import sessionsRouter from './routes/sessions.js'
 import adminRouter from './routes/admin.js'
+import marketplaceRouter from './routes/marketplace.js'
 import { requireAuth } from './middleware/requireAuth.js'
 import { requireAdmin } from './middleware/requireAdmin.js'
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/quiz', quizRouter)
 app.use('/api/sessions', sessionsRouter)
 app.use('/api/admin', requireAuth, requireAdmin, adminRouter)
+app.use('/api/marketplace', marketplaceRouter)
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true })

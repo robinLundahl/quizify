@@ -18,6 +18,9 @@ export interface Quiz {
   id: string
   title: string
   description: string | null
+  category: string | null
+  language: string | null
+  difficulty: string | null
   ownerId: string
   createdAt: string
   updatedAt: string
@@ -127,7 +130,7 @@ export function useCreateQuiz() {
 export function useUpdateQuiz(id: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (body: { title: string; description?: string }) => {
+    mutationFn: async (body: { title: string; description?: string; category?: string; language?: string; difficulty?: string }) => {
       const { data } = await api.put<Quiz>(`/quiz/${id}`, body)
       return data
     },

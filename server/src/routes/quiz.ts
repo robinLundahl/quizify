@@ -130,7 +130,10 @@ router.get('/:id', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { title, description } = req.body as { title?: string; description?: string }
+  const { title, description, category, language, difficulty } = req.body as {
+    title?: string; description?: string
+    category?: string; language?: string; difficulty?: string
+  }
   const exists = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
   if (!exists) {
     res.status(404).json({ error: 'Not found' })
@@ -138,7 +141,13 @@ router.put('/:id', async (req, res) => {
   }
   const quiz = await prisma.quiz.update({
     where: { id: req.params.id },
-    data: { title: title?.trim(), description: description?.trim() },
+    data: {
+      title: title?.trim(),
+      description: description?.trim(),
+      ...(category !== undefined ? { category: category.trim() || null } : {}),
+      ...(language !== undefined ? { language: language.trim() || null } : {}),
+      ...(difficulty !== undefined ? { difficulty: difficulty.trim() || null } : {}),
+    },
   })
   res.json(quiz)
 })

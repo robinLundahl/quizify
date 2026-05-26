@@ -121,6 +121,10 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── console-2026-05-24T07-41-11-338Z.log
 │   ├── console-2026-05-24T07-49-22-045Z.log
 │   ├── console-2026-05-24T08-23-25-801Z.log
+│   ├── console-2026-05-26T09-19-02-727Z.log
+│   ├── console-2026-05-26T09-19-45-153Z.log
+│   ├── console-2026-05-26T09-26-32-488Z.log
+│   ├── console-2026-05-26T09-51-45-879Z.log
 │   ├── page-2026-05-18T14-35-50-838Z.yml
 │   ├── page-2026-05-18T14-36-21-233Z.yml
 │   ├── page-2026-05-18T14-36-58-082Z.yml
@@ -259,7 +263,13 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-24T07-49-33-323Z.png
 │   ├── page-2026-05-24T07-49-39-244Z.yml
 │   ├── page-2026-05-24T07-49-43-059Z.yml
-│   └── page-2026-05-24T07-49-48-281Z.png
+│   ├── page-2026-05-24T07-49-48-281Z.png
+│   ├── page-2026-05-26T09-19-03-072Z.yml
+│   ├── page-2026-05-26T09-19-37-640Z.png
+│   ├── page-2026-05-26T09-19-45-355Z.yml
+│   ├── page-2026-05-26T09-20-11-897Z.png
+│   ├── page-2026-05-26T09-51-46-317Z.yml
+│   └── page-2026-05-26T09-52-05-592Z.png
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -318,14 +328,14 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-056.md
 │   │   ├── TICKET-057.md
 │   │   ├── TICKET-058.md
+│   │   ├── TICKET-059.md
+│   │   ├── TICKET-060.md
+│   │   ├── TICKET-061.md
+│   │   ├── TICKET-062.md
 │   │   ├── TICKET-073.md
 │   │   └── TICKET-084.md
 │   ├── README.md
 │   ├── TICKET-051.md
-│   ├── TICKET-059.md
-│   ├── TICKET-060.md
-│   ├── TICKET-061.md
-│   ├── TICKET-062.md
 │   ├── TICKET-063.md
 │   ├── TICKET-064.md
 │   ├── TICKET-065.md
@@ -345,7 +355,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── TICKET-080.md
 │   ├── TICKET-081.md
 │   ├── TICKET-082.md
-│   └── TICKET-083.md
+│   ├── TICKET-083.md
+│   └── TICKET-085.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -375,7 +386,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
 │   │   │   ├── JoinView.tsx
+│   │   │   ├── Landing.tsx
 │   │   │   ├── Login.tsx
+│   │   │   ├── MarketplaceListing.tsx
 │   │   │   ├── QuizEditor.tsx
 │   │   │   ├── Register.tsx
 │   │   │   ├── ResultsView.tsx
@@ -419,6 +432,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── routes/
 │   │   │   ├── admin.ts
 │   │   │   ├── auth.ts
+│   │   │   ├── marketplace.ts
 │   │   │   ├── quiz.ts
 │   │   │   └── sessions.ts
 │   │   ├── services/

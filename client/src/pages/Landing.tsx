@@ -60,12 +60,12 @@ function formatPrice(amount: number, from: string, to: string): string {
 // ─── Filter constants ─────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  'History','Science','Sports','Geography','Film & TV','Music','Food & Drink',
-  'Technology','Literature','General Knowledge','Mathematics','Physics',
-  'Chemistry','Social Studies','Languages','Art & Literature','AI','Security',
-  'Communication','Design','Economics','Banking & Insurance','Marketing & Sales',
-  'Law','Agriculture','Nutrition','Travel & Tourism','Culture & Tradition',
-  'Dance','Theatre','Entertainment',
+  'Agriculture','AI','Art & Literature','Banking & Insurance','Chemistry',
+  'Communication','Culture & Tradition','Dance','Design','Economics',
+  'Education','Entertainment','Film & TV','Food & Drink','General Knowledge',
+  'Geography','History','Languages','Law','Literature','Marketing & Sales',
+  'Mathematics','Music','Nutrition','Physics','Science','Security',
+  'Social Studies','Sports','Technology','Theatre','Travel & Tourism',
 ]
 
 const LANGUAGES = ['Swedish','English','Norwegian','Danish','German','French','Spanish']
