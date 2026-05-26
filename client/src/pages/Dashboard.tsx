@@ -524,7 +524,7 @@ export default function Dashboard() {
             <div className="relative flex gap-1 flex-1">
               {indicatorStyle && (
                 <div
-                  className="absolute bottom-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 transition-all duration-200 ease-out pointer-events-none"
+                  className="absolute bottom-0 h-0.5 bg-indigo-600 dark:bg-indigo-400 themed:bg-indigo-900 transition-all duration-200 ease-out pointer-events-none"
                   style={{ left: indicatorStyle.left, width: indicatorStyle.width }}
                 />
               )}
@@ -535,8 +535,8 @@ export default function Dashboard() {
                   onClick={() => handleTabChange(tab.key)}
                   className={`px-4 py-2.5 text-sm font-medium transition-colors ${
                     activeTab === tab.key
-                      ? 'text-indigo-600 dark:text-indigo-400'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'text-indigo-600 dark:text-indigo-400 themed:text-indigo-900'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 themed:text-white/60 themed:hover:text-white/90'
                   }`}
                 >
                   {tab.label}
