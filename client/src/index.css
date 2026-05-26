@@ -178,6 +178,26 @@ html.theme-ocean {
   min-height: 100dvh;
 }
 
+@keyframes tab-slide-in-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes tab-slide-in-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes tab-slide-out-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
+}
+
+@keyframes tab-slide-out-right {
+  from { transform: translateX(0); }
+  to   { transform: translateX(100%); }
+}
+
 @theme {
   /* Brand palette derived from the Robin Lundahl logo gradient:
      golden amber (#F5A020) → orange-coral → hot pink (#EF3F7F) */

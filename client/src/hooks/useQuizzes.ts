@@ -30,6 +30,7 @@ export interface PurchasedQuiz {
   listing: {
     id: string
     versionAtPublish: number
+    themeColor: string | null
     quiz: { id: string; title: string; description: string | null; category: string | null; sessions: QuizSession[] }
     creator: { id: string; name: string; avatar: string | null }
   }
@@ -42,6 +43,7 @@ export interface RentalItem {
   isExpired: boolean
   listing: {
     id: string
+    themeColor: string | null
     quiz: { id: string; title: string; description: string | null; category: string | null; sessions: QuizSession[] }
     creator: { id: string; name: string; avatar: string | null }
   }
@@ -343,7 +345,6 @@ export function useUnpublishListing() {
 }
 
 export function useBumpListingVersion() {
-  const qc = useQueryClient()
   return useMutation({
     mutationFn: async (listingId: string) => {
       await api.patch(`/marketplace/${listingId}/version`)
@@ -377,6 +378,22 @@ export function useReorderQuestions(quizId: string) {
       if (ctx?.prev) qc.setQueryData(['quiz', quizId], ctx.prev)
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['quiz', quizId] }),
+  })
+}
+
+export function useDeletePurchase() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (purchaseId: string) => { await api.delete(`/marketplace/purchases/${purchaseId}`) },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['purchases'] }),
+  })
+}
+
+export function useDeleteRental() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (rentalId: string) => { await api.delete(`/marketplace/rentals/${rentalId}`) },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rentals'] }),
   })
 }
 
