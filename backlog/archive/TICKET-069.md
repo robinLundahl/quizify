@@ -1,6 +1,6 @@
 # TICKET-069 — Redesign dashboard with four tabs
 
-**Status:** Open  
+**Status:** Shipped  
 **Type:** Feature  
 **Priority:** Medium
 
