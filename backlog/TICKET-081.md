@@ -17,3 +17,4 @@ Allow any user (logged-in or guest) to flag a marketplace quiz listing for revie
 - [ ] Admin can mark a report as resolved and optionally take down the listing
 - [ ] Taking down a listing sets its status to `REMOVED` and removes it from the public library
 - [ ] Creator is notified (via notification inbox) if their listing is taken down
+- [ ] If a quiz is not appropriate and violate the rules the admin should be able to send a message or warning to the creator. The creator should then get a notification about a new message from admin.

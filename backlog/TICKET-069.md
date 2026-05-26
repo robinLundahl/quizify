@@ -12,7 +12,8 @@ Redesign the user dashboard to support four tabs: My Quizzes, Purchased, Rentals
 
 - [ ] Dashboard has four tabs: "My Quizzes", "Purchased", "Rentals", "Earnings"
 - [ ] "My Quizzes" shows all quizzes created by the user — drafts and published together
-- [ ] Published quizzes display a version badge (e.g. "Published v3") that increments on each saved edit
+- [ ] A user should be able to host a quiz regardless if their own quizzes are published to the marketplace or not.
+- [ ] Published quizzes display a version badge (e.g. "v3") that increments only when the creator confirms they want to push changes to the marketplace. Edits saved locally to the creator's account without publishing do not increment the version badge.
 - [ ] Draft quizzes show no badge
 - [ ] "Purchased" tab shows quizzes bought from other creators, with creator name and purchase date
 - [ ] Purchased quiz shows an update badge when a newer version is available (links to notification)

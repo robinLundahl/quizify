@@ -14,6 +14,42 @@ enum Plan {
   PRO
 }
 
+enum SubscriptionStatus {
+  FREE
+  TRIALING
+  ACTIVE
+  CANCELLED
+}
+
+enum Currency {
+  USD
+  SEK
+  EUR
+}
+
+enum ListingStatus {
+  DRAFT
+  PUBLISHED
+  UNPUBLISHED
+  SUSPENDED
+}
+
+enum PayoutStatus {
+  PENDING
+  RELEASED
+  FAILED
+}
+
+enum NotificationType {
+  PURCHASE
+  RENTAL_STARTED
+  RENTAL_EXPIRING
+  PAYOUT_RELEASED
+  NEW_REVIEW
+  DISCOUNT_OFFER
+  LISTING_STATUS_CHANGED
+}
+
 model User {
   id            String   @id @default(cuid())
   name          String
@@ -26,12 +62,25 @@ model User {
   emailVerified              Boolean  @default(false)
   aiGenerationsUsedThisMonth Int      @default(0)
   aiGenerationsResetAt       DateTime @default(now())
-  createdAt                  DateTime @default(now())
+  createdAt                  DateTime           @default(now())
+  bio                        String?
+  stripeAccountId            String?
+  stripeCustomerId           String?
+  stripeSubscriptionId       String?
+  subscriptionStatus         SubscriptionStatus @default(FREE)
+  trialEndsAt                DateTime?
 
   quizzes           Quiz[]
   participants      Participant[]
   hostedSessions    GameSession[]
   emailVerification EmailVerification?
+  listings          MarketplaceListing[]
+  purchases         QuizPurchase[]
+  rentals           QuizRental[]
+  payouts           CreatorPayout[]
+  discountOffers    DiscountOffer[]
+  notifications     Notification[]
+  listingReports    ListingReport[]
 }
 
 model EmailVerification {
@@ -57,6 +106,7 @@ model Quiz {
   owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   questions Question[]
   sessions  GameSession[]
+  listings  MarketplaceListing[]
 }
 
 enum QuestionType {
@@ -195,4 +245,114 @@ model GameAnswer {
   question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([participantId, questionId])
+}
+
+// ─── Marketplace ──────────────────────────────────────────────────────────────
+
+model MarketplaceListing {
+  id               String        @id @default(cuid())
+  quizId           String
+  creatorId        String
+  price            Int
+  currency         Currency
+  rentalPrice      Int?
+  status           ListingStatus @default(DRAFT)
+  listingScore     Float         @default(0)
+  versionAtPublish Int
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  quiz           Quiz            @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  creator        User            @relation(fields: [creatorId], references: [id])
+  purchases      QuizPurchase[]
+  rentals        QuizRental[]
+  discountOffers DiscountOffer[]
+  reports        ListingReport[]
+}
+
+model QuizPurchase {
+  id                String   @id @default(cuid())
+  buyerId           String
+  listingId         String
+  purchaseDate      DateTime @default(now())
+  amountPaid        Int
+  versionAtPurchase Int
+
+  buyer   User               @relation(fields: [buyerId], references: [id])
+  listing MarketplaceListing @relation(fields: [listingId], references: [id])
+  review  MarketplaceReview?
+}
+
+model QuizRental {
+  id         String   @id @default(cuid())
+  userId     String
+  listingId  String
+  rentedAt   DateTime @default(now())
+  expiresAt  DateTime
+  amountPaid Int
+
+  user    User               @relation(fields: [userId], references: [id])
+  listing MarketplaceListing @relation(fields: [listingId], references: [id])
+}
+
+model CreatorPayout {
+  id               String       @id @default(cuid())
+  creatorId        String
+  amount           Int
+  currency         Currency
+  status           PayoutStatus @default(PENDING)
+  stripeTransferId String
+  releasesAt       DateTime
+  receiptUrl       String?
+  createdAt        DateTime     @default(now())
+
+  creator User @relation(fields: [creatorId], references: [id])
+}
+
+model MarketplaceReview {
+  id         String   @id @default(cuid())
+  purchaseId String   @unique
+  rating     Int
+  body       String?
+  createdAt  DateTime @default(now())
+
+  purchase QuizPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+}
+
+model DiscountOffer {
+  id          String    @id @default(cuid())
+  userId      String
+  listingId   String
+  discountPct Int
+  validUntil  DateTime
+  redeemedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  user    User               @relation(fields: [userId], references: [id])
+  listing MarketplaceListing @relation(fields: [listingId], references: [id])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  payload   Json
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ListingReport {
+  id               String    @id @default(cuid())
+  listingId        String
+  reportedByUserId String?
+  reason           String
+  createdAt        DateTime  @default(now())
+  resolvedAt       DateTime?
+
+  listing    MarketplaceListing @relation(fields: [listingId], references: [id])
+  reportedBy User?              @relation(fields: [reportedByUserId], references: [id])
 }

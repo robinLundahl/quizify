@@ -19,5 +19,5 @@ Allow creators to publish a quiz to the marketplace. The flow covers setting a p
 - [ ] Free users are blocked from publishing if they already have 3 active listings
 - [ ] Unpublishing a quiz frees up a slot (limit tracks currently active listings only)
 - [ ] Republishing a taken-down quiz counts as a new publish and uses a slot
-- [ ] Edits to a published quiz create a new version in place — no republish required
+- [ ] When a creator edits a published quiz, a popup prompt appears asking whether they want to apply the changes to the marketplace listing. If they confirm, a new version is created automatically and the marketplace listing updates immediately — no manual republish required. If they decline, the changes are saved locally to their account only and the marketplace listing remains unchanged.
 - [ ] Creator must have completed Stripe Connect onboarding before publishing

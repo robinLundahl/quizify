@@ -20,5 +20,5 @@ Add a general notifications inbox to the logged-in dashboard. This is a shared i
   - New version available for a quiz you purchased (buyer receives notification with accept/dismiss actions)
   - Post-rental 20% discount offer (buyer receives notification, time-limited 24h)
   - Pro subscription expiry reminder (user receives notification before renewal or trial end)
+  - Messages from admin
 - [ ] Expired or actioned notifications are visually distinct (greyed out or removed)
-- [ ] Version update notifications include "Update to latest" and "Stay on current version" actions
