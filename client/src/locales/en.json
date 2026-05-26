@@ -127,7 +127,19 @@
     "delete_quiz_body": "\"{{title}}\" will be permanently deleted. This cannot be undone.",
     "publish": "Publish",
     "unpublish": "Unpublish",
-    "listing_published": "Listed"
+    "listing_published": "Listed",
+    "tab_my_quizzes": "My quizzes",
+    "tab_purchased": "Purchased",
+    "tab_rentals": "Rentals",
+    "tab_earnings": "Earnings",
+    "no_purchases": "You haven't purchased any quizzes yet.",
+    "no_rentals": "You don't have any rentals yet.",
+    "browse_marketplace": "Browse the marketplace",
+    "update_available": "Update available",
+    "rental_expired": "Expired {{date}}",
+    "rental_time_left": "{{time}} left",
+    "earnings_coming_soon": "Earnings dashboard coming soon",
+    "earnings_coming_soon_hint": "Connect a Stripe account to start receiving payouts from your quiz sales."
   },
   "settings_page": {
     "title": "Settings",

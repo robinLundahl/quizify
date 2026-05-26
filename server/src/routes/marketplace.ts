@@ -109,6 +109,72 @@ router.get('/', async (req, res) => {
   res.json({ listings, total, page: pageNum, pageSize })
 })
 
+// ─── Auth-protected buyer routes ─────────────────────────────────────────────
+// Must be registered before GET /:id to avoid Express matching 'purchases'/'rentals' as an id.
+
+// GET /purchases — quizzes the current user has purchased
+router.get('/purchases', requireAuth, async (req, res) => {
+  const purchases = await prisma.quizPurchase.findMany({
+    where: { buyerId: req.userId! },
+    orderBy: { purchaseDate: 'desc' },
+    include: {
+      listing: {
+        include: {
+          quiz: { select: { id: true, title: true, description: true, category: true } },
+          creator: { select: { id: true, name: true, avatar: true } },
+        },
+      },
+    },
+  })
+
+  res.json(
+    purchases.map((p) => ({
+      purchaseId: p.id,
+      purchaseDate: p.purchaseDate,
+      versionAtPurchase: p.versionAtPurchase,
+      listing: {
+        id: p.listing.id,
+        versionAtPublish: p.listing.versionAtPublish,
+        quiz: p.listing.quiz,
+        creator: p.listing.creator,
+      },
+    }))
+  )
+})
+
+// GET /rentals — current user's rentals (active and expired)
+router.get('/rentals', requireAuth, async (req, res) => {
+  const rentals = await prisma.quizRental.findMany({
+    where: { userId: req.userId! },
+    orderBy: { rentedAt: 'desc' },
+    include: {
+      listing: {
+        include: {
+          quiz: { select: { id: true, title: true, description: true, category: true } },
+          creator: { select: { id: true, name: true, avatar: true } },
+        },
+      },
+    },
+  })
+
+  const now = new Date()
+  res.json(
+    rentals.map((r) => ({
+      rentalId: r.id,
+      rentedAt: r.rentedAt,
+      expiresAt: r.expiresAt,
+      isExpired: r.expiresAt < now,
+      listing: {
+        id: r.listing.id,
+        quiz: r.listing.quiz,
+        creator: r.listing.creator,
+      },
+    }))
+  )
+})
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 router.get('/:id', async (req, res) => {
   const { id } = req.params
 
@@ -427,6 +493,30 @@ router.post('/:id/dev-claim', requireAuth, async (req, res) => {
     },
   })
   res.json({ ok: true })
+})
+
+// POST /:id/dev-rent — create a free 48h rental in dev (non-production only)
+router.post('/:id/dev-rent', requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(403).json({ error: 'Not available in production' })
+    return
+  }
+  const id = req.params.id as string
+  const listing = await prisma.marketplaceListing.findUnique({ where: { id, status: 'PUBLISHED' } })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000)
+  await prisma.quizRental.create({
+    data: {
+      userId: req.userId!,
+      listingId: id,
+      amountPaid: 0,
+      expiresAt,
+    },
+  })
+  res.json({ ok: true, expiresAt })
 })
 
 // POST /:id/unpublish — take a listing off the marketplace

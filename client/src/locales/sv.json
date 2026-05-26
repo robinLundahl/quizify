@@ -127,7 +127,19 @@
     "delete_quiz_body": "\"{{title}}\" kommer att tas bort permanent. Detta kan inte ångras.",
     "publish": "Publicera",
     "unpublish": "Avpublicera",
-    "listing_published": "Listad"
+    "listing_published": "Listad",
+    "tab_my_quizzes": "Mina quiz",
+    "tab_purchased": "Köpta",
+    "tab_rentals": "Hyrda",
+    "tab_earnings": "Intäkter",
+    "no_purchases": "Du har inte köpt några quiz ännu.",
+    "no_rentals": "Du har inga aktiva hyror ännu.",
+    "browse_marketplace": "Bläddra i marknadsplatsen",
+    "update_available": "Uppdatering finns",
+    "rental_expired": "Utgick {{date}}",
+    "rental_time_left": "{{time}} kvar",
+    "earnings_coming_soon": "Intäktspanelen kommer snart",
+    "earnings_coming_soon_hint": "Koppla ett Stripe-konto för att börja ta emot utbetalningar från dina quiz-försäljningar."
   },
   "settings_page": {
     "title": "Inställningar",

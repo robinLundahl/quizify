@@ -147,7 +147,18 @@ export default function MarketplaceListing() {
 
   const devClaim = useMutation({
     mutationFn: () => api.post(`/marketplace/${id}/dev-claim`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['marketplace-listing', id] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['marketplace-listing', id] })
+      qc.invalidateQueries({ queryKey: ['purchases'] })
+    },
+  })
+
+  const devRent = useMutation({
+    mutationFn: () => api.post(`/marketplace/${id}/dev-rent`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['marketplace-listing', id] })
+      qc.invalidateQueries({ queryKey: ['rentals'] })
+    },
   })
 
   function handleShare() {
@@ -172,6 +183,10 @@ export default function MarketplaceListing() {
   function handleRent() {
     if (!user) {
       navigate('/login', { state: { returnTo: `/marketplace/${id}` } })
+      return
+    }
+    if (IS_DEV) {
+      devRent.mutate()
       return
     }
     // Rental flow — TICKET-074
@@ -424,11 +439,14 @@ export default function MarketplaceListing() {
                       ) : (
                         <button
                           onClick={handleRent}
-                          className="w-full border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition"
+                          disabled={devRent.isPending}
+                          className="w-full border border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400 rounded-xl px-4 py-2.5 text-sm font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition disabled:opacity-60"
                         >
-                          {t('marketplace.rent_button', {
-                            price: formatPrice(listing.rentalPrice, listing.currency, displayCurrency),
-                          })}
+                          {IS_DEV
+                            ? t('marketplace.dev_rent', { defaultValue: 'Rent 48h (dev)' })
+                            : t('marketplace.rent_button', {
+                                price: formatPrice(listing.rentalPrice, listing.currency, displayCurrency),
+                              })}
                         </button>
                       )
                     )}

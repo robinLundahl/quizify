@@ -86,7 +86,7 @@ router.get('/', async (req, res) => {
         where: { creatorId: req.userId! },
         orderBy: { createdAt: 'desc' },
         take: 1,
-        select: { id: true, status: true, price: true, currency: true, rentalPrice: true },
+        select: { id: true, status: true, price: true, currency: true, rentalPrice: true, versionAtPublish: true },
       },
     },
   })

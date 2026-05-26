@@ -20,6 +20,31 @@ export interface QuizListing {
   price: number
   currency: string
   rentalPrice: number | null
+  versionAtPublish?: number
+}
+
+export interface PurchasedQuiz {
+  purchaseId: string
+  purchaseDate: string
+  versionAtPurchase: number
+  listing: {
+    id: string
+    versionAtPublish: number
+    quiz: { id: string; title: string; description: string | null; category: string | null }
+    creator: { id: string; name: string; avatar: string | null }
+  }
+}
+
+export interface RentalItem {
+  rentalId: string
+  rentedAt: string
+  expiresAt: string
+  isExpired: boolean
+  listing: {
+    id: string
+    quiz: { id: string; title: string; description: string | null; category: string | null }
+    creator: { id: string; name: string; avatar: string | null }
+  }
 }
 
 export interface Quiz {
@@ -350,5 +375,27 @@ export function useReorderQuestions(quizId: string) {
       if (ctx?.prev) qc.setQueryData(['quiz', quizId], ctx.prev)
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['quiz', quizId] }),
+  })
+}
+
+export function usePurchases() {
+  return useQuery<PurchasedQuiz[]>({
+    queryKey: ['purchases'],
+    queryFn: async () => {
+      const { data } = await api.get<PurchasedQuiz[]>('/marketplace/purchases')
+      return data
+    },
+    staleTime: 30_000,
+  })
+}
+
+export function useRentals() {
+  return useQuery<RentalItem[]>({
+    queryKey: ['rentals'],
+    queryFn: async () => {
+      const { data } = await api.get<RentalItem[]>('/marketplace/rentals')
+      return data
+    },
+    staleTime: 30_000,
   })
 }
