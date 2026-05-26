@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import { parseAudioUrl } from '../lib/audioUrl'
 import NavDropdown from '../components/ui/NavDropdown'
+import PublishModal from '../components/ui/PublishModal'
 import { useAuthStore } from '../store/authStore'
 import {
   useQuiz,
@@ -30,6 +31,8 @@ import {
   useDeleteQuestion,
   useReorderQuestions,
   useGenerateQuestions,
+  useMyListing,
+  useBumpListingVersion,
   type Question,
   type QuestionType,
   type QuestionPayload,
@@ -1071,11 +1074,15 @@ const AI_LANGUAGES = [
 
 function QuizMetaForm({
   quiz,
+  isPublished,
   onSave,
+  onPublish,
   isSaving,
 }: {
   quiz: QuizWithQuestions
+  isPublished: boolean
   onSave: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
+  onPublish: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   isSaving: boolean
 }) {
   const { t } = useTranslation()
@@ -1265,13 +1272,22 @@ function QuizMetaForm({
             </span>
           )}
         </button>
-        <button
-          onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
-          disabled={isSaving || !title.trim()}
-          className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-        >
-          {isSaving ? t('common.saving') : t('common.save')}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onPublish(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
+            disabled={isSaving || !title.trim()}
+            className="rounded-xl border border-indigo-300 dark:border-indigo-700 px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
+          >
+            {isPublished ? t('quiz_editor.update_listing') : t('quiz_editor.publish_to_marketplace')}
+          </button>
+          <button
+            onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
+            disabled={isSaving || !title.trim()}
+            className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+          >
+            {isSaving ? t('common.saving') : t('common.save')}
+          </button>
+        </div>
       </div>
     </section>
   )
@@ -1286,9 +1302,39 @@ export default function QuizEditor() {
   const { data: quiz, isLoading, isError } = useQuiz(id!)
   const updateQuiz = useUpdateQuiz(id!)
   const reorderQuestions = useReorderQuestions(id!)
+  const { data: listing } = useMyListing(id!)
+  const bumpVersion = useBumpListingVersion()
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addingQuestion, setAddingQuestion] = useState(false)
+  const [showPublishModal, setShowPublishModal] = useState(false)
+  const [showApplyModal, setShowApplyModal] = useState(false)
+
+  const isPublished = listing?.status === 'PUBLISHED'
+
+  function handleSave(title: string, description?: string, category?: string, language?: string, difficulty?: string) {
+    updateQuiz.mutate({ title, description, category, language, difficulty }, {
+      onSuccess: () => {
+        if (isPublished) {
+          setShowApplyModal(true)
+        } else {
+          navigate('/dashboard')
+        }
+      },
+    })
+  }
+
+  function handlePublish(title: string, description?: string, category?: string, language?: string, difficulty?: string) {
+    updateQuiz.mutate({ title, description, category, language, difficulty }, {
+      onSuccess: () => {
+        if (isPublished) {
+          setShowApplyModal(true)
+        } else {
+          setShowPublishModal(true)
+        }
+      },
+    })
+  }
 
   const sensors = useSensors(useSensor(PointerSensor))
 
@@ -1336,7 +1382,9 @@ export default function QuizEditor() {
         <QuizMetaForm
           key={quiz.id}
           quiz={quiz}
-          onSave={(title, description, category, language, difficulty) => updateQuiz.mutate({ title, description, category, language, difficulty }, { onSuccess: () => navigate('/dashboard') })}
+          isPublished={isPublished}
+          onSave={handleSave}
+          onPublish={handlePublish}
           isSaving={updateQuiz.isPending}
         />
 
@@ -1385,6 +1433,44 @@ export default function QuizEditor() {
           )}
         </section>
       </main>
+
+      {/* Apply-to-marketplace modal */}
+      {showApplyModal && listing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('publish_modal.apply_title')}</h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('publish_modal.apply_body')}</p>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => navigate('/dashboard')}
+                disabled={bumpVersion.isPending}
+                className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
+              >
+                {t('publish_modal.apply_no')}
+              </button>
+              <button
+                onClick={() => bumpVersion.mutate(listing.id, { onSettled: () => navigate('/dashboard') })}
+                disabled={bumpVersion.isPending}
+                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {bumpVersion.isPending ? t('common.saving') : t('publish_modal.apply_yes')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Publish modal */}
+      {showPublishModal && quiz && (
+        <PublishModal
+          quizId={id!}
+          quizTitle={quiz.title}
+          category={quiz.category}
+          language={quiz.language}
+          onClose={() => setShowPublishModal(false)}
+          onSuccess={() => { setShowPublishModal(false); navigate('/dashboard') }}
+        />
+      )}
     </div>
   )
 }

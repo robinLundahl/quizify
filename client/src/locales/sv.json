@@ -124,7 +124,10 @@
     "past_sessions": "Tidigare sessioner",
     "results": "Resultat",
     "delete_quiz_title": "Ta bort quiz?",
-    "delete_quiz_body": "\"{{title}}\" kommer att tas bort permanent. Detta kan inte ångras."
+    "delete_quiz_body": "\"{{title}}\" kommer att tas bort permanent. Detta kan inte ångras.",
+    "publish": "Publicera",
+    "unpublish": "Avpublicera",
+    "listing_published": "Listad"
   },
   "settings_page": {
     "title": "Inställningar",
@@ -327,7 +330,9 @@
     "lang_danish": "Danska",
     "lang_german": "Tyska",
     "lang_french": "Franska",
-    "lang_spanish": "Spanska"
+    "lang_spanish": "Spanska",
+    "publish_to_marketplace": "Publicera till marknadsplatsen",
+    "update_listing": "Uppdatera annons"
   },
   "admin": {
     "users": "Användare",
@@ -378,5 +383,25 @@
     "member_since": "Medlem sedan {{date}}",
     "published_quizzes": "Publicerade quiz",
     "no_quizzes": "Inga publicerade quiz ännu."
+  },
+  "publish_modal": {
+    "title": "Publicera till marknadsplatsen",
+    "price_label": "Köppris",
+    "price_hint": "Minst $0.99",
+    "rental_toggle": "Tillåt 48h-hyra",
+    "rental_hint": "Min $0.50 · max 80% av köppriset",
+    "submit": "Publicera",
+    "stripe_required": "Du måste slutföra Stripe Connect-registreringen innan du publicerar. Gå till Inställningar → Utbetalningar.",
+    "free_limit": "Du har redan 3 publicerade annonser. Avpublicera en eller uppgradera till Pro.",
+    "price_error": "Köppriset måste vara minst $0.99.",
+    "rental_min_error": "Hyrespriset måste vara minst $0.50.",
+    "rental_max_error": "Hyrespriset får inte överstiga 80 % av köppriset.",
+    "no_category": "Tips: lägg till kategori och språk för bättre synlighet.",
+    "apply_title": "Applicera ändringar på marknadsplatsen?",
+    "apply_body": "Ditt quiz har osparade ändringar. Vill du applicera dem på den publika annonsen nu?",
+    "apply_yes": "Ja, uppdatera annonsen",
+    "apply_no": "Behåll annonsen som den är",
+    "theme_color": "Annonsens färg",
+    "theme_none": "Ingen (standard)"
   }
 }

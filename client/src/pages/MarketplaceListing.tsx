@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
 import { useAuth } from '../hooks/useAuth'
+
+const IS_DEV = import.meta.env.DEV
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,11 +26,20 @@ interface Review {
   buyerAvatar: string | null
 }
 
+const THEME_ACCENT: Record<string, string> = {
+  sunset: '#eb7f86',
+  forest: '#4da284',
+  rose:   '#cc607d',
+  peach:  '#fac484',
+  ocean:  '#63a6a0',
+}
+
 interface ListingDetail {
   id: string
   price: number
   currency: string
   rentalPrice: number | null
+  themeColor: string | null
   createdAt: string
   quiz: {
     id: string
@@ -58,10 +69,10 @@ const RATES: Record<string, Record<string, number>> = {
 }
 const CURRENCY_SYMBOL: Record<string, string> = { USD: '$', SEK: 'kr', EUR: '€' }
 
-function formatPrice(amount: number, from: string, to: string): string {
-  const converted = Math.round(amount * (RATES[from]?.[to] ?? 1))
+function formatPrice(amountCents: number, from: string, to: string): string {
+  const converted = (amountCents / 100) * (RATES[from]?.[to] ?? 1)
   const sym = CURRENCY_SYMBOL[to] ?? to
-  return to === 'SEK' ? `${converted} ${sym}` : `${sym}${converted}`
+  return to === 'SEK' ? `${Math.round(converted)} ${sym}` : `${sym}${converted.toFixed(2)}`
 }
 
 // ─── Time remaining ───────────────────────────────────────────────────────────
@@ -125,11 +136,18 @@ export default function MarketplaceListing() {
   const [displayCurrency, setDisplayCurrency] = useState('USD')
   const [copied, setCopied] = useState(false)
 
+  const qc = useQueryClient()
+
   const { data: listing, isLoading, isError } = useQuery<ListingDetail>({
     queryKey: ['marketplace-listing', id],
     queryFn: () => api.get(`/marketplace/${id}`).then((r) => r.data),
     enabled: !!id,
     staleTime: 60_000,
+  })
+
+  const devClaim = useMutation({
+    mutationFn: () => api.post(`/marketplace/${id}/dev-claim`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['marketplace-listing', id] }),
   })
 
   function handleShare() {
@@ -142,6 +160,10 @@ export default function MarketplaceListing() {
   function handleBuy() {
     if (!user) {
       navigate('/login', { state: { returnTo: `/marketplace/${id}` } })
+      return
+    }
+    if (IS_DEV) {
+      devClaim.mutate()
       return
     }
     // Purchase flow — TICKET-067
@@ -167,6 +189,8 @@ export default function MarketplaceListing() {
   }
 
   const SELECT_CLS = 'border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white'
+
+  const accent = listing?.themeColor ? (THEME_ACCENT[listing.themeColor] ?? null) : null
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -194,6 +218,10 @@ export default function MarketplaceListing() {
 
             {/* ── Main content ── */}
             <div className="flex-1 min-w-0 space-y-6">
+
+              {accent && (
+                <div className="h-1 w-full rounded-full" style={{ backgroundColor: accent }} />
+              )}
 
               {/* Header */}
               <div>
@@ -375,9 +403,13 @@ export default function MarketplaceListing() {
                   <div className="space-y-2">
                     <button
                       onClick={handleBuy}
-                      className="w-full bg-indigo-600 text-white rounded-xl px-4 py-3 text-sm font-semibold hover:bg-indigo-700 transition"
+                      disabled={devClaim.isPending}
+                      className="w-full text-white rounded-xl px-4 py-3 text-sm font-semibold transition disabled:opacity-60"
+                      style={accent ? { backgroundColor: accent } : { backgroundColor: '#4f46e5' }}
                     >
-                      {listing.price === 0
+                      {IS_DEV
+                        ? t('marketplace.dev_add_to_dashboard', { defaultValue: 'Add to dashboard (dev)' })
+                        : listing.price === 0
                         ? t('marketplace.free')
                         : t('marketplace.buy_button', {
                             price: formatPrice(listing.price, listing.currency, displayCurrency),

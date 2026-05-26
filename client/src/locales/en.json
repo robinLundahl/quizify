@@ -124,7 +124,10 @@
     "past_sessions": "Past sessions",
     "results": "Results",
     "delete_quiz_title": "Delete quiz?",
-    "delete_quiz_body": "\"{{title}}\" will be permanently deleted. This cannot be undone."
+    "delete_quiz_body": "\"{{title}}\" will be permanently deleted. This cannot be undone.",
+    "publish": "Publish",
+    "unpublish": "Unpublish",
+    "listing_published": "Listed"
   },
   "settings_page": {
     "title": "Settings",
@@ -327,7 +330,9 @@
     "lang_danish": "Danish",
     "lang_german": "German",
     "lang_french": "French",
-    "lang_spanish": "Spanish"
+    "lang_spanish": "Spanish",
+    "publish_to_marketplace": "Publish to marketplace",
+    "update_listing": "Update listing"
   },
   "admin": {
     "users": "Users",
@@ -378,5 +383,25 @@
     "member_since": "Member since {{date}}",
     "published_quizzes": "Published quizzes",
     "no_quizzes": "No published quizzes yet."
+  },
+  "publish_modal": {
+    "title": "Publish to marketplace",
+    "price_label": "Buy price",
+    "price_hint": "Minimum $0.99",
+    "rental_toggle": "Allow 48h rentals",
+    "rental_hint": "Min $0.50 · max 80% of buy price",
+    "submit": "Publish",
+    "stripe_required": "You must complete Stripe Connect onboarding before publishing. Go to Settings → Payouts.",
+    "free_limit": "You already have 3 published listings. Unpublish one or upgrade to Pro.",
+    "price_error": "Buy price must be at least $0.99.",
+    "rental_min_error": "Rental price must be at least $0.50.",
+    "rental_max_error": "Rental price must not exceed 80% of the buy price.",
+    "no_category": "Tip: add a category and language to your quiz for better discoverability.",
+    "apply_title": "Apply changes to marketplace?",
+    "apply_body": "Your quiz has unsaved changes. Apply them to the public listing now?",
+    "apply_yes": "Yes, update listing",
+    "apply_no": "Keep listing as-is",
+    "theme_color": "Listing color",
+    "theme_none": "None (default)"
   }
 }

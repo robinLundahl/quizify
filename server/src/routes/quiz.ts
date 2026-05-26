@@ -82,6 +82,12 @@ router.get('/', async (req, res) => {
         take: 3,
         select: { id: true, code: true, finishedAt: true },
       },
+      listings: {
+        where: { creatorId: req.userId! },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        select: { id: true, status: true, price: true, currency: true, rentalPrice: true },
+      },
     },
   })
   res.json(quizzes)

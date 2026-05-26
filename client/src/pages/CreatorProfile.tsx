@@ -6,11 +6,20 @@ import NavBar from '../components/ui/NavBar'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const THEME_ACCENT: Record<string, string> = {
+  sunset: '#eb7f86',
+  forest: '#4da284',
+  rose:   '#cc607d',
+  peach:  '#fac484',
+  ocean:  '#63a6a0',
+}
+
 interface CreatorListing {
   id: string
   price: number
   currency: string
   rentalPrice: number | null
+  themeColor?: string | null
   createdAt: string
   quiz: {
     id: string
@@ -44,9 +53,10 @@ interface CreatorProfileData {
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: '$', SEK: 'kr', EUR: '€' }
 
-function formatPrice(amount: number, currency: string): string {
+function formatPrice(amountCents: number, currency: string): string {
+  const amount = amountCents / 100
   const sym = CURRENCY_SYMBOL[currency] ?? currency
-  return currency === 'SEK' ? `${amount} ${sym}` : `${sym}${amount}`
+  return currency === 'SEK' ? `${Math.round(amount)} ${sym}` : `${sym}${amount.toFixed(2)}`
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -77,12 +87,16 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 function ListingCard({ listing }: { listing: CreatorListing }) {
   const { t } = useTranslation()
   const diff = listing.quiz.difficulty
+  const accent = listing.themeColor ? (THEME_ACCENT[listing.themeColor] ?? null) : null
 
   return (
     <Link
       to={`/marketplace/${listing.id}`}
       className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 flex flex-col gap-3 hover:shadow-md transition-shadow"
     >
+      {accent && (
+        <div className="h-1 w-full rounded-full" style={{ backgroundColor: accent }} />
+      )}
       <div className="flex flex-wrap gap-1.5">
         {listing.quiz.category && (
           <span className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">

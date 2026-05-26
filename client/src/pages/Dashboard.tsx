@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
-import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession, useActiveSessions } from '../hooks/useQuizzes'
+import { useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession, useActiveSessions, useUnpublishListing, type Quiz } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
+import PublishModal from '../components/ui/PublishModal'
 import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 
@@ -15,9 +16,11 @@ export default function Dashboard() {
   const createQuiz = useCreateQuiz()
   const deleteQuiz = useDeleteQuiz()
   const deleteSession = useDeleteSession()
+  const unpublishListing = useUnpublishListing()
   const [hostingId, setHostingId] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null)
+  const [publishingQuiz, setPublishingQuiz] = useState<Pick<Quiz, 'id' | 'title' | 'category' | 'language'> | null>(null)
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
   const user = useAuthStore((s) => s.user)
@@ -170,7 +173,14 @@ export default function Dashboard() {
               >
                 <div className="h-1 w-full bg-indigo-600" />
                 <div className="flex flex-1 flex-col p-5">
+                  <div className="flex items-center gap-2 min-w-0">
                   <h2 className="truncate text-base font-semibold text-gray-900 dark:text-gray-100">{quiz.title}</h2>
+                  {quiz.listings?.[0]?.status === 'PUBLISHED' && (
+                    <span className="shrink-0 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                      {t('dashboard.listing_published')}
+                    </span>
+                  )}
+                </div>
                   {quiz.description && (
                     <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{quiz.description}</p>
                   )}
@@ -178,7 +188,7 @@ export default function Dashboard() {
                     {t('dashboard.question_count', { count: quiz._count?.questions ?? 0 })}
                   </p>
                   <div className="mt-auto pt-4">
-                    <div className="flex gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
+                    <div className="flex flex-wrap gap-2 border-t border-gray-100 dark:border-gray-700 pt-4">
                       <button
                         onClick={() => navigate(`/quiz/${quiz.id}`)}
                         className="rounded-xl bg-indigo-50 dark:bg-indigo-900/30 px-3 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors"
@@ -192,6 +202,22 @@ export default function Dashboard() {
                       >
                         {hostingId === quiz.id ? t('common.creating') : t('dashboard.host')}
                       </button>
+                      {quiz.listings?.[0]?.status === 'PUBLISHED' ? (
+                        <button
+                          onClick={() => unpublishListing.mutate(quiz.listings![0].id)}
+                          disabled={unpublishListing.isPending}
+                          className="rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-500 dark:text-gray-400 transition hover:border-amber-200 hover:bg-amber-50 hover:text-amber-600 disabled:opacity-50"
+                        >
+                          {t('dashboard.unpublish')}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setPublishingQuiz({ id: quiz.id, title: quiz.title, category: quiz.category, language: quiz.language })}
+                          className="rounded-xl border border-indigo-200 dark:border-indigo-700 px-3 py-2 text-sm font-medium text-indigo-600 dark:text-indigo-400 transition hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                        >
+                          {t('dashboard.publish')}
+                        </button>
+                      )}
                       <button
                         onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title })}
                         className="rounded-xl border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm text-gray-500 dark:text-gray-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
@@ -260,6 +286,17 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {publishingQuiz && (
+        <PublishModal
+          quizId={publishingQuiz.id}
+          quizTitle={publishingQuiz.title}
+          category={publishingQuiz.category}
+          language={publishingQuiz.language}
+          onClose={() => setPublishingQuiz(null)}
+          onSuccess={() => setPublishingQuiz(null)}
+        />
       )}
 
       {confirmDelete && (

@@ -14,6 +14,14 @@ export interface ActiveSession {
   quizTitle: string
 }
 
+export interface QuizListing {
+  id: string
+  status: 'DRAFT' | 'PUBLISHED' | 'UNPUBLISHED' | 'SUSPENDED'
+  price: number
+  currency: string
+  rentalPrice: number | null
+}
+
 export interface Quiz {
   id: string
   title: string
@@ -26,6 +34,7 @@ export interface Quiz {
   updatedAt: string
   _count?: { questions: number }
   sessions?: QuizSession[]
+  listings?: QuizListing[]
 }
 
 export interface AnswerOption {
@@ -264,6 +273,58 @@ export function useSessionResults(sessionId: string) {
     enabled: !!sessionId,
   })
 }
+
+// ─── Marketplace hooks ────────────────────────────────────────────────────────
+
+export function useMyListing(quizId: string) {
+  return useQuery<QuizListing | null>({
+    queryKey: ['my-listing', quizId],
+    queryFn: async () => {
+      const { data } = await api.get<QuizListing | null>(`/marketplace/my/${quizId}`)
+      return data
+    },
+    enabled: !!quizId,
+    staleTime: 30_000,
+  })
+}
+
+export function usePublishQuiz() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (body: { quizId: string; price: number; currency: string; rentalPrice?: number; themeColor?: string }) => {
+      const { data } = await api.post<QuizListing>('/marketplace', body)
+      return data
+    },
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ['quizzes'] })
+      qc.invalidateQueries({ queryKey: ['my-listing', variables.quizId] })
+    },
+  })
+}
+
+export function useUnpublishListing() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (listingId: string) => {
+      await api.post(`/marketplace/${listingId}/unpublish`)
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['quizzes'] })
+      qc.invalidateQueries({ queryKey: ['my-listing'] })
+    },
+  })
+}
+
+export function useBumpListingVersion() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (listingId: string) => {
+      await api.patch(`/marketplace/${listingId}/version`)
+    },
+  })
+}
+
+// ─── Question reorder ─────────────────────────────────────────────────────────
 
 export function useReorderQuestions(quizId: string) {
   const qc = useQueryClient()

@@ -7,6 +7,14 @@ import NavBar from '../components/ui/NavBar'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+const THEME_ACCENT: Record<string, string> = {
+  sunset: '#eb7f86',
+  forest: '#4da284',
+  rose:   '#cc607d',
+  peach:  '#fac484',
+  ocean:  '#63a6a0',
+}
+
 interface MarketplaceListing {
   id: string
   price: number
@@ -14,6 +22,7 @@ interface MarketplaceListing {
   rentalPrice: number | null
   listingScore: number
   versionAtPublish: number
+  themeColor?: string | null
   createdAt: string
   quiz: {
     id: string
@@ -126,6 +135,7 @@ function Stars({ rating }: { rating: number | null }) {
 function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; displayCurrency: string }) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
+  const accent = listing.themeColor ? (THEME_ACCENT[listing.themeColor] ?? null) : null
 
   function handleShare() {
     const url = `${window.location.origin}/marketplace/${listing.id}`
@@ -149,6 +159,9 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
 
   return (
     <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
+      {accent && (
+        <div className="h-1 w-full rounded-full" style={{ backgroundColor: accent }} />
+      )}
       <div className="flex items-start justify-between gap-2">
         <Link to={`/marketplace/${listing.id}`} className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-indigo-600 transition-colors">

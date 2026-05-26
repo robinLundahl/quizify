@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { Prisma } from '../generated/prisma/client.js'
 import { prisma } from '../lib/prisma.js'
 import { verifyToken } from '../lib/jwt.js'
+import { requireAuth } from '../middleware/requireAuth.js'
 
 const router = Router()
 
@@ -87,6 +88,7 @@ router.get('/', async (req, res) => {
       rentalPrice: row.rentalPrice,
       listingScore: row.listingScore,
       versionAtPublish: row.versionAtPublish,
+      themeColor: row.themeColor,
       createdAt: row.createdAt,
       quiz: {
         id: row.quiz.id,
@@ -173,6 +175,7 @@ router.get('/:id', async (req, res) => {
     price: listing.price,
     currency: listing.currency,
     rentalPrice: listing.rentalPrice,
+    themeColor: listing.themeColor,
     createdAt: listing.createdAt,
     quiz: {
       id: listing.quiz.id,
@@ -209,6 +212,9 @@ router.get('/:id', async (req, res) => {
 })
 
 // ─── Creator profile (public) ─────────────────────────────────────────────────
+// NOTE: /my/:quizId, POST /, POST /:id/unpublish, PATCH /:id/version are placed
+// after the creator route but before export. Two-segment paths never conflict
+// with the single-segment GET /:id route above.
 
 router.get('/creator/:id', async (req, res) => {
   const { id } = req.params
@@ -263,6 +269,7 @@ router.get('/creator/:id', async (req, res) => {
       currency: row.currency,
       rentalPrice: row.rentalPrice,
       listingScore: row.listingScore,
+      themeColor: row.themeColor,
       createdAt: row.createdAt,
       quiz: {
         id: row.quiz.id,
@@ -299,6 +306,161 @@ router.get('/creator/:id', async (req, res) => {
     },
     listings,
   })
+})
+
+// ─── Auth-protected creator routes ───────────────────────────────────────────
+
+// GET /my/:quizId — current user's listing for a quiz (most recent)
+router.get('/my/:quizId', requireAuth, async (req, res) => {
+  const quizId = req.params.quizId as string
+  const listing = await prisma.marketplaceListing.findFirst({
+    where: { quizId, creatorId: req.userId! },
+    orderBy: { createdAt: 'desc' },
+    select: { id: true, status: true, price: true, currency: true, rentalPrice: true },
+  })
+  res.json(listing ?? null)
+})
+
+const VALID_THEME_COLORS = ['sunset', 'forest', 'rose', 'peach', 'ocean'] as const
+
+// POST / — publish a quiz to the marketplace
+router.post('/', requireAuth, async (req, res) => {
+  const { quizId, price, currency, rentalPrice, themeColor } = req.body as {
+    quizId: string
+    price: number
+    currency: string
+    rentalPrice?: number
+    themeColor?: string
+  }
+
+  const [quiz, user] = await Promise.all([
+    prisma.quiz.findFirst({ where: { id: quizId, ownerId: req.userId! } }),
+    prisma.user.findUnique({ where: { id: req.userId! } }),
+  ])
+
+  if (!quiz || !user) {
+    res.status(404).json({ error: 'Quiz not found' })
+    return
+  }
+  if (!user.stripeAccountId && process.env.NODE_ENV === 'production') {
+    res.status(403).json({ error: 'stripe_required' })
+    return
+  }
+  if (!Number.isInteger(price) || price < 99) {
+    res.status(400).json({ error: 'price_too_low' })
+    return
+  }
+  if (rentalPrice !== undefined && rentalPrice !== null) {
+    if (!Number.isInteger(rentalPrice) || rentalPrice < 50) {
+      res.status(400).json({ error: 'rental_too_low' })
+      return
+    }
+    if (rentalPrice > Math.floor(price * 0.8)) {
+      res.status(400).json({ error: 'rental_too_high' })
+      return
+    }
+  }
+  if (!['USD', 'SEK', 'EUR'].includes(currency)) {
+    res.status(400).json({ error: 'Invalid currency' })
+    return
+  }
+  if (user.plan === 'FREE') {
+    const publishedCount = await prisma.marketplaceListing.count({
+      where: { creatorId: req.userId!, status: 'PUBLISHED' },
+    })
+    if (publishedCount >= 3) {
+      res.status(403).json({ error: 'free_limit' })
+      return
+    }
+  }
+
+  const validatedThemeColor =
+    user.plan === 'PRO' && themeColor && VALID_THEME_COLORS.includes(themeColor as typeof VALID_THEME_COLORS[number])
+      ? themeColor
+      : null
+
+  const listing = await prisma.marketplaceListing.create({
+    data: {
+      quizId,
+      creatorId: req.userId!,
+      price,
+      currency: currency as 'USD' | 'SEK' | 'EUR',
+      rentalPrice: rentalPrice ?? null,
+      status: 'PUBLISHED',
+      versionAtPublish: 1,
+      themeColor: validatedThemeColor,
+    },
+  })
+  res.status(201).json({
+    id: listing.id,
+    status: listing.status,
+    price: listing.price,
+    currency: listing.currency,
+    rentalPrice: listing.rentalPrice,
+    themeColor: listing.themeColor,
+  })
+})
+
+// POST /:id/dev-claim — grant free access in dev (non-production only)
+router.post('/:id/dev-claim', requireAuth, async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    res.status(403).json({ error: 'Not available in production' })
+    return
+  }
+  const id = req.params.id as string
+  const listing = await prisma.marketplaceListing.findUnique({ where: { id, status: 'PUBLISHED' } })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const existing = await prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: id } })
+  if (existing) {
+    res.json({ ok: true })
+    return
+  }
+  await prisma.quizPurchase.create({
+    data: {
+      buyerId: req.userId!,
+      listingId: id,
+      amountPaid: 0,
+      versionAtPurchase: listing.versionAtPublish,
+    },
+  })
+  res.json({ ok: true })
+})
+
+// POST /:id/unpublish — take a listing off the marketplace
+router.post('/:id/unpublish', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const listing = await prisma.marketplaceListing.findFirst({
+    where: { id, creatorId: req.userId! },
+  })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  await prisma.marketplaceListing.update({
+    where: { id },
+    data: { status: 'UNPUBLISHED' },
+  })
+  res.json({ ok: true })
+})
+
+// PATCH /:id/version — bump version when creator applies quiz edits to the listing
+router.patch('/:id/version', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const listing = await prisma.marketplaceListing.findFirst({
+    where: { id, creatorId: req.userId!, status: 'PUBLISHED' },
+  })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const updated = await prisma.marketplaceListing.update({
+    where: { id },
+    data: { versionAtPublish: { increment: 1 } },
+  })
+  res.json({ id: updated.id, versionAtPublish: updated.versionAtPublish })
 })
 
 export default router
