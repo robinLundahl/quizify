@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
@@ -158,6 +158,8 @@ function QuestionCard({ question, index }: { question: Question; index: number }
 export default function QuizPreview() {
   const { listingId } = useParams<{ listingId: string }>()
   const { t } = useTranslation()
+  const location = useLocation()
+  const fromTab = (location.state as { fromTab?: string } | null)?.fromTab
 
   const { data: quiz, isLoading, isError } = useQuery<QuizFull>({
     queryKey: ['quiz-preview', listingId],
@@ -176,7 +178,7 @@ export default function QuizPreview() {
       <NavBar />
 
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
-        <Link to="/dashboard" className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block">
+        <Link to="/dashboard" state={fromTab ? { tab: fromTab } : undefined} className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block">
           ← {t('quiz_editor.back_to_dashboard')}
         </Link>
 

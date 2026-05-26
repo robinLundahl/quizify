@@ -342,7 +342,7 @@ export default function Dashboard() {
                       <div className="h-1 w-full bg-indigo-600" />
                       <div className="flex flex-1 flex-col p-5 gap-2">
                         <div className="flex items-start justify-between gap-2">
-                          <Link to={`/quiz-preview/${p.listing.id}`} className="hover:text-indigo-600 transition-colors flex-1 min-w-0">
+                          <Link to={`/quiz-preview/${p.listing.id}`} state={{ fromTab: 'purchased' }} className="hover:text-indigo-600 transition-colors flex-1 min-w-0">
                             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 leading-snug">{p.listing.quiz.title}</h2>
                           </Link>
                           {hasUpdate && (
@@ -428,7 +428,7 @@ export default function Dashboard() {
                     >
                       <div className={`h-1 w-full ${r.isExpired ? 'bg-gray-300 dark:bg-gray-600' : 'bg-indigo-600'}`} />
                       <div className="flex flex-1 flex-col p-5 gap-2">
-                        <Link to={`/quiz-preview/${r.listing.id}`} className="hover:text-indigo-600 transition-colors">
+                        <Link to={`/quiz-preview/${r.listing.id}`} state={{ fromTab: 'rentals' }} className="hover:text-indigo-600 transition-colors">
                           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 leading-snug">{r.listing.quiz.title}</h2>
                         </Link>
                         {r.listing.quiz.description && (

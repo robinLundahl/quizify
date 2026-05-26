@@ -284,6 +284,8 @@ export function useDeleteSession() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['quizzes'] })
       void qc.invalidateQueries({ queryKey: ['active-sessions'] })
+      void qc.invalidateQueries({ queryKey: ['purchases'] })
+      void qc.invalidateQueries({ queryKey: ['rentals'] })
     },
   })
 }

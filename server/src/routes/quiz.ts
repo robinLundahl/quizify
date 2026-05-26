@@ -77,7 +77,7 @@ router.get('/', async (req, res) => {
     include: {
       _count: { select: { questions: true } },
       sessions: {
-        where: { status: 'FINISHED' },
+        where: { status: 'FINISHED', hostId: req.userId! },
         orderBy: { finishedAt: 'desc' },
         take: 3,
         select: { id: true, code: true, finishedAt: true },
