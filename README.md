@@ -332,17 +332,17 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-060.md
 │   │   ├── TICKET-061.md
 │   │   ├── TICKET-062.md
+│   │   ├── TICKET-063.md
+│   │   ├── TICKET-064.md
+│   │   ├── TICKET-065.md
+│   │   ├── TICKET-069.md
 │   │   ├── TICKET-073.md
 │   │   └── TICKET-084.md
 │   ├── README.md
 │   ├── TICKET-051.md
-│   ├── TICKET-063.md
-│   ├── TICKET-064.md
-│   ├── TICKET-065.md
 │   ├── TICKET-066.md
 │   ├── TICKET-067.md
 │   ├── TICKET-068.md
-│   ├── TICKET-069.md
 │   ├── TICKET-070.md
 │   ├── TICKET-071.md
 │   ├── TICKET-072.md
@@ -391,6 +391,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── Login.tsx
 │   │   │   ├── MarketplaceListing.tsx
 │   │   │   ├── QuizEditor.tsx
+│   │   │   ├── QuizPreview.tsx
 │   │   │   ├── Register.tsx
 │   │   │   ├── ResultsView.tsx
 │   │   │   └── Settings.tsx

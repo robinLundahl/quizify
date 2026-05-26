@@ -112,6 +112,26 @@ router.get('/', async (req, res) => {
 // ─── Auth-protected buyer routes ─────────────────────────────────────────────
 // Must be registered before GET /:id to avoid Express matching 'purchases'/'rentals' as an id.
 
+// DELETE /purchases/:id — remove a purchase record for the current user
+router.delete('/purchases/:id', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const purchase = await prisma.quizPurchase.findUnique({ where: { id }, select: { buyerId: true } })
+  if (!purchase) { res.status(404).json({ error: 'Not found' }); return }
+  if (purchase.buyerId !== req.userId) { res.status(403).json({ error: 'Forbidden' }); return }
+  await prisma.quizPurchase.delete({ where: { id } })
+  res.status(204).send()
+})
+
+// DELETE /rentals/:id — remove a rental record for the current user
+router.delete('/rentals/:id', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const rental = await prisma.quizRental.findUnique({ where: { id }, select: { userId: true } })
+  if (!rental) { res.status(404).json({ error: 'Not found' }); return }
+  if (rental.userId !== req.userId) { res.status(403).json({ error: 'Forbidden' }); return }
+  await prisma.quizRental.delete({ where: { id } })
+  res.status(204).send()
+})
+
 // GET /purchases — quizzes the current user has purchased
 router.get('/purchases', requireAuth, async (req, res) => {
   const purchases = await prisma.quizPurchase.findMany({
@@ -145,6 +165,7 @@ router.get('/purchases', requireAuth, async (req, res) => {
       listing: {
         id: p.listing.id,
         versionAtPublish: p.listing.versionAtPublish,
+        themeColor: p.listing.themeColor,
         quiz: p.listing.quiz,
         creator: p.listing.creator,
       },
@@ -186,6 +207,7 @@ router.get('/rentals', requireAuth, async (req, res) => {
       isExpired: r.expiresAt < now,
       listing: {
         id: r.listing.id,
+        themeColor: r.listing.themeColor,
         quiz: r.listing.quiz,
         creator: r.listing.creator,
       },

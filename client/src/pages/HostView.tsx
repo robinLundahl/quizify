@@ -2,7 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getSocket } from '../hooks/useSocket'
-import { useThemeStore } from '../store/themeStore'
+import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
+import { useAuthStore } from '../store/authStore'
 import LangToggle from '../components/ui/LangToggle'
 
 interface Player {
@@ -74,8 +75,9 @@ export default function HostView() {
 
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
+  const isFreePlan = useAuthStore((s) => s.user?.plan === 'FREE')
   const [phase, setPhase] = useState<Phase>('lobby')
-  const locationState = location.state as { code?: string; rejoin?: boolean; status?: string } | null
+  const locationState = location.state as { code?: string; rejoin?: boolean; status?: string; themeColor?: string | null } | null
   const joinCode = locationState?.code ?? ''
   const [players, setPlayers] = useState<Player[]>([])
   const [currentQuestion, setCurrentQuestion] = useState<QuestionPayload | null>(null)
@@ -84,6 +86,13 @@ export default function HostView() {
   const [timeLeft, setTimeLeft] = useState(0)
   const [answerCount, setAnswerCount] = useState(0)
   const [rejoinError, setRejoinError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (locationState?.themeColor) {
+      setTheme(locationState.themeColor as Parameters<typeof setTheme>[0])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
     if (!sessionId) return
@@ -238,16 +247,20 @@ export default function HostView() {
       <LangToggle />
       <select
         value={theme}
-        onChange={(e) => setTheme(e.target.value as Parameters<typeof setTheme>[0])}
+        onChange={(e) => {
+          const val = e.target.value as Parameters<typeof setTheme>[0]
+          if (isFreePlan && PRO_ONLY_THEMES.includes(val as typeof PRO_ONLY_THEMES[number])) return
+          setTheme(val)
+        }}
         className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-200 px-2 py-1 text-xs font-medium shadow-sm backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
       >
         <option value="light">{t('host.themes.light')}</option>
         <option value="dark">{t('host.themes.dark')}</option>
-        <option value="forest">{t('host.themes.forest')}</option>
-        <option value="ocean">{t('host.themes.ocean')}</option>
-        <option value="sunset">{t('host.themes.sunset')}</option>
-        <option value="peach">{t('host.themes.peach')}</option>
-        <option value="rose">{t('host.themes.rose')}</option>
+        <option value="forest" disabled={isFreePlan}>{t('host.themes.forest')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="ocean" disabled={isFreePlan}>{t('host.themes.ocean')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="sunset" disabled={isFreePlan}>{t('host.themes.sunset')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="peach" disabled={isFreePlan}>{t('host.themes.peach')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
+        <option value="rose" disabled={isFreePlan}>{t('host.themes.rose')}{isFreePlan ? ` (${t('plan.pro_only')})` : ''}</option>
       </select>
     </div>
   )
