@@ -120,7 +120,17 @@ router.get('/purchases', requireAuth, async (req, res) => {
     include: {
       listing: {
         include: {
-          quiz: { select: { id: true, title: true, description: true, category: true } },
+          quiz: {
+            select: {
+              id: true, title: true, description: true, category: true,
+              sessions: {
+                where: { status: 'FINISHED', hostId: req.userId! },
+                orderBy: { finishedAt: 'desc' },
+                take: 3,
+                select: { id: true, code: true, finishedAt: true },
+              },
+            },
+          },
           creator: { select: { id: true, name: true, avatar: true } },
         },
       },
@@ -150,7 +160,17 @@ router.get('/rentals', requireAuth, async (req, res) => {
     include: {
       listing: {
         include: {
-          quiz: { select: { id: true, title: true, description: true, category: true } },
+          quiz: {
+            select: {
+              id: true, title: true, description: true, category: true,
+              sessions: {
+                where: { status: 'FINISHED', hostId: req.userId! },
+                orderBy: { finishedAt: 'desc' },
+                take: 3,
+                select: { id: true, code: true, finishedAt: true },
+              },
+            },
+          },
           creator: { select: { id: true, name: true, avatar: true } },
         },
       },
@@ -517,6 +537,53 @@ router.post('/:id/dev-rent', requireAuth, async (req, res) => {
     },
   })
   res.json({ ok: true, expiresAt })
+})
+
+// GET /:id/quiz — full quiz content for buyers and renters
+router.get('/:id/quiz', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { id },
+    select: { quizId: true, creatorId: true },
+  })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+
+  // Creator can always view their own listing's quiz
+  if (listing.creatorId !== req.userId) {
+    const [purchase, rental] = await Promise.all([
+      prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: id } }),
+      prisma.quizRental.findFirst({ where: { userId: req.userId!, listingId: id, expiresAt: { gt: new Date() } } }),
+    ])
+    if (!purchase && !rental) {
+      res.status(403).json({ error: 'Forbidden' })
+      return
+    }
+  }
+
+  const quiz = await prisma.quiz.findUnique({
+    where: { id: listing.quizId },
+    include: {
+      questions: {
+        orderBy: { order: 'asc' },
+        include: {
+          answerOptions: true,
+          mapQuestion: { include: { rings: { orderBy: { order: 'asc' } } } },
+          audioQuestion: true,
+          rankingItems: { orderBy: { correctPosition: 'asc' } },
+        },
+      },
+    },
+  })
+  if (!quiz) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+
+  res.json(quiz)
 })
 
 // POST /:id/unpublish — take a listing off the marketplace

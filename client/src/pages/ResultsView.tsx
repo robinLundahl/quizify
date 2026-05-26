@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSessionResults } from '../hooks/useQuizzes'
 
@@ -7,6 +7,8 @@ const MEDAL = ['🥇', '🥈', '🥉']
 export default function ResultsView() {
   const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
+  const fromTab = (location.state as { fromTab?: string } | null)?.fromTab
   const { t } = useTranslation()
   const { data, isLoading, isError } = useSessionResults(sessionId ?? '')
 
@@ -42,7 +44,7 @@ export default function ResultsView() {
             )}
           </div>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/dashboard', { state: fromTab ? { tab: fromTab } : undefined })}
             className="border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
             {t('results.back')}

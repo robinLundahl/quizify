@@ -30,7 +30,7 @@ export interface PurchasedQuiz {
   listing: {
     id: string
     versionAtPublish: number
-    quiz: { id: string; title: string; description: string | null; category: string | null }
+    quiz: { id: string; title: string; description: string | null; category: string | null; sessions: QuizSession[] }
     creator: { id: string; name: string; avatar: string | null }
   }
 }
@@ -42,7 +42,7 @@ export interface RentalItem {
   isExpired: boolean
   listing: {
     id: string
-    quiz: { id: string; title: string; description: string | null; category: string | null }
+    quiz: { id: string; title: string; description: string | null; category: string | null; sessions: QuizSession[] }
     creator: { id: string; name: string; avatar: string | null }
   }
 }

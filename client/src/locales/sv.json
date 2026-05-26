@@ -127,6 +127,8 @@
     "delete_quiz_body": "\"{{title}}\" kommer att tas bort permanent. Detta kan inte ångras.",
     "publish": "Publicera",
     "unpublish": "Avpublicera",
+    "unpublish_title": "Avpublicera quiz?",
+    "unpublish_body": "\"{{title}}\" kommer att tas bort från marknadsplatsen. Köpare som redan köpt det behåller sin åtkomst.",
     "listing_published": "Listad",
     "tab_my_quizzes": "Mina quiz",
     "tab_purchased": "Köpta",

@@ -127,6 +127,8 @@
     "delete_quiz_body": "\"{{title}}\" will be permanently deleted. This cannot be undone.",
     "publish": "Publish",
     "unpublish": "Unpublish",
+    "unpublish_title": "Unpublish quiz?",
+    "unpublish_body": "\"{{title}}\" will be removed from the marketplace. Buyers who already purchased it will keep access.",
     "listing_published": "Listed",
     "tab_my_quizzes": "My quizzes",
     "tab_purchased": "Purchased",

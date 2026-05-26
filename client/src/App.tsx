@@ -13,6 +13,7 @@ import AdminPanel from './pages/AdminPanel'
 import Landing from './pages/Landing'
 import MarketplaceListing from './pages/MarketplaceListing'
 import CreatorProfile from './pages/CreatorProfile'
+import QuizPreview from './pages/QuizPreview'
 
 const queryClient = new QueryClient()
 
@@ -34,6 +35,7 @@ export default function App() {
             <Route path="/host/:sessionId" element={<HostView />} />
             <Route path="/results/:sessionId" element={<ResultsView />} />
             <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/quiz-preview/:listingId" element={<QuizPreview />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
