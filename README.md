@@ -451,6 +451,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ├── .gitignore
 ├── brainstorm-marketplace.md
 ├── CLAUDE.md
+├── deploying.md
 ├── design.md
 ├── package.json
 └── README.md
