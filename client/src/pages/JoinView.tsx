@@ -389,7 +389,7 @@ export default function JoinView() {
               <p className="mb-3 text-sm opacity-70">{t('join.active_session_body')}</p>
               <button
                 onClick={handleRejoin}
-                className="w-full rounded-xl bg-white py-3 font-bold text-indigo-600 transition hover:bg-indigo-50"
+                className="w-full rounded-xl bg-indigo-600 py-3 font-bold text-white transition hover:bg-indigo-700"
               >
                 {t('join.rejoin_game')}
               </button>
