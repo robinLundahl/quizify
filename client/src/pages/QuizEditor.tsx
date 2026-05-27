@@ -484,6 +484,7 @@ function QuestionForm({
     e.preventDefault()
     if (!form.text.trim()) return
     if (form.type === 'RANKING' && form.rankingItems.filter((r) => r.label.trim()).length < 2) return
+    if ((form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') && form.options.filter((o) => o.text.trim()).length < 2) return
     onSave(formToPayload(form, order))
   }
 
@@ -837,7 +838,11 @@ function QuestionForm({
         </button>
         <button
           type="submit"
-          disabled={isSaving}
+          disabled={
+            isSaving ||
+            ((form.type === 'MULTIPLE_CHOICE' || form.type === 'IMAGE') &&
+              form.options.filter((o) => o.text.trim()).length < 2)
+          }
           className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
         >
           {isSaving ? t('common.saving') : t('quiz_editor.save_question')}
