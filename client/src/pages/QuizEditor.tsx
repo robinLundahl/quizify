@@ -1097,6 +1097,7 @@ function QuizMetaForm({
   const [quizDifficulty, setQuizDifficulty] = useState(quiz.difficulty ?? '')
   const [aiOpen, setAiOpen] = useState(false)
   const [showProMessage, setShowProMessage] = useState(false)
+  const [missingFields, setMissingFields] = useState<string[]>([])
   const [topic, setTopic] = useState('')
   const [count, setCount] = useState(10)
   const [withImage, setWithImage] = useState(false)
@@ -1106,6 +1107,18 @@ function QuizMetaForm({
   const generationsUsed = user?.aiGenerationsUsedThisMonth ?? 0
   const quotaExhausted = generationsUsed >= 20
   const generateQuestions = useGenerateQuestions(quiz.id)
+
+  const handlePublishClick = () => {
+    const missing: string[] = []
+    if (!title.trim())        missing.push(t('quiz_editor.title_label'))
+    if (!description.trim())  missing.push(t('quiz_editor.description_label'))
+    if (!quizCategory)        missing.push(t('quiz_editor.ai_panel_category'))
+    if (!quizLanguage)        missing.push(t('quiz_editor.ai_panel_language'))
+    if (!quizDifficulty)      missing.push(t('quiz_editor.ai_panel_difficulty'))
+    if (quiz.questions.length < 5) missing.push(t('quiz_editor.publish_min_questions', { defaultValue: 'At least 5 questions' }))
+    if (missing.length > 0) { setMissingFields(missing); return }
+    onPublish(title.trim(), description.trim(), quizCategory, quizLanguage, quizDifficulty)
+  }
 
   const handleGenerate = () => {
     if (!topic.trim() || generateQuestions.isPending) return
@@ -1188,19 +1201,18 @@ function QuizMetaForm({
         </div>
       </div>
 
-      <div>
-        <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
-        <input
-          type="text"
-          value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
-          className={`w-full ${INPUT_CLS}`}
-        />
-      </div>
-
       {aiOpen && isPro && (
         <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-4 space-y-3">
+          <div>
+            <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_topic')}</label>
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder={t('quiz_editor.ai_panel_topic_placeholder')}
+              className={`w-full ${INPUT_CLS}`}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={LABEL_CLS}>{t('quiz_editor.ai_panel_count')}</label>
@@ -1273,22 +1285,47 @@ function QuizMetaForm({
           )}
         </button>
         <div className="flex gap-2">
-          <button
-            onClick={() => onPublish(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
-            disabled={isSaving || !title.trim()}
-            className="rounded-xl border border-indigo-300 dark:border-indigo-700 px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
-          >
-            {isPublished ? t('quiz_editor.update_listing') : t('quiz_editor.publish_to_marketplace')}
-          </button>
-          <button
-            onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
-            disabled={isSaving || !title.trim()}
-            className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-          >
-            {isSaving ? t('common.saving') : t('common.save')}
-          </button>
-        </div>
+            {!isPublished && (
+              <button
+                onClick={handlePublishClick}
+                disabled={isSaving}
+                className="rounded-xl border border-indigo-300 dark:border-indigo-700 px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 disabled:opacity-50 transition-colors"
+              >
+                {t('quiz_editor.publish_to_marketplace')}
+              </button>
+            )}
+            <button
+              onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
+              disabled={isSaving || !title.trim()}
+              className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {isSaving ? t('common.saving') : t('common.save')}
+            </button>
+          </div>
       </div>
+
+      {missingFields.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('quiz_editor.publish_missing_title', { defaultValue: 'Complete before publishing' })}</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('quiz_editor.publish_missing_body', { defaultValue: 'Please fill in the following before publishing:' })}</p>
+            <ul className="mt-3 space-y-1.5">
+              {missingFields.map((field) => (
+                <li key={field} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
+                  {field}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setMissingFields([])}
+              className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+            >
+              {t('common.ok', { defaultValue: 'OK' })}
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   )
 }

@@ -267,14 +267,19 @@ router.get('/:id', async (req, res) => {
   let owned = false
   let activeRental: { expiresAt: string } | null = null
 
+  let updateAvailable = false
+
   if (userId) {
     const [purchase, rental] = await Promise.all([
-      prisma.quizPurchase.findFirst({ where: { buyerId: userId, listingId: id } }),
+      prisma.quizPurchase.findFirst({
+        where: { buyerId: userId, listing: { quizId: listing.quiz.id } },
+      }),
       prisma.quizRental.findFirst({
         where: { userId, listingId: id, expiresAt: { gt: new Date() } },
       }),
     ])
     owned = !!purchase
+    if (purchase && purchase.listingId !== id) updateAvailable = true
     if (rental) activeRental = { expiresAt: rental.expiresAt.toISOString() }
   }
 
@@ -315,6 +320,7 @@ router.get('/:id', async (req, res) => {
         buyerAvatar: p.buyer.avatar,
       })),
     owned,
+    updateAvailable,
     activeRental,
   })
 })
@@ -442,12 +448,24 @@ router.post('/', requireAuth, async (req, res) => {
   }
 
   const [quiz, user] = await Promise.all([
-    prisma.quiz.findFirst({ where: { id: quizId, ownerId: req.userId! } }),
+    prisma.quiz.findFirst({
+      where: { id: quizId, ownerId: req.userId! },
+      include: {
+        questions: {
+          orderBy: { order: 'asc' },
+          include: { answerOptions: { select: { id: true, text: true, isCorrect: true } } },
+        },
+      },
+    }),
     prisma.user.findUnique({ where: { id: req.userId! } }),
   ])
 
   if (!quiz || !user) {
     res.status(404).json({ error: 'Quiz not found' })
+    return
+  }
+  if (quiz.questions.length < 5) {
+    res.status(400).json({ error: 'min_questions' })
     return
   }
   if (!user.stripeAccountId && process.env.NODE_ENV === 'production') {
@@ -487,6 +505,13 @@ router.post('/', requireAuth, async (req, res) => {
       ? themeColor
       : null
 
+  const contentSnapshot = quiz.questions.map((q) => ({
+    id: q.id,
+    text: q.text,
+    type: q.type,
+    answerOptions: q.answerOptions,
+  }))
+
   const listing = await prisma.marketplaceListing.create({
     data: {
       quizId,
@@ -497,6 +522,7 @@ router.post('/', requireAuth, async (req, res) => {
       status: 'PUBLISHED',
       versionAtPublish: 1,
       themeColor: validatedThemeColor,
+      contentSnapshot,
     },
   })
   res.status(201).json({
@@ -521,9 +547,11 @@ router.post('/:id/dev-claim', requireAuth, async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const existing = await prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: id } })
+  const existing = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listing: { quizId: listing.quizId } },
+  })
   if (existing) {
-    res.json({ ok: true })
+    res.status(409).json({ error: 'already_owned' })
     return
   }
   await prisma.quizPurchase.create({
@@ -577,7 +605,9 @@ router.get('/:id/quiz', requireAuth, async (req, res) => {
   // Creator can always view their own listing's quiz
   if (listing.creatorId !== req.userId) {
     const [purchase, rental] = await Promise.all([
-      prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: id } }),
+      prisma.quizPurchase.findFirst({
+        where: { buyerId: req.userId!, listing: { quizId: listing.quizId } },
+      }),
       prisma.quizRental.findFirst({ where: { userId: req.userId!, listingId: id, expiresAt: { gt: new Date() } } }),
     ])
     if (!purchase && !rental) {
@@ -621,6 +651,116 @@ router.post('/:id/unpublish', requireAuth, async (req, res) => {
   await prisma.marketplaceListing.update({
     where: { id },
     data: { status: 'UNPUBLISHED' },
+  })
+  res.json({ ok: true })
+})
+
+// GET /:id/diff — changelog between buyer's purchased version and current listing
+router.get('/:id/diff', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { id, status: 'PUBLISHED' },
+    select: {
+      quizId: true,
+      contentSnapshot: true,
+      quiz: {
+        select: {
+          questions: {
+            orderBy: { order: 'asc' },
+            include: { answerOptions: { select: { id: true, text: true, isCorrect: true } } },
+          },
+        },
+      },
+    },
+  })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+
+  const oldPurchase = await prisma.quizPurchase.findFirst({
+    where: {
+      buyerId: req.userId!,
+      listing: { quizId: listing.quizId },
+      NOT: { listingId: id },
+    },
+    include: {
+      listing: { select: { contentSnapshot: true } },
+    },
+    orderBy: { purchaseDate: 'desc' },
+  })
+  if (!oldPurchase) {
+    res.status(400).json({ error: 'No previous purchase found' })
+    return
+  }
+
+  type SnapshotQuestion = { id: string; text: string; type: string; answerOptions: { id: string; text: string; isCorrect: boolean }[] }
+  const oldQuestions: SnapshotQuestion[] = (oldPurchase.listing.contentSnapshot as SnapshotQuestion[] | null) ?? []
+  const newQuestions: SnapshotQuestion[] = listing.quiz.questions.map((q) => ({
+    id: q.id,
+    text: q.text,
+    type: q.type,
+    answerOptions: q.answerOptions,
+  }))
+
+  const oldMap = new Map(oldQuestions.map((q) => [q.id, q]))
+  const newMap = new Map(newQuestions.map((q) => [q.id, q]))
+
+  const added = newQuestions.filter((q) => !oldMap.has(q.id))
+  const removed = oldQuestions.filter((q) => !newMap.has(q.id))
+  const modified = newQuestions.filter((q) => {
+    const old = oldMap.get(q.id)
+    if (!old) return false
+    if (old.text !== q.text || old.type !== q.type) return true
+    const oldOpts = JSON.stringify(old.answerOptions.map((a) => ({ text: a.text, isCorrect: a.isCorrect })))
+    const newOpts = JSON.stringify(q.answerOptions.map((a) => ({ text: a.text, isCorrect: a.isCorrect })))
+    return oldOpts !== newOpts
+  })
+
+  res.json({ added, removed: removed.length, modified })
+})
+
+// POST /:id/claim-update — free re-claim for buyers who own a previous listing of the same quiz
+router.post('/:id/claim-update', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { id, status: 'PUBLISHED' },
+    select: { quizId: true },
+  })
+  if (!listing) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const previousPurchase = await prisma.quizPurchase.findFirst({
+    where: {
+      buyerId: req.userId!,
+      listing: { quizId: listing.quizId },
+      NOT: { listingId: id },
+    },
+  })
+  if (!previousPurchase) {
+    res.status(400).json({ error: 'No previous purchase found for this quiz' })
+    return
+  }
+  const alreadyOwnsThis = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listingId: id },
+  })
+  if (alreadyOwnsThis) {
+    res.json({ ok: true })
+    return
+  }
+  const currentListing = await prisma.marketplaceListing.findUnique({
+    where: { id },
+    select: { versionAtPublish: true },
+  })
+  await prisma.quizPurchase.create({
+    data: {
+      buyerId: req.userId!,
+      listingId: id,
+      amountPaid: 0,
+      versionAtPurchase: currentListing!.versionAtPublish,
+    },
   })
   res.json({ ok: true })
 })

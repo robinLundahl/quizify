@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -57,6 +57,7 @@ interface ListingDetail {
   purchaseCount: number
   reviews: Review[]
   owned: boolean
+  updateAvailable: boolean
   activeRental: { expiresAt: string } | null
 }
 
@@ -160,6 +161,28 @@ export default function MarketplaceListing() {
       qc.invalidateQueries({ queryKey: ['rentals'] })
     },
   })
+
+  const claimUpdate = useMutation({
+    mutationFn: () => api.post(`/marketplace/${id}/claim-update`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['marketplace-listing', id] })
+      qc.invalidateQueries({ queryKey: ['purchases'] })
+    },
+  })
+
+  interface DiffQuestion { id: string; text: string; type: string; answerOptions: { id: string; text: string; isCorrect: boolean }[] }
+  interface DiffResult { added: DiffQuestion[]; removed: number; modified: DiffQuestion[] }
+
+  const [showDiff, setShowDiff] = useState(false)
+
+  const { data: diff, isLoading: diffLoading } = useQuery<DiffResult>({
+    queryKey: ['listing-diff', id],
+    queryFn: () => api.get(`/marketplace/${id}/diff`).then((r) => r.data),
+    enabled: showDiff && !!listing?.updateAvailable && !!user,
+    staleTime: Infinity,
+  })
+
+  const handleToggleDiff = useCallback(() => setShowDiff((v) => !v), [])
 
   function handleShare() {
     navigator.clipboard.writeText(window.location.href).then(() => {
@@ -410,9 +433,84 @@ export default function MarketplaceListing() {
                 </div>
 
                 {/* CTA buttons */}
-                {listing.owned ? (
+                {listing.owned && !listing.updateAvailable ? (
                   <div className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-4 py-3 text-sm font-medium text-green-700 dark:text-green-400 text-center">
                     {t('marketplace.you_own_this')}
+                  </div>
+                ) : listing.updateAvailable ? (
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => claimUpdate.mutate()}
+                      disabled={claimUpdate.isPending || claimUpdate.isSuccess}
+                      className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl px-4 py-3 text-sm font-semibold transition"
+                    >
+                      {claimUpdate.isPending
+                        ? t('marketplace.updating', { defaultValue: 'Updating…' })
+                        : claimUpdate.isSuccess
+                        ? t('marketplace.up_to_date', { defaultValue: 'Up to date' })
+                        : t('marketplace.get_update', { defaultValue: 'Get update' })}
+                    </button>
+
+                    <button
+                      onClick={handleToggleDiff}
+                      className="w-full text-xs text-indigo-600 dark:text-indigo-400 hover:underline py-1"
+                    >
+                      {showDiff
+                        ? t('marketplace.hide_changelog', { defaultValue: 'Hide changelog' })
+                        : t('marketplace.see_whats_new', { defaultValue: "See what's new" })}
+                    </button>
+
+                    {showDiff && (
+                      <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-3 space-y-3 text-xs">
+                        {diffLoading && (
+                          <div className="flex justify-center py-2">
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
+                          </div>
+                        )}
+                        {diff && (
+                          <>
+                            {diff.added.length === 0 && diff.modified.length === 0 && diff.removed === 0 && (
+                              <p className="text-gray-500 dark:text-gray-400 text-center py-1">
+                                {t('marketplace.changelog_no_changes', { defaultValue: 'No question changes detected.' })}
+                              </p>
+                            )}
+                            {diff.added.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-green-700 dark:text-green-400 mb-1.5">
+                                  {t('marketplace.changelog_added', { count: diff.added.length, defaultValue: `${diff.added.length} new question${diff.added.length !== 1 ? 's' : ''}` })}
+                                </p>
+                                <ul className="space-y-1">
+                                  {diff.added.map((q) => (
+                                    <li key={q.id} className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-2.5 py-2 text-gray-700 dark:text-gray-300 leading-snug">
+                                      {q.text}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {diff.modified.length > 0 && (
+                              <div>
+                                <p className="font-semibold text-yellow-700 dark:text-yellow-400 mb-1.5">
+                                  {t('marketplace.changelog_modified', { count: diff.modified.length, defaultValue: `${diff.modified.length} question${diff.modified.length !== 1 ? 's' : ''} updated` })}
+                                </p>
+                                <ul className="space-y-1">
+                                  {diff.modified.map((q) => (
+                                    <li key={q.id} className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 px-2.5 py-2 text-gray-700 dark:text-gray-300 leading-snug">
+                                      {q.text}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {diff.removed > 0 && (
+                              <p className="text-red-600 dark:text-red-400 font-medium">
+                                {t('marketplace.changelog_removed', { count: diff.removed, defaultValue: `${diff.removed} question${diff.removed !== 1 ? 's' : ''} removed` })}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-2">

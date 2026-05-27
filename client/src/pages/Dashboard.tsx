@@ -61,6 +61,7 @@ export default function Dashboard() {
   const [confirmDeleteRental, setConfirmDeleteRental] = useState<{ rentalId: string; title: string } | null>(null)
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null)
   const [publishingQuiz, setPublishingQuiz] = useState<Pick<Quiz, 'id' | 'title' | 'category' | 'language'> | null>(null)
+  const [missingPublishFields, setMissingPublishFields] = useState<string[]>([])
 
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
@@ -183,7 +184,17 @@ export default function Dashboard() {
                           </button>
                         ) : (
                           <button
-                            onClick={() => setPublishingQuiz({ id: quiz.id, title: quiz.title, category: quiz.category, language: quiz.language })}
+                            onClick={() => {
+                              const missing: string[] = []
+                              if (!quiz.title?.trim())       missing.push(t('quiz_editor.title_label'))
+                              if (!quiz.description?.trim()) missing.push(t('quiz_editor.description_label'))
+                              if (!quiz.category)            missing.push(t('quiz_editor.ai_panel_category'))
+                              if (!quiz.language)            missing.push(t('quiz_editor.ai_panel_language'))
+                              if (!quiz.difficulty)          missing.push(t('quiz_editor.ai_panel_difficulty'))
+                              if ((quiz._count?.questions ?? 0) < 5) missing.push(t('quiz_editor.publish_min_questions', { defaultValue: 'At least 5 questions' }))
+                              if (missing.length > 0) { setMissingPublishFields(missing); return }
+                              setPublishingQuiz({ id: quiz.id, title: quiz.title, category: quiz.category, language: quiz.language })
+                            }}
                             title={t('dashboard.publish')}
                             className="rounded-lg p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
                           >
@@ -596,6 +607,29 @@ export default function Dashboard() {
                 {t('plan.got_it')}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {missingPublishFields.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('quiz_editor.publish_missing_title', { defaultValue: 'Complete before publishing' })}</h2>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t('quiz_editor.publish_missing_body', { defaultValue: 'Please fill in the following before publishing:' })}</p>
+            <ul className="mt-3 space-y-1.5">
+              {missingPublishFields.map((field) => (
+                <li key={field} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 shrink-0" />
+                  {field}
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => setMissingPublishFields([])}
+              className="mt-5 w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 transition"
+            >
+              {t('common.ok', { defaultValue: 'OK' })}
+            </button>
           </div>
         </div>
       )}

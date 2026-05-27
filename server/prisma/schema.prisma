@@ -261,8 +261,9 @@ model MarketplaceListing {
   rentalPrice      Int?
   status           ListingStatus @default(DRAFT)
   listingScore     Float         @default(0)
-  versionAtPublish Int
-  themeColor       String?
+  versionAtPublish  Int
+  themeColor        String?
+  contentSnapshot   Json?
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
