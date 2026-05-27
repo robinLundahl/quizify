@@ -198,6 +198,12 @@ export default function JoinView() {
   }, [])
 
   useEffect(() => {
+    const previousTheme = useThemeStore.getState().theme
+    applyTheme('light')
+    return () => applyTheme(previousTheme)
+  }, [])
+
+  useEffect(() => {
     socket.on('player:joined', (data: { sessionId: string; participantId: string; quizTitle: string; hostName: string; hostAvatar: string | null; theme?: string }) => {
       applyTheme(data.theme ?? 'forest')
       localStorage.setItem(PLAYER_SESSION_KEY, data.sessionId)
@@ -396,7 +402,7 @@ export default function JoinView() {
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
               maxLength={6}
-              className="w-full rounded-xl bg-white px-5 py-4 text-center text-2xl font-black uppercase tracking-widest text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full rounded-xl border border-gray-200 dark:border-transparent bg-white px-5 py-4 text-center text-2xl font-black uppercase tracking-widest text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/50"
             />
             <input
               type="text"
@@ -404,13 +410,13 @@ export default function JoinView() {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               maxLength={20}
-              className="w-full rounded-xl bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-white/50"
+              className="w-full rounded-xl border border-gray-200 dark:border-transparent bg-white px-5 py-4 text-center text-lg font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-white/50"
             />
             {(error || errorKey) && <p className="text-center text-sm font-medium text-red-600 dark:text-red-200">{errorKey ? t(errorKey) : error}</p>}
             <button
               type="submit"
               disabled={!code.trim() || !nickname.trim()}
-              className="w-full rounded-xl bg-white py-4 text-lg font-bold text-indigo-600 transition hover:bg-indigo-50 disabled:opacity-40"
+              className="w-full rounded-xl border border-gray-200 dark:border-transparent bg-white py-4 text-lg font-bold text-indigo-600 transition hover:bg-indigo-50 disabled:opacity-40"
             >
               {t('join.join')}
             </button>
