@@ -108,9 +108,9 @@ export default function HostView() {
     const fromLocalStorage = localStorage.getItem(STORAGE_KEY) === sessionId
 
     if (fromDashboardRejoin || fromLocalStorage) {
-      socket.emit('host:rejoin', { sessionId, theme })
+      socket.emit('host:rejoin', { sessionId, theme: useThemeStore.getState().theme })
     } else {
-      socket.emit('host:join', { sessionId, theme })
+      socket.emit('host:join', { sessionId, theme: useThemeStore.getState().theme })
     }
 
     socket.on('host:joined', ({ participants }: { participants: string[] }) => {
