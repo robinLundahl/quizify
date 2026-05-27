@@ -12,6 +12,7 @@ export interface ActiveSession {
   code: string
   status: 'ACTIVE' | 'WAITING'
   quizTitle: string
+  themeColor?: string | null
 }
 
 export interface QuizListing {

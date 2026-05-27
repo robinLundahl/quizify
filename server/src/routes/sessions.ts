@@ -54,7 +54,12 @@ router.get('/active', requireAuth, async (req, res) => {
       id: true,
       code: true,
       status: true,
-      quiz: { select: { title: true } },
+      quiz: {
+        select: {
+          title: true,
+          listings: { where: { themeColor: { not: null } }, select: { themeColor: true }, take: 1 },
+        },
+      },
     },
   })
   res.json(
@@ -63,6 +68,7 @@ router.get('/active', requireAuth, async (req, res) => {
       code: s.code,
       status: s.status,
       quizTitle: s.quiz.title,
+      themeColor: s.quiz.listings[0]?.themeColor ?? null,
     }))
   )
 })

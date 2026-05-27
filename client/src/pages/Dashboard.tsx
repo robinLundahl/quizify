@@ -84,9 +84,9 @@ export default function Dashboard() {
     animationTimer.current = setTimeout(() => setExitingTab(null), 280)
   }
 
-  function handleRejoin(sessionId: string, code: string, status: 'ACTIVE' | 'WAITING') {
+  function handleRejoin(sessionId: string, code: string, status: 'ACTIVE' | 'WAITING', themeColor?: string | null) {
     if (status === 'ACTIVE') localStorage.setItem('quizify_active_host_session', sessionId)
-    navigate(`/host/${sessionId}`, { state: { code, rejoin: true, status } })
+    navigate(`/host/${sessionId}`, { state: { code, rejoin: true, status, themeColor: themeColor ?? null } })
   }
 
   async function handleCreate() {
@@ -505,7 +505,7 @@ export default function Dashboard() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => handleRejoin(s.id, s.code, s.status)} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+                    <button onClick={() => handleRejoin(s.id, s.code, s.status, s.themeColor)} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
                       {t('dashboard.rejoin')}
                     </button>
                     <button onClick={() => deleteSession.mutate(s.id)} disabled={deleteSession.isPending} className="text-sm text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40">
