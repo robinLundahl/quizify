@@ -6,3 +6,4 @@ and will surface any unchecked items to you. Mark done items with [x].
 -->
 
 - [ ] Admin should be able to delete inappropriate reviews on quizzes
+- [ ] Modify publish to marketplace modal. With the colors.

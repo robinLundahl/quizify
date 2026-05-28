@@ -1396,7 +1396,8 @@ const QuizMetaForm = forwardRef<QuizMetaFormHandle, {
             </span>
           )}
         </button>
-        <div className="flex gap-2">
+        <div className="flex flex-col items-end gap-1.5">
+          <div className="flex gap-2">
             {!isPublished && (
               <button
                 onClick={handlePublishClick}
@@ -1408,12 +1409,16 @@ const QuizMetaForm = forwardRef<QuizMetaFormHandle, {
             )}
             <button
               onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
-              disabled={isSaving || !title.trim() || !isDirty}
+              disabled={isSaving || !title.trim() || !isDirty || quiz.questions.length === 0}
               className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
             >
               {isSaving ? t('common.saving') : t('common.save')}
             </button>
           </div>
+          {quiz.questions.length === 0 && (
+            <p className="text-xs text-gray-400 dark:text-gray-500">{t('quiz_editor.save_min_questions')}</p>
+          )}
+        </div>
       </div>
 
       {missingFields.length > 0 && (

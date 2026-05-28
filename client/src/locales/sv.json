@@ -281,6 +281,7 @@
     "ranking_label": "Föremål i rätt ordning (topp = position 1)",
     "add_item": "+ Lägg till föremål",
     "min_items": "Minst 2 föremål krävs",
+    "save_min_questions": "Lägg till minst 1 fråga för att spara",
     "save_question": "Spara fråga",
     "new_question": "Ny fråga",
     "questions_count": "Frågor ({{count}})",

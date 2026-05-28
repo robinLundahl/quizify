@@ -281,6 +281,7 @@
     "ranking_label": "Items in correct order (top = position 1)",
     "add_item": "+ Add item",
     "min_items": "At least 2 items required",
+    "save_min_questions": "Add at least 1 question to save",
     "save_question": "Save question",
     "new_question": "New question",
     "questions_count": "Questions ({{count}})",
