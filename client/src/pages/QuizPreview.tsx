@@ -2,9 +2,18 @@ import { useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
+import L from 'leaflet'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
 import UpdateModal from '../components/ui/UpdateModal'
+
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+})
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -135,14 +144,47 @@ function QuestionCard({ question, index }: { question: Question; index: number }
 
           {/* Map question */}
           {question.mapQuestion && (
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              📍 {question.mapQuestion.lat.toFixed(4)}, {question.mapQuestion.lng.toFixed(4)}
-              {question.mapQuestion.rings.length > 0 && (
-                <span className="ml-2">
-                  · {question.mapQuestion.rings.map(r => `${r.radiusKm} km → ${r.points} pts`).join(', ')}
-                </span>
-              )}
-            </p>
+            <div>
+              <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700" style={{ height: 200 }}>
+                <MapContainer
+                  center={[question.mapQuestion.lat, question.mapQuestion.lng]}
+                  zoom={6}
+                  style={{ height: '100%', width: '100%' }}
+                  scrollWheelZoom={false}
+                  dragging={false}
+                  zoomControl={false}
+                  doubleClickZoom={false}
+                  keyboard={false}
+                  touchZoom={false}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  {[...question.mapQuestion.rings]
+                    .sort((a, b) => b.radiusKm - a.radiusKm)
+                    .map((r, i, arr) => {
+                      const colorIndex = arr.length - 1 - i
+                      const fillOpacity = arr.length === 1 ? 0.35 : 0.40 - (colorIndex / (arr.length - 1)) * 0.32
+                      return (
+                        <Circle
+                          key={r.id}
+                          center={[question.mapQuestion!.lat, question.mapQuestion!.lng]}
+                          radius={r.radiusKm * 1000}
+                          pathOptions={{ fillColor: '#dc2626', fillOpacity, color: '#dc2626', weight: 1.5, opacity: Math.min(fillOpacity + 0.25, 0.75) }}
+                        />
+                      )
+                    })}
+                  <Marker position={[question.mapQuestion.lat, question.mapQuestion.lng]} />
+                </MapContainer>
+              </div>
+              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                {question.mapQuestion.lat.toFixed(4)}, {question.mapQuestion.lng.toFixed(4)}
+                {question.mapQuestion.rings.length > 0 && (
+                  <span className="ml-2">· {question.mapQuestion.rings.map(r => `${r.radiusKm} km → ${r.points} pts`).join(', ')}</span>
+                )}
+              </p>
+            </div>
           )}
 
           {/* Audio */}
