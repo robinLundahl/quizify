@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
+import UpdateModal from '../components/ui/UpdateModal'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,12 +162,23 @@ export default function QuizPreview() {
   const { t } = useTranslation()
   const location = useLocation()
   const fromTab = (location.state as { fromTab?: string } | null)?.fromTab
+  const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const qc = useQueryClient()
 
   const { data: quiz, isLoading, isError } = useQuery<QuizFull>({
     queryKey: ['quiz-preview', listingId],
     queryFn: () => api.get(`/marketplace/${listingId}/quiz`).then((r) => r.data),
     enabled: !!listingId,
   })
+
+  const { data: listingMeta } = useQuery<{ updateAvailable: boolean }>({
+    queryKey: ['listing-meta', listingId],
+    queryFn: () => api.get(`/marketplace/${listingId}`).then((r) => r.data),
+    enabled: !!listingId,
+    staleTime: 30_000,
+  })
+
+  const updateAvailable = listingMeta?.updateAvailable === true
 
   const difficultyColor: Record<string, string> = {
     easy:   'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -178,9 +191,20 @@ export default function QuizPreview() {
       <NavBar />
 
       <main className="mx-auto max-w-3xl px-4 sm:px-6 py-8">
-        <Link to="/dashboard" state={fromTab ? { tab: fromTab } : undefined} className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block">
-          ← {t('quiz_editor.back_to_dashboard')}
-        </Link>
+        <div className="flex items-center gap-3 mb-6">
+          <Link to="/dashboard" state={fromTab ? { tab: fromTab } : undefined} className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors">
+            ← {t('quiz_editor.back_to_dashboard')}
+          </Link>
+          {updateAvailable && (
+            <button
+              onClick={() => setUpdateModalOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 border border-amber-200 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-200 transition-colors"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+              {t('dashboard.update_available')}
+            </button>
+          )}
+        </div>
 
         {isLoading && (
           <div className="flex justify-center py-24">
@@ -234,6 +258,18 @@ export default function QuizPreview() {
           </div>
         )}
       </main>
+
+      {updateModalOpen && listingId && (
+        <UpdateModal
+          listingId={listingId}
+          title={quiz?.title ?? ''}
+          onClose={() => setUpdateModalOpen(false)}
+          onSuccess={() => {
+            qc.invalidateQueries({ queryKey: ['quiz-preview', listingId] })
+            qc.invalidateQueries({ queryKey: ['listing-meta', listingId] })
+          }}
+        />
+      )}
     </div>
   )
 }

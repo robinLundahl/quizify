@@ -72,7 +72,7 @@ router.post('/upload-image', upload.single('image'), async (req, res) => {
 
 router.get('/', async (req, res) => {
   const quizzes = await prisma.quiz.findMany({
-    where: { ownerId: req.userId! },
+    where: { ownerId: req.userId!, deletedAt: null },
     orderBy: { updatedAt: 'desc' },
     include: {
       _count: { select: { questions: true } },
@@ -101,7 +101,7 @@ router.post('/', async (req, res) => {
   }
   const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
   if (user?.plan === 'FREE') {
-    const count = await prisma.quiz.count({ where: { ownerId: req.userId! } })
+    const count = await prisma.quiz.count({ where: { ownerId: req.userId!, deletedAt: null } })
     if (count >= FREE_QUIZ_LIMIT) {
       res.status(403).json({ error: 'Free plan is limited to 1 quiz. Upgrade to Pro to create more.' })
       return
@@ -115,7 +115,7 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   const quiz = await prisma.quiz.findFirst({
-    where: { id: req.params.id, ownerId: req.userId! },
+    where: { id: req.params.id, ownerId: req.userId!, deletedAt: null },
     include: {
       questions: {
         orderBy: { order: 'asc' },
@@ -140,7 +140,7 @@ router.put('/:id', async (req, res) => {
     title?: string; description?: string
     category?: string; language?: string; difficulty?: string
   }
-  const exists = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  const exists = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId!, deletedAt: null } })
   if (!exists) {
     res.status(404).json({ error: 'Not found' })
     return
@@ -159,17 +159,39 @@ router.put('/:id', async (req, res) => {
 })
 
 router.delete('/:id', async (req, res) => {
-  const exists = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
-  if (!exists) {
+  const quiz = await prisma.quiz.findFirst({
+    where: { id: req.params.id, ownerId: req.userId!, deletedAt: null },
+    select: { id: true },
+  })
+  if (!quiz) {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  await prisma.quiz.delete({ where: { id: req.params.id } })
+
+  // If there is a published listing, soft-delete so buyers keep snapshot access.
+  // Otherwise hard-delete (quiz with no purchases can cascade cleanly).
+  const publishedListing = await prisma.marketplaceListing.findFirst({
+    where: { quizId: req.params.id, status: 'PUBLISHED' },
+    select: { id: true },
+  })
+
+  if (publishedListing) {
+    await prisma.$transaction([
+      prisma.quiz.update({ where: { id: req.params.id }, data: { deletedAt: new Date() } }),
+      prisma.marketplaceListing.updateMany({
+        where: { quizId: req.params.id },
+        data: { status: 'UNPUBLISHED' },
+      }),
+    ])
+  } else {
+    await prisma.quiz.delete({ where: { id: req.params.id } })
+  }
+
   res.status(204).send()
 })
 
 router.post('/:id/questions', async (req, res) => {
-  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId!, deletedAt: null } })
   if (!quiz) {
     res.status(404).json({ error: 'Not found' })
     return
@@ -204,7 +226,7 @@ router.post('/:id/questions', async (req, res) => {
 })
 
 router.patch('/:id/questions/reorder', async (req, res) => {
-  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId!, deletedAt: null } })
   if (!quiz) {
     res.status(404).json({ error: 'Not found' })
     return
@@ -222,7 +244,7 @@ router.patch('/:id/questions/reorder', async (req, res) => {
 
 router.put('/:id/questions/:qid', async (req, res) => {
   const question = await prisma.question.findFirst({
-    where: { id: req.params.qid, quiz: { id: req.params.id, ownerId: req.userId! } },
+    where: { id: req.params.qid, quiz: { id: req.params.id, ownerId: req.userId!, deletedAt: null } },
   })
   if (!question) {
     res.status(404).json({ error: 'Not found' })
@@ -265,7 +287,7 @@ router.put('/:id/questions/:qid', async (req, res) => {
 
 router.delete('/:id/questions/:qid', async (req, res) => {
   const question = await prisma.question.findFirst({
-    where: { id: req.params.qid, quiz: { id: req.params.id, ownerId: req.userId! } },
+    where: { id: req.params.qid, quiz: { id: req.params.id, ownerId: req.userId!, deletedAt: null } },
   })
   if (!question) {
     res.status(404).json({ error: 'Not found' })
@@ -276,7 +298,7 @@ router.delete('/:id/questions/:qid', async (req, res) => {
 })
 
 router.post('/:id/generate', async (req, res) => {
-  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId! } })
+  const quiz = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId!, deletedAt: null } })
   if (!quiz) {
     res.status(404).json({ error: 'Not found' })
     return

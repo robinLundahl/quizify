@@ -18,29 +18,43 @@ async function generateUniqueCode(): Promise<string> {
 }
 
 router.post('/', requireAuth, async (req, res) => {
-  const { quizId } = req.body as { quizId?: string }
+  const { quizId, listingId } = req.body as { quizId?: string; listingId?: string }
   if (!quizId) return res.status(400).json({ error: 'quizId required' })
 
   // Allow hosting if user owns the quiz, has purchased it, or has an active rental
   const quiz = await prisma.quiz.findUnique({ where: { id: quizId } })
   if (!quiz) return res.status(404).json({ error: 'Quiz not found' })
 
-  if (quiz.ownerId !== req.userId) {
-    const listingIds = await prisma.marketplaceListing
-      .findMany({ where: { quizId }, select: { id: true } })
-      .then((rows) => rows.map((r) => r.id))
-    if (listingIds.length === 0) return res.status(403).json({ error: 'Forbidden' })
+  let resolvedListingId: string | null = null
 
-    const [purchase, rental] = await Promise.all([
-      prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: { in: listingIds } } }),
-      prisma.quizRental.findFirst({ where: { userId: req.userId!, listingId: { in: listingIds }, expiresAt: { gt: new Date() } } }),
-    ])
-    if (!purchase && !rental) return res.status(403).json({ error: 'Forbidden' })
+  if (quiz.ownerId !== req.userId) {
+    if (listingId) {
+      // Caller specified which listing they're hosting from — verify they own it
+      const [purchase, rental] = await Promise.all([
+        prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId } }),
+        prisma.quizRental.findFirst({ where: { userId: req.userId!, listingId, expiresAt: { gt: new Date() } } }),
+      ])
+      if (!purchase && !rental) return res.status(403).json({ error: 'Forbidden' })
+      resolvedListingId = listingId
+    } else {
+      // Fallback: accept any listing for this quiz (backward compat for callers without listingId)
+      const listingIds = await prisma.marketplaceListing
+        .findMany({ where: { quizId }, select: { id: true } })
+        .then((rows) => rows.map((r) => r.id))
+      if (listingIds.length === 0) return res.status(403).json({ error: 'Forbidden' })
+
+      const [purchase, rental] = await Promise.all([
+        prisma.quizPurchase.findFirst({ where: { buyerId: req.userId!, listingId: { in: listingIds } } }),
+        prisma.quizRental.findFirst({ where: { userId: req.userId!, listingId: { in: listingIds }, expiresAt: { gt: new Date() } } }),
+      ])
+      if (!purchase && !rental) return res.status(403).json({ error: 'Forbidden' })
+      resolvedListingId = purchase?.listingId ?? rental?.listingId ?? null
+    }
   }
 
   const code = await generateUniqueCode()
   const session = await prisma.gameSession.create({
-    data: { quizId, hostId: req.userId!, code },
+    data: { quizId, hostId: req.userId!, code, listingId: resolvedListingId },
   })
 
   res.json({ code: session.code, sessionId: session.id })

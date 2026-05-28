@@ -4,18 +4,20 @@ import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import {
   useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession,
-  useActiveSessions, useUnpublishListing, usePurchases, useRentals,
+  useActiveSessions, usePurchases, useRentals,
   useDeletePurchase, useDeleteRental,
   type Quiz,
 } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
 import PublishModal from '../components/ui/PublishModal'
+import UpdateModal from '../components/ui/UpdateModal'
 import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Tab = 'quizzes' | 'purchased' | 'rentals' | 'earnings'
+
 
 const TAB_ORDER: readonly Tab[] = ['quizzes', 'purchased', 'rentals', 'earnings']
 
@@ -41,7 +43,6 @@ export default function Dashboard() {
   const createQuiz = useCreateQuiz()
   const deleteQuiz = useDeleteQuiz()
   const deleteSession = useDeleteSession()
-  const unpublishListing = useUnpublishListing()
   const deletePurchase = useDeletePurchase()
   const deleteRental = useDeleteRental()
 
@@ -55,13 +56,15 @@ export default function Dashboard() {
 
   const [hostingId, setHostingId] = useState<string | null>(null)
   const [hostError, setHostError] = useState<string | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null)
-  const [confirmUnpublish, setConfirmUnpublish] = useState<{ listingId: string; title: string } | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string; isPublished: boolean } | null>(null)
   const [confirmDeletePurchase, setConfirmDeletePurchase] = useState<{ purchaseId: string; title: string } | null>(null)
   const [confirmDeleteRental, setConfirmDeleteRental] = useState<{ rentalId: string; title: string } | null>(null)
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null)
   const [publishingQuiz, setPublishingQuiz] = useState<Pick<Quiz, 'id' | 'title' | 'category' | 'language'> | null>(null)
   const [missingPublishFields, setMissingPublishFields] = useState<string[]>([])
+  const [updateModal, setUpdateModal] = useState<{ listingId: string; title: string } | null>(
+    (location.state as { openUpdateModal?: { listingId: string; title: string } } | null)?.openUpdateModal ?? null
+  )
 
   const theme = useThemeStore((s) => s.theme)
   const setTheme = useThemeStore((s) => s.setTheme)
@@ -107,11 +110,13 @@ export default function Dashboard() {
     setTheme(value as Parameters<typeof setTheme>[0])
   }
 
-  async function handleHost(quizId: string, themeColor?: string | null) {
+  async function handleHost(quizId: string, themeColor?: string | null, listingId?: string) {
     setHostingId(quizId)
     setHostError(null)
     try {
-      const res = await api.post<{ sessionId: string; code: string }>('/sessions', { quizId })
+      const body: Record<string, string> = { quizId }
+      if (listingId) body.listingId = listingId
+      const res = await api.post<{ sessionId: string; code: string }>('/sessions', body)
       navigate(`/host/${res.data.sessionId}`, { state: { code: res.data.code, themeColor: themeColor ?? null } })
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error
@@ -171,18 +176,7 @@ export default function Dashboard() {
                         </p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        {isPublished ? (
-                          <button
-                            onClick={() => setConfirmUnpublish({ listingId: listing!.id, title: quiz.title })}
-                            title={t('dashboard.unpublish')}
-                            className="rounded-lg p-1.5 text-green-500 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-                              <path d="M8.75 2.75a.75.75 0 0 0-1.5 0v5.69L5.03 6.22a.75.75 0 0 0-1.06 1.06l3.5 3.5a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 0 0-1.06-1.06L8.75 8.44V2.75Z" />
-                              <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
-                            </svg>
-                          </button>
-                        ) : (
+                        {!isPublished && (
                           <button
                             onClick={() => {
                               const missing: string[] = []
@@ -214,7 +208,7 @@ export default function Dashboard() {
                           </svg>
                         </button>
                         <button
-                          onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title })}
+                          onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title, isPublished })}
                           title={t('common.delete')}
                           className="rounded-lg p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
@@ -276,7 +270,7 @@ export default function Dashboard() {
         {purchases && purchases.length > 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {purchases.map((p) => {
-              const hasUpdate = p.listing.versionAtPublish > p.versionAtPurchase
+              const hasUpdate = p.listing.status === 'PUBLISHED' && p.listing.versionAtPublish > p.versionAtPurchase
               return (
                 <div
                   key={p.purchaseId}
@@ -290,9 +284,12 @@ export default function Dashboard() {
                       </Link>
                       <div className="flex items-center gap-1 shrink-0">
                         {hasUpdate && (
-                          <span className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                          <button
+                            onClick={() => setUpdateModal({ listingId: p.listing.id, title: p.listing.quiz.title })}
+                            className="rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
+                          >
                             {t('dashboard.update_available')}
-                          </span>
+                          </button>
                         )}
                         <button
                           onClick={() => setConfirmDeletePurchase({ purchaseId: p.purchaseId, title: p.listing.quiz.title })}
@@ -322,7 +319,7 @@ export default function Dashboard() {
                       <span>{new Date(p.purchaseDate).toLocaleDateString()}</span>
                     </div>
                     <button
-                      onClick={() => handleHost(p.listing.quiz.id, p.listing.themeColor)}
+                      onClick={() => handleHost(p.listing.quiz.id, p.listing.themeColor, p.listing.id)}
                       disabled={hostingId === p.listing.quiz.id}
                       className="w-full rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                     >
@@ -421,7 +418,7 @@ export default function Dashboard() {
                     </div>
                     {!r.isExpired && (
                       <button
-                        onClick={() => handleHost(r.listing.quiz.id, r.listing.themeColor)}
+                        onClick={() => handleHost(r.listing.quiz.id, r.listing.themeColor, r.listing.id)}
                         disabled={hostingId === r.listing.quiz.id}
                         className="w-full rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
                       >
@@ -645,32 +642,15 @@ export default function Dashboard() {
         />
       )}
 
-      {confirmUnpublish && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.unpublish_title')}</h2>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('dashboard.unpublish_body', { title: confirmUnpublish.title })}</p>
-            <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setConfirmUnpublish(null)} disabled={unpublishListing.isPending} className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
-                {t('common.cancel')}
-              </button>
-              <button
-                onClick={() => unpublishListing.mutate(confirmUnpublish.listingId, { onSettled: () => setConfirmUnpublish(null) })}
-                disabled={unpublishListing.isPending}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:opacity-50"
-              >
-                {unpublishListing.isPending ? t('common.loading') : t('dashboard.unpublish')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
             <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('dashboard.delete_quiz_title')}</h2>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('dashboard.delete_quiz_body', { title: confirmDelete.title })}</p>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              {confirmDelete.isPublished
+                ? t('dashboard.delete_published_quiz_body', { defaultValue: 'This will permanently remove your quiz from the marketplace and dashboard. This cannot be undone.' })
+                : t('dashboard.delete_quiz_body', { title: confirmDelete.title })}
+            </p>
             <div className="mt-6 flex justify-end gap-3">
               <button onClick={() => setConfirmDelete(null)} disabled={deleteQuiz.isPending} className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50">
                 {t('common.cancel')}
@@ -727,6 +707,14 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {updateModal && (
+        <UpdateModal
+          listingId={updateModal.listingId}
+          title={updateModal.title}
+          onClose={() => setUpdateModal(null)}
+        />
       )}
     </div>
   )

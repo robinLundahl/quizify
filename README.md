@@ -427,6 +427,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── passport.ts
 │   │   │   ├── planLimits.ts
 │   │   │   ├── prisma.ts
+│   │   │   ├── snapshotUtils.ts
 │   │   │   └── supabase.ts
 │   │   ├── middleware/
 │   │   │   ├── requireAdmin.ts

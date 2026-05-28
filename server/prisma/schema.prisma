@@ -96,15 +96,16 @@ model EmailVerification {
 // ─── Quiz & Questions ─────────────────────────────────────────────────────────
 
 model Quiz {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   description String?
   category    String?
   language    String?
   difficulty  String?
   ownerId     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   questions Question[]
@@ -212,13 +213,15 @@ model GameSession {
   id         String        @id @default(cuid())
   quizId     String
   hostId     String
+  listingId  String?
   code       String        @unique
   status     SessionStatus @default(WAITING)
   createdAt  DateTime      @default(now())
   finishedAt DateTime?
 
-  quiz         Quiz          @relation(fields: [quizId], references: [id])
-  host         User          @relation(fields: [hostId], references: [id])
+  quiz         Quiz                @relation(fields: [quizId], references: [id])
+  host         User                @relation(fields: [hostId], references: [id])
+  listing      MarketplaceListing? @relation(fields: [listingId], references: [id])
   participants Participant[]
 }
 
@@ -273,6 +276,7 @@ model MarketplaceListing {
   rentals        QuizRental[]
   discountOffers DiscountOffer[]
   reports        ListingReport[]
+  gameSessions   GameSession[]
 }
 
 
@@ -283,6 +287,7 @@ model QuizPurchase {
   purchaseDate      DateTime @default(now())
   amountPaid        Int
   versionAtPurchase Int
+  customSnapshot    Json?
 
   buyer   User               @relation(fields: [buyerId], references: [id])
   listing MarketplaceListing @relation(fields: [listingId], references: [id])

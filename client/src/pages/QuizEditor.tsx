@@ -203,6 +203,35 @@ function formToPayload(form: FormState, order: number): QuestionPayload {
   return base
 }
 
+function serializeQuestions(questions: Question[]): string {
+  return JSON.stringify(
+    questions.map((q) => ({
+      id: q.id,
+      type: q.type,
+      text: q.text,
+      imageUrl: q.imageUrl ?? null,
+      timeLimit: q.timeLimit,
+      useTimer: q.useTimer,
+      points: q.points,
+      correctAnswers: [...(q.correctAnswers ?? [])].sort(),
+      answerOptions: q.answerOptions.map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
+      mapQuestion: q.mapQuestion
+        ? {
+            lat: q.mapQuestion.lat,
+            lng: q.mapQuestion.lng,
+            rings: [...q.mapQuestion.rings]
+              .sort((a, b) => a.order - b.order)
+              .map((r) => ({ radiusKm: r.radiusKm, points: r.points })),
+          }
+        : null,
+      audioQuestion: q.audioQuestion ? { url: q.audioQuestion.url } : null,
+      rankingItems: [...(q.rankingItems ?? [])]
+        .sort((a, b) => a.correctPosition - b.correctPosition)
+        .map((r) => ({ label: r.label, correctPosition: r.correctPosition })),
+    }))
+  )
+}
+
 // ─── Map Picker ────────────────────────────────────────────────────────────────
 
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -879,7 +908,9 @@ function QuestionCard({
   })
 
   function handleSave(payload: QuestionPayload) {
-    updateQuestion.mutate({ qid: question.id, ...payload }, { onSuccess: onClose })
+    updateQuestion.mutate({ qid: question.id, ...payload }, {
+      onSuccess: () => onClose(),
+    })
   }
 
   return (
@@ -996,7 +1027,9 @@ function QuestionCard({
                 {t('common.cancel')}
               </button>
               <button
-                onClick={() => deleteQuestion.mutate(question.id, { onSettled: () => setConfirmDelete(false) })}
+                onClick={() => deleteQuestion.mutate(question.id, {
+                onSettled: () => setConfirmDelete(false),
+              })}
                 disabled={deleteQuestion.isPending}
                 className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
               >
@@ -1022,7 +1055,7 @@ function AddQuestionCard({ quizId, order, onClose }: { quizId: string; order: nu
       <QuestionForm
         initial={blankForm()}
         order={order}
-        onSave={(payload) => addQuestion.mutate(payload, { onSuccess: onClose })}
+        onSave={(payload) => addQuestion.mutate(payload, { onSuccess: () => onClose() })}
         onCancel={onClose}
         isSaving={addQuestion.isPending}
       />
@@ -1080,12 +1113,14 @@ const AI_LANGUAGES = [
 function QuizMetaForm({
   quiz,
   isPublished,
+  questionsAreDirty,
   onSave,
   onPublish,
   isSaving,
 }: {
   quiz: QuizWithQuestions
   isPublished: boolean
+  questionsAreDirty: boolean
   onSave: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   onPublish: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   isSaving: boolean
@@ -1106,6 +1141,15 @@ function QuizMetaForm({
   const [topic, setTopic] = useState('')
   const [count, setCount] = useState(10)
   const [withImage, setWithImage] = useState(false)
+
+  const metaIsDirty =
+    title !== quiz.title ||
+    description !== (quiz.description ?? '') ||
+    quizCategory !== (quiz.category ?? '') ||
+    quizLanguage !== (quiz.language ?? '') ||
+    quizDifficulty !== (quiz.difficulty ?? '')
+
+  const isDirty = metaIsDirty || questionsAreDirty
 
   const user = useAuthStore((s) => s.user)
   const isPro = user?.plan === 'PRO'
@@ -1301,7 +1345,7 @@ function QuizMetaForm({
             )}
             <button
               onClick={() => onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)}
-              disabled={isSaving || !title.trim()}
+              disabled={isSaving || !title.trim() || !isDirty}
               className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
             >
               {isSaving ? t('common.saving') : t('common.save')}
@@ -1351,6 +1395,18 @@ export default function QuizEditor() {
   const [addingQuestion, setAddingQuestion] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
   const [showApplyModal, setShowApplyModal] = useState(false)
+
+  const [initialQuestionsSnapshot, setInitialQuestionsSnapshot] = useState<string | null>(null)
+  // Capture the first loaded state as the baseline for dirty detection.
+  // Render-phase setState is valid here: React re-runs render immediately with the new
+  // state and the condition becomes false, preventing any loop.
+  if (initialQuestionsSnapshot === null && quiz) {
+    setInitialQuestionsSnapshot(serializeQuestions(quiz.questions))
+  }
+
+  const questionsAreDirty =
+    !!quiz && !!initialQuestionsSnapshot &&
+    serializeQuestions(quiz.questions) !== initialQuestionsSnapshot
 
   const isPublished = listing?.status === 'PUBLISHED'
 
@@ -1425,6 +1481,7 @@ export default function QuizEditor() {
           key={quiz.id}
           quiz={quiz}
           isPublished={isPublished}
+          questionsAreDirty={questionsAreDirty}
           onSave={handleSave}
           onPublish={handlePublish}
           isSaving={updateQuiz.isPending}
@@ -1479,10 +1536,18 @@ export default function QuizEditor() {
       {/* Apply-to-marketplace modal */}
       {showApplyModal && listing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('publish_modal.apply_title')}</h2>
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl relative">
+            <button
+              onClick={() => setShowApplyModal(false)}
+              className="absolute top-3 right-3 rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100 pr-6">{t('publish_modal.apply_title')}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('publish_modal.apply_body')}</p>
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex justify-center gap-3">
               <button
                 onClick={() => navigate('/dashboard')}
                 disabled={bumpVersion.isPending}

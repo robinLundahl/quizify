@@ -1,5 +1,6 @@
 import type { Server, Socket } from 'socket.io'
 import { prisma } from '../lib/prisma.js'
+import { getVersionedSnapshot, parseCustomSnapshot } from '../lib/snapshotUtils.js'
 
 interface QuestionData {
   id: string
@@ -308,13 +309,31 @@ export function registerGameHandlers(io: Server, socket: Socket) {
     if (socket.data.userId == null || session.hostId !== socket.data.userId) return
     if (session.quiz.questions.length === 0) return
 
+    // For buyer-hosted sessions, load questions from the versioned snapshot so the host
+    // plays the content they purchased, not the live quiz that may have been edited since.
+    let questions: QuestionData[] = session.quiz.questions as QuestionData[]
+    if (session.listingId) {
+      const purchase = await prisma.quizPurchase.findFirst({
+        where: { buyerId: session.hostId, listingId: session.listingId },
+        select: { versionAtPurchase: true, customSnapshot: true, listing: { select: { contentSnapshot: true } } },
+      })
+      if (purchase) {
+        const snapshot =
+          parseCustomSnapshot(purchase.customSnapshot) ??
+          getVersionedSnapshot(purchase.listing.contentSnapshot, purchase.versionAtPurchase)
+        if (snapshot && snapshot.questions.length > 0) {
+          questions = snapshot.questions as unknown as QuestionData[]
+        }
+      }
+    }
+
     await prisma.gameSession.update({
       where: { id: sessionId },
       data: { status: 'ACTIVE' },
     })
 
     const state: SessionState = {
-      questions: session.quiz.questions as QuestionData[],
+      questions,
       currentIndex: 0,
       questionStartedAt: 0,
       questionEnded: false,

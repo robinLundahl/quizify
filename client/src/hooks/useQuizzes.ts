@@ -30,6 +30,7 @@ export interface PurchasedQuiz {
   versionAtPurchase: number
   listing: {
     id: string
+    status: string
     versionAtPublish: number
     themeColor: string | null
     quiz: { id: string; title: string; description: string | null; category: string | null; sessions: QuizSession[] }
@@ -328,19 +329,6 @@ export function usePublishQuiz() {
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['quizzes'] })
       qc.invalidateQueries({ queryKey: ['my-listing', variables.quizId] })
-    },
-  })
-}
-
-export function useUnpublishListing() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (listingId: string) => {
-      await api.post(`/marketplace/${listingId}/unpublish`)
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['quizzes'] })
-      qc.invalidateQueries({ queryKey: ['my-listing'] })
     },
   })
 }
