@@ -1673,7 +1673,14 @@ export default function QuizEditor() {
       {/* Leave with unsaved changes */}
       {showLeaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+          <div className="relative mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <button
+              onClick={() => { setShowLeaveModal(false); pendingLeaveAction.current = null }}
+              className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              aria-label="Close"
+            >
+              ✕
+            </button>
             <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('quiz_editor.unsaved_title', { defaultValue: 'You have unsaved changes' })}</h2>
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('quiz_editor.unsaved_body', { defaultValue: 'Do you want to save before leaving?' })}</p>
             <div className="mt-6 flex justify-end gap-3">
