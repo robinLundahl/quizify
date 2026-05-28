@@ -398,6 +398,7 @@ router.get('/:id', async (req, res) => {
     reviews: listing.purchases
       .filter((p) => p.review)
       .map((p) => ({
+        id: p.review!.id,
         rating: p.review!.rating,
         body: p.review!.body,
         createdAt: p.review!.createdAt,

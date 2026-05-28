@@ -6,6 +6,7 @@ import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
 import ReviewModal from '../components/ui/ReviewModal'
 import { useAuth } from '../hooks/useAuth'
+import { useAuthStore } from '../store/authStore'
 
 const IS_DEV = import.meta.env.DEV
 
@@ -20,6 +21,7 @@ interface PreviewQuestion {
 }
 
 interface Review {
+  id: string
   rating: number
   body: string | null
   createdAt: string
@@ -135,6 +137,7 @@ function QuestionPreviewCard({ question, index }: { question: PreviewQuestion; i
 export default function MarketplaceListing() {
   const { id } = useParams<{ id: string }>()
   const { user } = useAuth()
+  const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false)
   const navigate = useNavigate()
   const { t } = useTranslation()
   const [displayCurrency, setDisplayCurrency] = useState('USD')
@@ -171,6 +174,11 @@ export default function MarketplaceListing() {
       qc.invalidateQueries({ queryKey: ['marketplace-listing', id] })
       qc.invalidateQueries({ queryKey: ['purchases'] })
     },
+  })
+
+  const deleteReview = useMutation({
+    mutationFn: (reviewId: string) => api.delete(`/admin/reviews/${reviewId}`),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['marketplace-listing', id] }),
   })
 
   const [showReviewModal, setShowReviewModal] = useState(false)
@@ -425,6 +433,21 @@ export default function MarketplaceListing() {
                           <span className="ml-auto text-xs text-gray-400 dark:text-gray-500">
                             {new Date(review.createdAt).toLocaleDateString()}
                           </span>
+                          {isAdmin && (
+                            <button
+                              onClick={() => deleteReview.mutate(review.id)}
+                              disabled={deleteReview.isPending}
+                              className="ml-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                              title="Delete review (admin)"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
                         {review.body && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">{review.body}</p>

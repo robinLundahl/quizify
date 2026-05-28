@@ -56,4 +56,14 @@ router.delete('/users/:id', async (req, res) => {
   res.json({ ok: true })
 })
 
+router.delete('/reviews/:id', async (req, res) => {
+  const review = await prisma.marketplaceReview.findUnique({ where: { id: req.params.id }, select: { id: true } })
+  if (!review) {
+    res.status(404).json({ error: 'Review not found' })
+    return
+  }
+  await prisma.marketplaceReview.delete({ where: { id: review.id } })
+  res.json({ ok: true })
+})
+
 export default router
