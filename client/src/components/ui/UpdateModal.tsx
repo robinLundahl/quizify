@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
+import L from 'leaflet'
 import api from '../../lib/api'
+
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+})
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -36,6 +45,42 @@ interface Props {
   title: string
   onClose: () => void
   onSuccess?: () => void
+}
+
+// ─── Mini map ─────────────────────────────────────────────────────────────────
+
+function MiniMap({
+  lat, lng, rings, borderClass = 'border-gray-200',
+}: {
+  lat: number; lng: number
+  rings: { radiusKm: number; points: number }[]
+  borderClass?: string
+}) {
+  return (
+    <div className={`overflow-hidden rounded-xl border mt-2.5 ${borderClass}`} style={{ height: 140 }}>
+      <MapContainer
+        center={[lat, lng]} zoom={6}
+        style={{ height: '100%', width: '100%' }}
+        scrollWheelZoom={false} dragging={false} zoomControl={false}
+        doubleClickZoom={false} keyboard={false} touchZoom={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {[...rings].sort((a, b) => b.radiusKm - a.radiusKm).map((r, i, arr) => {
+          const colorIndex = arr.length - 1 - i
+          const fillOpacity = arr.length === 1 ? 0.35 : 0.40 - (colorIndex / (arr.length - 1)) * 0.32
+          return (
+            <Circle key={i} center={[lat, lng]} radius={r.radiusKm * 1000}
+              pathOptions={{ fillColor: '#dc2626', fillOpacity, color: '#dc2626', weight: 1.5, opacity: Math.min(fillOpacity + 0.25, 0.75) }}
+            />
+          )
+        })}
+        <Marker position={[lat, lng]} />
+      </MapContainer>
+    </div>
+  )
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -237,6 +282,9 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                         ))}
                       </div>
                     )}
+                    {q.mapQuestion && (
+                      <MiniMap lat={q.mapQuestion.lat} lng={q.mapQuestion.lng} rings={q.mapQuestion.rings} />
+                    )}
                   </div>
                 </div>
               )
@@ -266,6 +314,9 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                           <div key={i} className="rounded-lg px-3 py-2 text-xs bg-gray-50 border border-gray-100 text-gray-400 line-through">{opt.text}</div>
                         ))}
                       </div>
+                    )}
+                    {q.mapQuestion && (
+                      <MiniMap lat={q.mapQuestion.lat} lng={q.mapQuestion.lng} rings={q.mapQuestion.rings} />
                     )}
                   </div>
                 </div>
@@ -311,6 +362,12 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                           ))}
                         </div>
                       )}
+                      {m.before.mapQuestion && (
+                        <>
+                          <MiniMap lat={m.before.mapQuestion.lat} lng={m.before.mapQuestion.lng} rings={m.before.mapQuestion.rings} borderClass="border-red-200" />
+                          <p className="mt-1 text-[10px] text-red-400/70">{m.before.mapQuestion.lat.toFixed(4)}, {m.before.mapQuestion.lng.toFixed(4)}</p>
+                        </>
+                      )}
                     </div>
                     <div className="flex justify-center">
                       <div className="h-7 w-7 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm">
@@ -340,6 +397,12 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                             </div>
                           ))}
                         </div>
+                      )}
+                      {m.after.mapQuestion && (
+                        <>
+                          <MiniMap lat={m.after.mapQuestion.lat} lng={m.after.mapQuestion.lng} rings={m.after.mapQuestion.rings} borderClass="border-green-200" />
+                          <p className="mt-1 text-[10px] text-green-600/70">{m.after.mapQuestion.lat.toFixed(4)}, {m.after.mapQuestion.lng.toFixed(4)}</p>
+                        </>
                       )}
                     </div>
                   </div>
