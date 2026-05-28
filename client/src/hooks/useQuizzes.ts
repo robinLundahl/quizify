@@ -277,6 +277,7 @@ export interface SessionResults {
   finishedAt: string | null
   leaderboard: { rank: number; nickname: string; score: number }[]
   questions: QuestionResult[]
+  reviewPrompt: { listingId: string } | null
 }
 
 export function useDeleteSession() {

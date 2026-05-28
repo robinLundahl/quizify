@@ -71,6 +71,13 @@
     "preview_locked": "{{count}} fler frågor — köp för att låsa upp",
     "reviews_title": "Recensioner",
     "no_reviews": "Inga recensioner ännu",
+    "review_your_purchase": "Lämna en recension",
+    "review_after_session": "Genomför en spelsession för att lämna en recension.",
+    "review_placeholder": "Dela din upplevelse (valfritt)",
+    "submit_review": "Skicka recension",
+    "submitting_review": "Skickar…",
+    "review_submitted": "Du har recenserat detta quiz",
+    "review_error": "Något gick fel. Försök igen.",
     "report_listing": "Rapportera annons",
     "view_creator_profile": "Visa skaparprofil",
     "purchases_count_one": "{{count}} köp",
@@ -421,5 +428,12 @@
     "apply_no": "Behåll annonsen som den är",
     "theme_color": "Annonsens färg",
     "theme_none": "Ingen (standard)"
+  },
+  "review_modal": {
+    "title": "Hur var det här quizet?",
+    "placeholder": "Dela din upplevelse (valfritt)",
+    "skip": "Hoppa över",
+    "thanks": "Tack för din recension!",
+    "close": "Stäng"
   }
 }

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
+import ReviewModal from '../components/ui/ReviewModal'
 import { useAuth } from '../hooks/useAuth'
 
 const IS_DEV = import.meta.env.DEV
@@ -59,6 +60,8 @@ interface ListingDetail {
   owned: boolean
   updateAvailable: boolean
   activeRental: { expiresAt: string } | null
+  myReview: { rating: number; body: string | null } | null
+  reviewEligible: boolean
 }
 
 // ─── Currency helpers ─────────────────────────────────────────────────────────
@@ -169,6 +172,8 @@ export default function MarketplaceListing() {
       qc.invalidateQueries({ queryKey: ['purchases'] })
     },
   })
+
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   interface DiffQuestion { id: string; text: string; type: string; answerOptions: { id: string; text: string; isCorrect: boolean }[] }
   interface DiffResult { added: DiffQuestion[]; removed: number; modified: DiffQuestion[] }
@@ -371,6 +376,35 @@ export default function MarketplaceListing() {
                     </span>
                   )}
                 </h2>
+
+                {/* Eligible buyer — manual review button */}
+                {listing.owned && listing.myReview === null && listing.reviewEligible && (
+                  <div className="mb-4">
+                    <button
+                      onClick={() => setShowReviewModal(true)}
+                      className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                      {t('marketplace.review_your_purchase')}
+                    </button>
+                  </div>
+                )}
+
+                {/* Owned but no session yet */}
+                {listing.owned && listing.myReview === null && !listing.reviewEligible && (
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+                    {t('marketplace.review_after_session')}
+                  </p>
+                )}
+
+                {listing.owned && listing.myReview !== null && (
+                  <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-3 mb-4 flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                    <svg className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('marketplace.review_submitted')}
+                    <Stars rating={listing.myReview.rating} size="sm" />
+                  </div>
+                )}
 
                 {listing.reviews.length === 0 ? (
                   <p className="text-sm text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews')}</p>
@@ -582,6 +616,17 @@ export default function MarketplaceListing() {
           </div>
         )}
       </main>
+
+      {showReviewModal && listing && (
+        <ReviewModal
+          listingId={listing.id}
+          quizTitle={listing.quiz.title}
+          onClose={() => {
+            setShowReviewModal(false)
+            qc.invalidateQueries({ queryKey: ['marketplace-listing', id] })
+          }}
+        />
+      )}
     </div>
   )
 }

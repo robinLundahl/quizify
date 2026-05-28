@@ -289,9 +289,10 @@ model QuizPurchase {
   versionAtPurchase Int
   customSnapshot    Json?
 
-  buyer   User               @relation(fields: [buyerId], references: [id])
-  listing MarketplaceListing @relation(fields: [listingId], references: [id])
-  review  MarketplaceReview?
+  buyer             User               @relation(fields: [buyerId], references: [id])
+  listing           MarketplaceListing @relation(fields: [listingId], references: [id])
+  review            MarketplaceReview?
+  reviewPromptSeen  Boolean            @default(false)
 }
 
 model QuizRental {

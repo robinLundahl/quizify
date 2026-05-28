@@ -71,6 +71,13 @@
     "preview_locked": "{{count}} more questions — purchase to unlock",
     "reviews_title": "Reviews",
     "no_reviews": "No reviews yet",
+    "review_your_purchase": "Leave a review",
+    "review_after_session": "Complete a game session to leave a review.",
+    "review_placeholder": "Share your experience (optional)",
+    "submit_review": "Submit review",
+    "submitting_review": "Submitting…",
+    "review_submitted": "You've reviewed this quiz",
+    "review_error": "Something went wrong. Please try again.",
     "report_listing": "Report listing",
     "view_creator_profile": "View creator profile",
     "purchases_count_one": "{{count}} purchase",
@@ -421,5 +428,12 @@
     "apply_no": "Keep listing as-is",
     "theme_color": "Listing color",
     "theme_none": "None (default)"
+  },
+  "review_modal": {
+    "title": "How was this quiz?",
+    "placeholder": "Share your experience (optional)",
+    "skip": "Skip",
+    "thanks": "Thanks for your review!",
+    "close": "Close"
   }
 }

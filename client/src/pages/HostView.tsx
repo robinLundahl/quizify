@@ -5,6 +5,8 @@ import { getSocket } from '../hooks/useSocket'
 import { useThemeStore, PRO_ONLY_THEMES } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 import LangToggle from '../components/ui/LangToggle'
+import ReviewModal from '../components/ui/ReviewModal'
+import api from '../lib/api'
 
 interface Player {
   id: string
@@ -77,6 +79,8 @@ export default function HostView() {
   const setTheme = useThemeStore((s) => s.setTheme)
   const isFreePlan = useAuthStore((s) => s.user?.plan === 'FREE')
   const [phase, setPhase] = useState<Phase>('lobby')
+  const [reviewPrompt, setReviewPrompt] = useState<{ listingId: string; quizTitle: string } | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
   const locationState = location.state as { code?: string; rejoin?: boolean; status?: string; themeColor?: string | null } | null
   const joinCode = locationState?.code ?? ''
   const [players, setPlayers] = useState<Player[]>([])
@@ -152,6 +156,10 @@ export default function HostView() {
       localStorage.removeItem(STORAGE_KEY)
       setLeaderboard(lb)
       setPhase('finished')
+      // Pre-fetch review eligibility so it's ready when the host clicks Dashboard
+      api.get<{ prompt: { listingId: string; quizTitle: string } | null }>(`/sessions/${sessionId}/review-prompt`)
+        .then(({ data }) => setReviewPrompt(data.prompt))
+        .catch(() => {})
     })
 
     socket.on(
@@ -346,13 +354,28 @@ export default function HostView() {
             {t('host.view_results')}
           </button>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => {
+              if (reviewPrompt) {
+                setShowReviewModal(true)
+              } else {
+                navigate('/dashboard')
+              }
+            }}
             className="rounded-xl border border-gray-300 dark:border-gray-600 px-8 py-3 text-lg font-bold text-gray-600 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             {t('nav.dashboard')}
           </button>
         </div>
       </div>
+
+      {showReviewModal && reviewPrompt && (
+        <ReviewModal
+          listingId={reviewPrompt.listingId}
+          quizTitle={reviewPrompt.quizTitle}
+          onClose={() => navigate('/dashboard')}
+        />
+      )}
+
       {themeAndLangControl}
       </>
     )

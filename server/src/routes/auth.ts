@@ -175,6 +175,19 @@ router.post('/resend-verification', async (req: Request, res: Response) => {
   res.json({ ok: true })
 })
 
+router.post('/dev-login', async (_req: Request, res: Response) => {
+  if (process.env['NODE_ENV'] === 'production') {
+    res.status(403).json({ error: 'Not available in production' })
+    return
+  }
+  const email = `playwright-${Date.now()}@test.invalid`
+  const user = await prisma.user.create({
+    data: { name: 'Playwright Test', email, provider: 'email', emailVerified: true },
+  })
+  const token = signToken(user.id)
+  res.json({ token, userId: user.id })
+})
+
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }))
 
 router.get(

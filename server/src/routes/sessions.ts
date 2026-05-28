@@ -170,6 +170,18 @@ router.get('/:id/results', requireAuth, async (req, res) => {
     }
   })
 
+  // Review prompt: surface once when the session is finished and the user purchased the listing
+  let reviewPrompt: { listingId: string } | null = null
+  if (session.status === 'FINISHED' && session.listingId) {
+    const purchase = await prisma.quizPurchase.findFirst({
+      where: { buyerId: req.userId!, listingId: session.listingId },
+      select: { reviewPromptSeen: true, review: { select: { id: true } } },
+    })
+    if (purchase && !purchase.reviewPromptSeen && !purchase.review) {
+      reviewPrompt = { listingId: session.listingId }
+    }
+  }
+
   res.json({
     sessionId: session.id,
     quizTitle: session.quiz.title,
@@ -181,7 +193,54 @@ router.get('/:id/results', requireAuth, async (req, res) => {
       score: p.score,
     })),
     questions: questionResults,
+    reviewPrompt,
   })
+})
+
+// GET /:id/review-prompt — lightweight check: should the review modal show for this session?
+router.get('/:id/review-prompt', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const session = await prisma.gameSession.findUnique({
+    where: { id },
+    select: { hostId: true, status: true, listingId: true, quiz: { select: { title: true } } },
+  })
+  if (!session || session.hostId !== req.userId) {
+    res.json({ prompt: null })
+    return
+  }
+  if (session.status !== 'FINISHED' || !session.listingId) {
+    res.json({ prompt: null })
+    return
+  }
+  const purchase = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listingId: session.listingId },
+    select: { reviewPromptSeen: true, review: { select: { id: true } } },
+  })
+  if (!purchase || purchase.reviewPromptSeen || purchase.review) {
+    res.json({ prompt: null })
+    return
+  }
+  res.json({ prompt: { listingId: session.listingId, quizTitle: session.quiz.title } })
+})
+
+// POST /:id/dev-finish — mark a session as FINISHED in dev (non-production only)
+router.post('/:id/dev-finish', requireAuth, async (req, res) => {
+  if (process.env['NODE_ENV'] === 'production') {
+    res.status(403).json({ error: 'Not available in production' })
+    return
+  }
+  const id = req.params.id as string
+  const session = await prisma.gameSession.findUnique({
+    where: { id },
+    select: { hostId: true },
+  })
+  if (!session) { res.status(404).json({ error: 'Not found' }); return }
+  if (session.hostId !== req.userId) { res.status(403).json({ error: 'Forbidden' }); return }
+  await prisma.gameSession.update({
+    where: { id },
+    data: { status: 'FINISHED', finishedAt: new Date() },
+  })
+  res.json({ ok: true })
 })
 
 router.delete('/:id', requireAuth, async (req, res) => {

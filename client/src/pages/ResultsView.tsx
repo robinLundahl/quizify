@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSessionResults } from '../hooks/useQuizzes'
+import ReviewModal from '../components/ui/ReviewModal'
 
 const MEDAL = ['🥇', '🥈', '🥉']
 
@@ -11,6 +13,15 @@ export default function ResultsView() {
   const fromTab = (location.state as { fromTab?: string } | null)?.fromTab
   const { t } = useTranslation()
   const { data, isLoading, isError } = useSessionResults(sessionId ?? '')
+  const [showReviewModal, setShowReviewModal] = useState(false)
+
+  function handleBackToDashboard() {
+    if (data?.reviewPrompt) {
+      setShowReviewModal(true)
+    } else {
+      navigate('/dashboard', { state: fromTab ? { tab: fromTab } : undefined })
+    }
+  }
 
   if (isLoading) {
     return (
@@ -44,7 +55,7 @@ export default function ResultsView() {
             )}
           </div>
           <button
-            onClick={() => navigate('/dashboard', { state: fromTab ? { tab: fromTab } : undefined })}
+            onClick={handleBackToDashboard}
             className="border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
             {t('results.back')}
@@ -181,6 +192,14 @@ export default function ResultsView() {
           })}
         </div>
       </div>
+
+      {showReviewModal && data?.reviewPrompt && (
+        <ReviewModal
+          listingId={data.reviewPrompt.listingId}
+          quizTitle={data.quizTitle}
+          onClose={() => navigate('/dashboard', { state: fromTab ? { tab: fromTab } : undefined })}
+        />
+      )}
     </div>
   )
 }

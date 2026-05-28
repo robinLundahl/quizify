@@ -341,10 +341,14 @@ router.get('/:id', async (req, res) => {
 
   let updateAvailable = false
 
+  let myReview: { rating: number; body: string | null } | null = null
+  let reviewEligible = false
+
   if (userId) {
     const [purchase, rental] = await Promise.all([
       prisma.quizPurchase.findFirst({
         where: { buyerId: userId, listingId: id },
+        include: { review: { select: { rating: true, body: true } } },
       }),
       prisma.quizRental.findFirst({
         where: { userId, listingId: id, expiresAt: { gt: new Date() } },
@@ -352,7 +356,16 @@ router.get('/:id', async (req, res) => {
     ])
     owned = !!purchase
     if (purchase) updateAvailable = purchase.versionAtPurchase < listing.versionAtPublish
+    if (purchase?.review) myReview = { rating: purchase.review.rating, body: purchase.review.body }
     if (rental) activeRental = { expiresAt: rental.expiresAt.toISOString() }
+
+    if (purchase && !purchase.review) {
+      const finishedSession = await prisma.gameSession.findFirst({
+        where: { quizId: listing.quiz.id, hostId: userId, status: 'FINISHED' },
+        select: { id: true },
+      })
+      reviewEligible = !!finishedSession
+    }
   }
 
   res.json({
@@ -394,7 +407,77 @@ router.get('/:id', async (req, res) => {
     owned,
     updateAvailable,
     activeRental,
+    myReview,
+    reviewEligible,
   })
+})
+
+// POST /:id/review — submit a verified-buyer review (requires a completed session)
+router.post('/:id/review', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const { rating, body } = req.body as { rating: unknown; body?: unknown }
+
+  if (!Number.isInteger(rating) || (rating as number) < 1 || (rating as number) > 5) {
+    res.status(400).json({ error: 'invalid_rating' })
+    return
+  }
+
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { id },
+    select: { quizId: true },
+  })
+  if (!listing) { res.status(404).json({ error: 'Not found' }); return }
+
+  const purchase = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listingId: id },
+    select: { id: true },
+  })
+  if (!purchase) { res.status(403).json({ error: 'not_a_buyer' }); return }
+
+  // Must have completed at least one finished session as host for this quiz
+  const finishedSession = await prisma.gameSession.findFirst({
+    where: { quizId: listing.quizId, hostId: req.userId!, status: 'FINISHED' },
+    select: { id: true },
+  })
+  if (!finishedSession) { res.status(403).json({ error: 'no_finished_session' }); return }
+
+  try {
+    const [review] = await prisma.$transaction([
+      prisma.marketplaceReview.create({
+        data: {
+          purchaseId: purchase.id,
+          rating: rating as number,
+          body: typeof body === 'string' ? body.trim() || null : null,
+        },
+      }),
+      prisma.quizPurchase.update({
+        where: { id: purchase.id },
+        data: { reviewPromptSeen: true },
+      }),
+    ])
+    res.status(201).json({ id: review.id, rating: review.rating, body: review.body, createdAt: review.createdAt })
+  } catch (e: unknown) {
+    if (typeof e === 'object' && e !== null && (e as { code?: string }).code === 'P2002') {
+      res.status(409).json({ error: 'already_reviewed' })
+      return
+    }
+    throw e
+  }
+})
+
+// POST /:id/dismiss-review-prompt — mark the one-time review prompt as seen without reviewing
+router.post('/:id/dismiss-review-prompt', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const purchase = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listingId: id },
+    select: { id: true },
+  })
+  if (!purchase) { res.status(403).json({ error: 'not_a_buyer' }); return }
+  await prisma.quizPurchase.update({
+    where: { id: purchase.id },
+    data: { reviewPromptSeen: true },
+  })
+  res.json({ ok: true })
 })
 
 // ─── Creator profile (public) ─────────────────────────────────────────────────

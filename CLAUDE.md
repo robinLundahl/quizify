@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session start
+
+At the start of every conversation, read `TODO.md` and tell the user which unchecked items are pending. Keep the message short — just the bullet points. If all items are checked or the file is empty, say nothing.
+
 ## Commands
 
 From the **project root**:
