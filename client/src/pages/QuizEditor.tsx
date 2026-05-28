@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -1110,21 +1110,25 @@ const AI_LANGUAGES = [
   { value: 'Spanish',   key: 'lang_spanish' },
 ]
 
-function QuizMetaForm({
-  quiz,
-  isPublished,
-  questionsAreDirty,
-  onSave,
-  onPublish,
-  isSaving,
-}: {
+interface QuizMetaFormHandle { triggerSave: () => void }
+
+const QuizMetaForm = forwardRef<QuizMetaFormHandle, {
   quiz: QuizWithQuestions
   isPublished: boolean
   questionsAreDirty: boolean
   onSave: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   onPublish: (title: string, description?: string, category?: string, language?: string, difficulty?: string) => void
   isSaving: boolean
-}) {
+  onDirtyChange?: (dirty: boolean) => void
+}>(function QuizMetaForm({
+  quiz,
+  isPublished,
+  questionsAreDirty,
+  onSave,
+  onPublish,
+  isSaving,
+  onDirtyChange,
+}, ref) {
   const { t } = useTranslation()
   const sortedCategories = useMemo(
     () => [...AI_CATEGORIES].sort((a, b) => t(`quiz_editor.${a.key}`).localeCompare(t(`quiz_editor.${b.key}`))),
@@ -1150,6 +1154,16 @@ function QuizMetaForm({
     quizDifficulty !== (quiz.difficulty ?? '')
 
   const isDirty = metaIsDirty || questionsAreDirty
+
+  useImperativeHandle(ref, () => ({
+    triggerSave: () => {
+      onSave(title.trim(), description.trim() || undefined, quizCategory || undefined, quizLanguage || undefined, quizDifficulty || undefined)
+    },
+  }), [title, description, quizCategory, quizLanguage, quizDifficulty, onSave])
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty)
+  }, [isDirty, onDirtyChange])
 
   const user = useAuthStore((s) => s.user)
   const isPro = user?.plan === 'PRO'
@@ -1377,7 +1391,7 @@ function QuizMetaForm({
       )}
     </section>
   )
-}
+})
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 
@@ -1391,10 +1405,12 @@ export default function QuizEditor() {
   const { data: listing } = useMyListing(id!)
   const bumpVersion = useBumpListingVersion()
 
+  const metaFormRef = useRef<QuizMetaFormHandle>(null)
+  const afterSaveAction = useRef<(() => void) | null>(null)
+  const [metaFormDirty, setMetaFormDirty] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addingQuestion, setAddingQuestion] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
-  const [showApplyModal, setShowApplyModal] = useState(false)
 
   const [initialQuestionsSnapshot, setInitialQuestionsSnapshot] = useState<string | null>(null)
   // Capture the first loaded state as the baseline for dirty detection.
@@ -1409,14 +1425,36 @@ export default function QuizEditor() {
     serializeQuestions(quiz.questions) !== initialQuestionsSnapshot
 
   const isPublished = listing?.status === 'PUBLISHED'
+  const isDirty = metaFormDirty || questionsAreDirty
+
+  const pendingLeaveAction = useRef<(() => void) | null>(null)
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
+
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  function guardAndLeave(action: () => void) {
+    if (isDirty) {
+      pendingLeaveAction.current = action
+      setShowLeaveModal(true)
+    } else {
+      action()
+    }
+  }
 
   function handleSave(title: string, description?: string, category?: string, language?: string, difficulty?: string) {
     updateQuiz.mutate({ title, description, category, language, difficulty }, {
       onSuccess: () => {
-        if (isPublished) {
-          setShowApplyModal(true)
+        const action = afterSaveAction.current ?? (() => navigate('/dashboard'))
+        afterSaveAction.current = null
+        if (isPublished && listing) {
+          bumpVersion.mutate(listing.id, { onSettled: action })
         } else {
-          navigate('/dashboard')
+          action()
         }
       },
     })
@@ -1424,13 +1462,7 @@ export default function QuizEditor() {
 
   function handlePublish(title: string, description?: string, category?: string, language?: string, difficulty?: string) {
     updateQuiz.mutate({ title, description, category, language, difficulty }, {
-      onSuccess: () => {
-        if (isPublished) {
-          setShowApplyModal(true)
-        } else {
-          setShowPublishModal(true)
-        }
-      },
+      onSuccess: () => setShowPublishModal(true),
     })
   }
 
@@ -1464,7 +1496,7 @@ export default function QuizEditor() {
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => guardAndLeave(() => navigate('/dashboard'))}
               className="shrink-0 text-sm text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
             >
               {t('quiz_editor.back')}
@@ -1472,19 +1504,21 @@ export default function QuizEditor() {
             <span className="shrink-0 text-gray-200 dark:text-gray-700">|</span>
             <span className="truncate text-sm font-semibold text-gray-800 dark:text-gray-100">{quiz.title}</span>
           </div>
-          <NavDropdown />
+          <NavDropdown onBeforeNavigate={guardAndLeave} />
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl space-y-6 px-6 py-10">
         <QuizMetaForm
           key={quiz.id}
+          ref={metaFormRef}
           quiz={quiz}
           isPublished={isPublished}
           questionsAreDirty={questionsAreDirty}
           onSave={handleSave}
           onPublish={handlePublish}
-          isSaving={updateQuiz.isPending}
+          isSaving={updateQuiz.isPending || bumpVersion.isPending}
+          onDirtyChange={setMetaFormDirty}
         />
 
         <section>
@@ -1533,34 +1567,37 @@ export default function QuizEditor() {
         </section>
       </main>
 
-      {/* Apply-to-marketplace modal */}
-      {showApplyModal && listing && (
+
+      {/* Leave with unsaved changes */}
+      {showLeaveModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl relative">
-            <button
-              onClick={() => setShowApplyModal(false)}
-              className="absolute top-3 right-3 rounded-lg p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100 pr-6">{t('publish_modal.apply_title')}</h2>
-            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('publish_modal.apply_body')}</p>
-            <div className="mt-6 flex justify-center gap-3">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t('quiz_editor.unsaved_title', { defaultValue: 'You have unsaved changes' })}</h2>
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('quiz_editor.unsaved_body', { defaultValue: 'Do you want to save before leaving?' })}</p>
+            <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={() => navigate('/dashboard')}
-                disabled={bumpVersion.isPending}
+                onClick={() => {
+                  setShowLeaveModal(false)
+                  pendingLeaveAction.current?.()
+                  pendingLeaveAction.current = null
+                }}
+                disabled={updateQuiz.isPending || bumpVersion.isPending}
                 className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
-                {t('publish_modal.apply_no')}
+                {t('common.no', { defaultValue: 'No' })}
               </button>
               <button
-                onClick={() => bumpVersion.mutate(listing.id, { onSettled: () => navigate('/dashboard') })}
-                disabled={bumpVersion.isPending}
+                onClick={() => {
+                  afterSaveAction.current = () => {
+                    pendingLeaveAction.current?.()
+                    pendingLeaveAction.current = null
+                  }
+                  metaFormRef.current?.triggerSave()
+                }}
+                disabled={updateQuiz.isPending || bumpVersion.isPending}
                 className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
               >
-                {bumpVersion.isPending ? t('common.saving') : t('publish_modal.apply_yes')}
+                {updateQuiz.isPending || bumpVersion.isPending ? t('common.saving') : t('common.save')}
               </button>
             </div>
           </div>

@@ -6,7 +6,7 @@ import { useAuthStore } from '../../store/authStore'
 import api from '../../lib/api'
 import LangToggle from './LangToggle'
 
-export default function NavDropdown() {
+export default function NavDropdown({ onBeforeNavigate }: { onBeforeNavigate?: (action: () => void) => void } = {}) {
   const user = useAuthStore((s) => s.user)
   const clearUser = useAuthStore((s) => s.clearUser)
   const navigate = useNavigate()
@@ -14,6 +14,11 @@ export default function NavDropdown() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  function go(action: () => void) {
+    setOpen(false)
+    if (onBeforeNavigate) { onBeforeNavigate(action) } else { action() }
+  }
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -26,12 +31,14 @@ export default function NavDropdown() {
   }, [])
 
   async function handleLogout() {
-    await api.post('/auth/logout')
-    clearUser()
-    queryClient.clear()
-    sessionStorage.removeItem('theme_admin_set')
-    localStorage.removeItem('theme_admin_set')
-    navigate('/login')
+    go(async () => {
+      await api.post('/auth/logout')
+      clearUser()
+      queryClient.clear()
+      sessionStorage.removeItem('theme_admin_set')
+      localStorage.removeItem('theme_admin_set')
+      navigate('/login')
+    })
   }
 
   return (
@@ -68,26 +75,26 @@ export default function NavDropdown() {
         <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm z-50">
           <div className="p-1">
             <button
-              onClick={() => { setOpen(false); navigate('/') }}
+              onClick={() => go(() => navigate('/'))}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {t('nav.marketplace')}
             </button>
             <button
-              onClick={() => { setOpen(false); navigate('/dashboard') }}
+              onClick={() => go(() => navigate('/dashboard'))}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {t('nav.dashboard')}
             </button>
             <button
-              onClick={() => { setOpen(false); navigate('/settings') }}
+              onClick={() => go(() => navigate('/settings'))}
               className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               {t('nav.settings')}
             </button>
             {user?.isAdmin && (
               <button
-                onClick={() => { setOpen(false); navigate('/admin') }}
+                onClick={() => go(() => navigate('/admin'))}
                 className="w-full rounded-lg px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 transition hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {t('nav.admin')}
