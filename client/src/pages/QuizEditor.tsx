@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo, forwardRef, useImperativeHandle } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   DndContext,
   closestCenter,
@@ -230,6 +231,54 @@ function serializeQuestions(questions: Question[]): string {
         .map((r) => ({ label: r.label, correctPosition: r.correctPosition })),
     }))
   )
+}
+
+function serializeQuestion(q: Question): string {
+  return JSON.stringify({
+    type: q.type,
+    text: q.text,
+    imageUrl: q.imageUrl ?? null,
+    timeLimit: q.timeLimit,
+    useTimer: q.useTimer,
+    points: q.points,
+    correctAnswers: [...(q.correctAnswers ?? [])].sort(),
+    answerOptions: q.answerOptions.map((o) => ({ text: o.text, isCorrect: o.isCorrect })),
+    mapQuestion: q.mapQuestion
+      ? { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng, rings: [...q.mapQuestion.rings].sort((a, b) => a.order - b.order).map((r) => ({ radiusKm: r.radiusKm, points: r.points })) }
+      : null,
+    audioQuestion: q.audioQuestion ? { url: q.audioQuestion.url } : null,
+    rankingItems: [...(q.rankingItems ?? [])].sort((a, b) => a.correctPosition - b.correctPosition).map((r) => ({ label: r.label, correctPosition: r.correctPosition })),
+  })
+}
+
+function questionToRevertPayload(q: Question): Record<string, unknown> {
+  const base = { type: q.type, text: q.text, imageUrl: q.imageUrl ?? undefined, order: q.order, timeLimit: q.timeLimit, useTimer: q.useTimer, points: q.points }
+  if (q.type === 'TRUE_FALSE') {
+    const correct = q.answerOptions.find((o) => o.isCorrect)
+    return { ...base, correctAnswer: correct?.text.toLowerCase() === 'true' ? 'true' : 'false' }
+  }
+  if (q.type === 'MULTIPLE_CHOICE' || q.type === 'IMAGE') {
+    return { ...base, answerOptions: q.answerOptions.map((o) => ({ text: o.text, isCorrect: o.isCorrect })) }
+  }
+  if (q.type === 'MAP' && q.mapQuestion) {
+    return {
+      ...base,
+      mapQuestion: { lat: q.mapQuestion.lat, lng: q.mapQuestion.lng, rings: q.mapQuestion.rings.map((r) => ({ radiusKm: r.radiusKm, points: r.points, order: r.order })) },
+    }
+  }
+  if (q.type === 'RANKING') {
+    return {
+      ...base,
+      rankingItems: [...q.rankingItems].sort((a, b) => a.correctPosition - b.correctPosition).map((r, i) => ({ label: r.label, correctPosition: r.correctPosition, order: i })),
+    }
+  }
+  if (q.type === 'OPEN_ENDED') {
+    return { ...base, correctAnswers: q.correctAnswers }
+  }
+  if (q.type === 'AUDIO') {
+    return { ...base, audioUrl: q.audioQuestion?.url, correctAnswers: q.correctAnswers }
+  }
+  return base
 }
 
 // ─── Map Picker ────────────────────────────────────────────────────────────────
@@ -1405,12 +1454,15 @@ export default function QuizEditor() {
   const { data: listing } = useMyListing(id!)
   const bumpVersion = useBumpListingVersion()
 
+  const queryClient = useQueryClient()
   const metaFormRef = useRef<QuizMetaFormHandle>(null)
   const afterSaveAction = useRef<(() => void) | null>(null)
+  const initialQuestionsRef = useRef<Question[] | null>(null)
   const [metaFormDirty, setMetaFormDirty] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [addingQuestion, setAddingQuestion] = useState(false)
   const [showPublishModal, setShowPublishModal] = useState(false)
+  const [isReverting, setIsReverting] = useState(false)
 
   const [initialQuestionsSnapshot, setInitialQuestionsSnapshot] = useState<string | null>(null)
   // Capture the first loaded state as the baseline for dirty detection.
@@ -1419,6 +1471,12 @@ export default function QuizEditor() {
   if (initialQuestionsSnapshot === null && quiz) {
     setInitialQuestionsSnapshot(serializeQuestions(quiz.questions))
   }
+
+  useEffect(() => {
+    if (initialQuestionsRef.current === null && quiz) {
+      initialQuestionsRef.current = quiz.questions
+    }
+  }, [quiz])
 
   const questionsAreDirty =
     !!quiz && !!initialQuestionsSnapshot &&
@@ -1444,6 +1502,45 @@ export default function QuizEditor() {
     } else {
       action()
     }
+  }
+
+  async function handleDiscardAndLeave() {
+    const currentQuestions = quiz!.questions
+    const initial = initialQuestionsRef.current ?? []
+    const initialMap = new Map(initial.map((q) => [q.id, q]))
+    const currentMap = new Map(currentQuestions.map((q) => [q.id, q]))
+
+    const toDelete = currentQuestions.filter((q) => !initialMap.has(q.id))
+    const toRevert = initial.filter((q) => {
+      const curr = currentMap.get(q.id)
+      return curr && serializeQuestion(q) !== serializeQuestion(curr)
+    })
+    const stillExist = initial.filter((q) => currentMap.has(q.id))
+    const orderChanged = stillExist.some((q, i) => currentQuestions.find((c) => c.id === q.id)?.order !== i)
+
+    if (toDelete.length > 0 || toRevert.length > 0 || orderChanged) {
+      setIsReverting(true)
+      try {
+        await Promise.all([
+          ...toDelete.map((q) => api.delete(`/quiz/${id}/questions/${q.id}`)),
+          ...toRevert.map((q) => api.put(`/quiz/${id}/questions/${q.id}`, questionToRevertPayload(q))),
+        ])
+        if (orderChanged) {
+          await api.patch(`/quiz/${id}/questions/reorder`, {
+            orders: stillExist.map((q, i) => ({ id: q.id, order: i })),
+          })
+        }
+        queryClient.invalidateQueries({ queryKey: ['quiz', id] })
+      } catch {
+        // DB may be partially reverted; navigate anyway
+      } finally {
+        setIsReverting(false)
+      }
+    }
+
+    setShowLeaveModal(false)
+    pendingLeaveAction.current?.()
+    pendingLeaveAction.current = null
   }
 
   function handleSave(title: string, description?: string, category?: string, language?: string, difficulty?: string) {
@@ -1576,15 +1673,11 @@ export default function QuizEditor() {
             <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{t('quiz_editor.unsaved_body', { defaultValue: 'Do you want to save before leaving?' })}</p>
             <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={() => {
-                  setShowLeaveModal(false)
-                  pendingLeaveAction.current?.()
-                  pendingLeaveAction.current = null
-                }}
-                disabled={updateQuiz.isPending || bumpVersion.isPending}
+                onClick={() => void handleDiscardAndLeave()}
+                disabled={isReverting || updateQuiz.isPending || bumpVersion.isPending}
                 className="rounded-xl border border-gray-200 dark:border-gray-600 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 transition hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50"
               >
-                {t('common.no', { defaultValue: 'No' })}
+                {isReverting ? t('common.loading', { defaultValue: '…' }) : t('common.no', { defaultValue: 'No' })}
               </button>
               <button
                 onClick={() => {
@@ -1594,7 +1687,7 @@ export default function QuizEditor() {
                   }
                   metaFormRef.current?.triggerSave()
                 }}
-                disabled={updateQuiz.isPending || bumpVersion.isPending}
+                disabled={isReverting || updateQuiz.isPending || bumpVersion.isPending}
                 className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-50"
               >
                 {updateQuiz.isPending || bumpVersion.isPending ? t('common.saving') : t('common.save')}
