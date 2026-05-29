@@ -147,8 +147,8 @@ function QuestionCard({ question, index }: { question: Question; index: number }
             <div>
               <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700" style={{ height: 200 }}>
                 <MapContainer
-                  center={[question.mapQuestion.lat, question.mapQuestion.lng]}
-                  zoom={6}
+                  center={[54, 15]}
+                  zoom={4}
                   style={{ height: '100%', width: '100%' }}
                   scrollWheelZoom={false}
                   dragging={false}

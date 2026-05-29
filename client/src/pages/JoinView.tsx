@@ -610,12 +610,8 @@ export default function JoinView() {
               <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t('join.tap_map')}</p>
               <div className="h-72 w-full overflow-hidden rounded-2xl">
                 <MapContainer
-                  center={
-                    question.mapQuestion
-                      ? [question.mapQuestion.lat, question.mapQuestion.lng]
-                      : [20, 0]
-                  }
-                  zoom={question.mapQuestion ? 5 : 2}
+                  center={[54, 15]}
+                  zoom={4}
                   className="h-full w-full"
                 >
                   <TileLayer

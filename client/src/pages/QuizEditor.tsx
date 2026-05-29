@@ -323,8 +323,8 @@ function MapPicker({
   const parsedLng = parseFloat(lng)
   const hasPin = !isNaN(parsedLat) && !isNaN(parsedLng)
   const position: [number, number] | null = hasPin ? [parsedLat, parsedLng] : null
-  const center: [number, number] = position ?? [20, 0]
-  const zoom = position ? 6 : 2
+  const center: [number, number] = [54, 15]
+  const zoom = 4
 
   const validRings = rings
     .map((r, i) => ({ ...r, index: i }))
