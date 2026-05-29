@@ -529,7 +529,7 @@ export default function JoinView() {
         {/* Answers */}
         <div className="flex-1 px-4 pb-6">
           {(question.type === 'MULTIPLE_CHOICE' || question.type === 'IMAGE') && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className={`grid gap-3 ${question.answerOptions.some(o => o.text.length > 25) ? 'grid-cols-1' : 'grid-cols-2'}`}>
               {question.answerOptions.map((opt, i) => (
                 <button
                   key={opt.id}
