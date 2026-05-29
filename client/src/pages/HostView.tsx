@@ -89,6 +89,7 @@ export default function HostView() {
   const [leaderboard, setLeaderboard] = useState<Player[]>([])
   const [timeLeft, setTimeLeft] = useState(0)
   const [answerCount, setAnswerCount] = useState(0)
+  const [nextQuestion, setNextQuestion] = useState<Question | null>(null)
   const [rejoinError, setRejoinError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -138,6 +139,7 @@ export default function HostView() {
       setCurrentQuestion(payload)
       setCorrectAnswer(null)
       setAnswerCount(0)
+      setNextQuestion(null)
       setPhase('question')
       const remaining = Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000))
       setTimeLeft(remaining)
@@ -145,9 +147,10 @@ export default function HostView() {
 
     socket.on(
       'session:question_ended',
-      ({ correctAnswer: ca, scores }: { correctAnswer: CorrectAnswer; scores: Player[] }) => {
+      ({ correctAnswer: ca, scores, nextQuestion: nq }: { correctAnswer: CorrectAnswer; scores: Player[]; nextQuestion: Question | null }) => {
         setCorrectAnswer(ca)
         setLeaderboard(scores)
+        setNextQuestion(nq ?? null)
         setPhase('reveal')
       }
     )
@@ -173,6 +176,7 @@ export default function HostView() {
         answeredCount: number
         correctAnswer?: CorrectAnswer
         scores?: Player[]
+        nextQuestion?: Question | null
       }) => {
         const questionPayload: QuestionPayload = {
           question: payload.question,
@@ -184,11 +188,13 @@ export default function HostView() {
         setAnswerCount(payload.answeredCount)
         if (payload.phase === 'question') {
           setCorrectAnswer(null)
+          setNextQuestion(null)
           setTimeLeft(Math.max(0, Math.round((payload.endsAt - Date.now()) / 1000)))
           setPhase('question')
         } else {
           setCorrectAnswer(payload.correctAnswer ?? null)
           setLeaderboard(payload.scores ?? [])
+          setNextQuestion(payload.nextQuestion ?? null)
           setPhase('reveal')
         }
       }
@@ -443,6 +449,34 @@ export default function HostView() {
               </div>
             ))}
           </div>
+
+          {nextQuestion && (
+            <div className="mb-6 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 p-5">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">{t('host.up_next')}</p>
+              <p className="mb-3 font-semibold text-gray-900 dark:text-white">{nextQuestion.text}</p>
+              {(nextQuestion.type === 'MULTIPLE_CHOICE' || nextQuestion.type === 'IMAGE') && nextQuestion.answerOptions.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {nextQuestion.answerOptions.map((opt, i) => (
+                    <div key={opt.id} className="flex items-center gap-2 rounded-xl bg-white/60 dark:bg-white/5 px-3 py-2 text-sm text-gray-700 dark:text-gray-300">
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-100 dark:bg-indigo-500/20 text-xs font-bold text-indigo-600 dark:text-indigo-300">
+                        {OPTION_LETTERS[i % 4]}
+                      </span>
+                      {opt.text}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {nextQuestion.type === 'TRUE_FALSE' && (
+                <div className="grid grid-cols-2 gap-2">
+                  {[t('common.true'), t('common.false')].map((label) => (
+                    <div key={label} className="rounded-xl bg-white/60 dark:bg-white/5 px-3 py-2 text-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleNext}

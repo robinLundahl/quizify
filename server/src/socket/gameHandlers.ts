@@ -175,7 +175,11 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
     select: { id: true, nickname: true, score: true },
   })
 
-  io.to(sessionId).emit('session:question_ended', { correctAnswer, scores: participants })
+  const nextIndex = state.currentIndex + 1
+  const nextQuestion =
+    nextIndex < state.questions.length ? buildQuestionPayload(state.questions[nextIndex]) : null
+
+  io.to(sessionId).emit('session:question_ended', { correctAnswer, scores: participants, nextQuestion })
 }
 
 function buildQuestionPayload(q: QuestionData) {
@@ -269,6 +273,9 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         orderBy: { score: 'desc' },
         select: { id: true, nickname: true, score: true },
       })
+      const nextIdx = state.currentIndex + 1
+      const nextQ =
+        nextIdx < state.questions.length ? buildQuestionPayload(state.questions[nextIdx]) : null
       socket.emit('host:rejoin_success', {
         phase: 'reveal',
         question: questionPayload,
@@ -278,6 +285,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         answeredCount: state.answeredParticipants.size,
         correctAnswer,
         scores,
+        nextQuestion: nextQ,
       })
     }
   })

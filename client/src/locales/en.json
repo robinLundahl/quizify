@@ -185,6 +185,7 @@
     "correct_order": "Correct order",
     "leaderboard": "Leaderboard",
     "next_question": "Next Question",
+    "up_next": "Up Next",
     "show_final_results": "Show Final Results",
     "question_header": "Question {{index}} / {{total}}",
     "answered": "answered",

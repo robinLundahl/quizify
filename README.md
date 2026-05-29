@@ -77,7 +77,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── SKILL.md
 │   │   ├── frontend-design/
 │   │   │   └── SKILL.md
-│   │   └── ship/
+│   │   ├── ship/
+│   │   │   └── SKILL.md
+│   │   └── todo/
 │   │       └── SKILL.md
 │   ├── settings.json
 │   ├── settings.local.json
@@ -336,6 +338,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── TICKET-064.md
 │   │   ├── TICKET-065.md
 │   │   ├── TICKET-069.md
+│   │   ├── TICKET-070.md
 │   │   ├── TICKET-073.md
 │   │   └── TICKET-084.md
 │   ├── README.md
@@ -356,7 +359,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── TICKET-081.md
 │   ├── TICKET-082.md
 │   ├── TICKET-083.md
-│   └── TICKET-085.md
+│   ├── TICKET-085.md
+│   └── TICKET-086.md
 ├── client/
 │   ├── public/
 │   │   ├── favicon.svg
@@ -412,6 +416,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
 │   └── vite.config.ts
+├── e2e/
+│   └── review.spec.ts
 ├── server/
 │   ├── prisma/
 │   │   └── schema.prisma
@@ -448,6 +454,8 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── package.json
 │   ├── prisma.config.ts
 │   └── tsconfig.json
+├── test-results/
+│   └── .last-run.json
 ├── .env.example
 ├── .gitignore
 ├── brainstorm-marketplace.md
@@ -455,5 +463,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 ├── deploying.md
 ├── design.md
 ├── package.json
-└── README.md
+├── playwright.config.ts
+├── README.md
+└── TODO.md
 ```

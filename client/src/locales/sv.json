@@ -185,6 +185,7 @@
     "correct_order": "Rätt ordning",
     "leaderboard": "Poängtavla",
     "next_question": "Nästa fråga",
+    "up_next": "Nästa fråga",
     "show_final_results": "Visa slutresultat",
     "question_header": "Fråga {{index}} / {{total}}",
     "answered": "svarade",
