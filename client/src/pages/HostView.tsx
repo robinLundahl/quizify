@@ -202,6 +202,10 @@ export default function HostView() {
       }
     )
 
+    socket.on('session:answer_count', ({ count }: { count: number }) => {
+      setAnswerCount(count)
+    })
+
     socket.on('host:rejoin_failed', ({ reason }: { reason: string }) => {
       setRejoinError(reason)
     })
@@ -211,6 +215,7 @@ export default function HostView() {
       socket.off('session:player_joined')
       socket.off('session:started')
       socket.off('session:question')
+      socket.off('session:answer_count')
       socket.off('session:question_ended')
       socket.off('session:finished')
       socket.off('host:rejoin_success')

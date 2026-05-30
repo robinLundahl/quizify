@@ -555,6 +555,7 @@ export function registerGameHandlers(io: Server, socket: Socket) {
       ])
 
       socket.emit('player:answer_received', { pointsEarned: earned })
+      io.to(sessionId).emit('session:answer_count', { count: state.answeredParticipants.size })
     }
   )
 }
