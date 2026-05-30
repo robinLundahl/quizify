@@ -400,3 +400,4 @@ The marketplace is the landing page — the first thing anyone sees, logged in o
 | TICKET-083 | Quiz version update notifications for buyers                                     | Low      |
 
 _(TICKET-073 was intentionally removed)_
+
