@@ -64,6 +64,8 @@ interface FormState {
   type: QuestionType
   text: string
   imageUrl: string
+  songName: string
+  artistName: string
   timeLimit: number
   useTimer: boolean
   points: number
@@ -94,6 +96,8 @@ function blankForm(type: QuestionType = 'MULTIPLE_CHOICE'): FormState {
     type,
     text: '',
     imageUrl: '',
+    songName: '',
+    artistName: '',
     timeLimit: 20,
     useTimer: true,
     points: 1,
@@ -118,6 +122,8 @@ function questionToForm(q: Question): FormState {
   const form = blankForm(q.type)
   form.text = q.text
   form.imageUrl = q.imageUrl ?? ''
+  form.songName = q.songName ?? ''
+  form.artistName = q.artistName ?? ''
   form.timeLimit = q.timeLimit
   form.useTimer = q.useTimer
   form.points = q.points
@@ -162,7 +168,7 @@ function questionToForm(q: Question): FormState {
 }
 
 function formToPayload(form: FormState, order: number): QuestionPayload {
-  const base = { type: form.type, text: form.text.trim(), timeLimit: form.timeLimit, useTimer: form.useTimer, points: form.points, order }
+  const base = { type: form.type, text: form.text.trim(), songName: form.songName.trim() || null, artistName: form.artistName.trim() || null, timeLimit: form.timeLimit, useTimer: form.useTimer, points: form.points, order }
 
   if (form.type === 'TRUE_FALSE') return { ...base, correctAnswer: form.correctAnswer, imageUrl: form.imageUrl.trim() || undefined }
   if (form.type === 'OPEN_ENDED') return {
@@ -211,6 +217,8 @@ function serializeQuestions(questions: Question[]): string {
       type: q.type,
       text: q.text,
       imageUrl: q.imageUrl ?? null,
+      songName: q.songName ?? null,
+      artistName: q.artistName ?? null,
       timeLimit: q.timeLimit,
       useTimer: q.useTimer,
       points: q.points,
@@ -238,6 +246,8 @@ function serializeQuestion(q: Question): string {
     type: q.type,
     text: q.text,
     imageUrl: q.imageUrl ?? null,
+    songName: q.songName ?? null,
+    artistName: q.artistName ?? null,
     timeLimit: q.timeLimit,
     useTimer: q.useTimer,
     points: q.points,
@@ -252,7 +262,7 @@ function serializeQuestion(q: Question): string {
 }
 
 function questionToRevertPayload(q: Question): Record<string, unknown> {
-  const base = { type: q.type, text: q.text, imageUrl: q.imageUrl ?? undefined, order: q.order, timeLimit: q.timeLimit, useTimer: q.useTimer, points: q.points }
+  const base = { type: q.type, text: q.text, imageUrl: q.imageUrl ?? undefined, songName: q.songName ?? null, artistName: q.artistName ?? null, order: q.order, timeLimit: q.timeLimit, useTimer: q.useTimer, points: q.points }
   if (q.type === 'TRUE_FALSE') {
     const correct = q.answerOptions.find((o) => o.isCorrect)
     return { ...base, correctAnswer: correct?.text.toLowerCase() === 'true' ? 'true' : 'false' }
@@ -628,6 +638,27 @@ function QuestionForm({
               </span>
             </div>
           )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.song_name_label')}</label>
+          <input
+            type="text"
+            value={form.songName}
+            onChange={(e) => set({ songName: e.target.value })}
+            className={`w-full ${INPUT_CLS}`}
+          />
+        </div>
+        <div>
+          <label className={LABEL_CLS}>{t('quiz_editor.artist_name_label')}</label>
+          <input
+            type="text"
+            value={form.artistName}
+            onChange={(e) => set({ artistName: e.target.value })}
+            className={`w-full ${INPUT_CLS}`}
+          />
         </div>
       </div>
 

@@ -7,6 +7,8 @@ interface QuestionData {
   text: string
   type: string
   imageUrl: string | null
+  songName: string | null
+  artistName: string | null
   timeLimit: number
   useTimer: boolean
   points: number
@@ -188,6 +190,8 @@ function buildQuestionPayload(q: QuestionData) {
     text: q.text,
     type: q.type,
     imageUrl: q.imageUrl,
+    songName: q.songName,
+    artistName: q.artistName,
     timeLimit: q.timeLimit,
     useTimer: q.useTimer,
     points: q.points,

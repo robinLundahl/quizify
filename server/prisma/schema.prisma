@@ -129,6 +129,8 @@ model Question {
   type      QuestionType
   text      String
   imageUrl       String?
+  songName       String?
+  artistName     String?
   correctAnswers String[]
   translations   Json?
   order          Int

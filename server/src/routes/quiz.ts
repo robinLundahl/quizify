@@ -196,7 +196,7 @@ router.post('/:id/questions', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
+  const { type, text, imageUrl, songName, artistName, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
   const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
   if (user?.plan === 'FREE' && !FREE_QUESTION_TYPES.includes(type)) {
     res.status(403).json({ error: 'This question type requires a Pro plan.' })
@@ -208,6 +208,8 @@ router.post('/:id/questions', async (req, res) => {
       type,
       text,
       imageUrl,
+      songName: songName ?? null,
+      artistName: artistName ?? null,
       order: order ?? 0,
       timeLimit: timeLimit ?? 20,
       useTimer: useTimer ?? true,
@@ -250,7 +252,7 @@ router.put('/:id/questions/:qid', async (req, res) => {
     res.status(404).json({ error: 'Not found' })
     return
   }
-  const { type, text, imageUrl, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
+  const { type, text, imageUrl, songName, artistName, order, timeLimit, useTimer, points, answerOptions, mapQuestion, correctAnswer, rankingItems, correctAnswers, audioUrl } = req.body
   const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { plan: true } })
   if (user?.plan === 'FREE' && !FREE_QUESTION_TYPES.includes(type)) {
     res.status(403).json({ error: 'This question type requires a Pro plan.' })
@@ -268,6 +270,8 @@ router.put('/:id/questions/:qid', async (req, res) => {
       type,
       text,
       imageUrl,
+      songName: songName ?? null,
+      artistName: artistName ?? null,
       order,
       timeLimit,
       useTimer: useTimer ?? true,

@@ -29,6 +29,8 @@ interface Question {
   text: string
   type: string
   imageUrl: string | null
+  songName: string | null
+  artistName: string | null
   timeLimit: number
   useTimer: boolean
   points: number
@@ -453,6 +455,11 @@ export default function HostView() {
           {nextQuestion && (
             <div className="mb-6 rounded-2xl border border-indigo-100 dark:border-indigo-500/20 bg-indigo-50 dark:bg-indigo-500/10 p-5">
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">{t('host.up_next')}</p>
+              {(nextQuestion.songName || nextQuestion.artistName) && (
+                <p className="mb-2 text-sm font-medium text-indigo-600 dark:text-indigo-300">
+                  {[nextQuestion.songName, nextQuestion.artistName].filter(Boolean).join(' – ')}
+                </p>
+              )}
               <p className="mb-3 font-semibold text-gray-900 dark:text-white">{nextQuestion.text}</p>
               {(nextQuestion.type === 'MULTIPLE_CHOICE' || nextQuestion.type === 'IMAGE') && nextQuestion.answerOptions.length > 0 && (
                 <div className="grid grid-cols-2 gap-2">

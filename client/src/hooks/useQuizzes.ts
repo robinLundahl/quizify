@@ -108,6 +108,8 @@ export interface Question {
   type: QuestionType
   text: string
   imageUrl: string | null
+  songName: string | null
+  artistName: string | null
   order: number
   timeLimit: number
   useTimer: boolean
@@ -193,6 +195,8 @@ export type QuestionPayload = {
   type: QuestionType
   text: string
   imageUrl?: string
+  songName?: string | null
+  artistName?: string | null
   order?: number
   timeLimit?: number
   useTimer?: boolean
