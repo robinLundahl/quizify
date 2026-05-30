@@ -343,6 +343,14 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                     <div className="rounded-xl bg-red-50 border border-red-100 p-3.5">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-red-400 mb-2">Before</p>
                       <p className="text-sm text-gray-700 leading-snug">{m.before.text}</p>
+                      {(m.before.useTimer !== m.after.useTimer || m.before.timeLimit !== m.after.timeLimit) && (
+                        <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-red-100 border border-red-200 px-2 py-0.5 text-xs text-red-600">
+                          <svg className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {m.before.useTimer ? `${m.before.timeLimit}s timer` : 'No timer'}
+                        </div>
+                      )}
                       {m.before.answerOptions.length > 0 && (
                         <div className="mt-2.5 grid grid-cols-2 gap-1.5">
                           {m.before.answerOptions.map((opt, i) => (
@@ -379,6 +387,14 @@ export default function UpdateModal({ listingId, title, onClose, onSuccess }: Pr
                     <div className="rounded-xl bg-green-50 border border-green-100 p-3.5">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-green-500 mb-2">After</p>
                       <p className="text-sm text-gray-700 font-medium leading-snug">{m.after.text}</p>
+                      {(m.before.useTimer !== m.after.useTimer || m.before.timeLimit !== m.after.timeLimit) && (
+                        <div className="mt-2 inline-flex items-center gap-1 rounded-md bg-green-100 border border-green-200 px-2 py-0.5 text-xs text-green-700 font-medium">
+                          <svg className="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {m.after.useTimer ? `${m.after.timeLimit}s timer` : 'No timer'}
+                        </div>
+                      )}
                       {m.after.answerOptions.length > 0 && (
                         <div className="mt-2.5 grid grid-cols-2 gap-1.5">
                           {m.after.answerOptions.map((opt, i) => (

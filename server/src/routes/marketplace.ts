@@ -999,11 +999,11 @@ router.post('/:id/claim-update', requireAuth, async (req, res) => {
             const curr = currentQMap.get(q.id)
             if (!curr) return false
             const baseKey = JSON.stringify({
-              text: q.text, type: q.type,
+              text: q.text, type: q.type, useTimer: q.useTimer, timeLimit: q.timeLimit,
               answerOptions: (q.answerOptions ?? []).map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
             })
             const currKey = JSON.stringify({
-              text: curr.text, type: curr.type,
+              text: curr.text, type: curr.type, useTimer: curr.useTimer, timeLimit: curr.timeLimit,
               answerOptions: curr.answerOptions.map((a) => ({ text: a.text, isCorrect: a.isCorrect })),
             })
             return baseKey !== currKey
