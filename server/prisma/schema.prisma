@@ -99,6 +99,7 @@ model Quiz {
   id          String    @id @default(cuid())
   title       String
   description String?
+  coverImage  String?
   category    String?
   language    String?
   difficulty  String?

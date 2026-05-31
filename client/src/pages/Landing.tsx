@@ -4,16 +4,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
+import { tCategory, tLanguage } from '../lib/i18nMaps'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-const THEME_ACCENT: Record<string, string> = {
-  sunset: '#eb7f86',
-  forest: '#4da284',
-  rose:   '#cc607d',
-  peach:  '#fac484',
-  ocean:  '#63a6a0',
-}
 
 interface MarketplaceListing {
   id: string
@@ -28,6 +21,7 @@ interface MarketplaceListing {
     id: string
     title: string
     description: string | null
+    coverImage: string | null
     category: string | null
     language: string | null
     difficulty: string | null
@@ -135,9 +129,9 @@ function Stars({ rating }: { rating: number | null }) {
 function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; displayCurrency: string }) {
   const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
-  const accent = listing.themeColor ? (THEME_ACCENT[listing.themeColor] ?? null) : null
 
-  function handleShare() {
+  function handleShare(e: React.MouseEvent) {
+    e.preventDefault()
     const url = `${window.location.origin}/marketplace/${listing.id}`
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
@@ -158,76 +152,121 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-sm flex flex-col gap-3 hover:shadow-md transition-shadow">
-      {accent && (
-        <div className="h-1 w-full rounded-full" style={{ backgroundColor: accent }} />
-      )}
-      <div className="flex items-start justify-between gap-2">
-        <Link to={`/marketplace/${listing.id}`} className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 hover:text-indigo-600 transition-colors">
-            {listing.quiz.title}
-          </h3>
-        </Link>
+    <div className="group flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+      {/* ── Image hero ── */}
+      <Link to={`/marketplace/${listing.id}`} className="relative block h-44 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
+        {listing.quiz.coverImage ? (
+          <img
+            src={listing.quiz.coverImage}
+            alt={listing.quiz.title}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center">
+            <span className="text-6xl font-black text-white/20 select-none">
+              {listing.quiz.title.charAt(0).toUpperCase()}
+            </span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+
+        {/* title + question count overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-4">
+          <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">{listing.quiz.title}</h3>
+          <p className="mt-0.5 text-xs text-white/70">
+            {t('marketplace.questions_count', { count: listing.quiz.questionCount })}
+          </p>
+        </div>
+
+        {/* share button */}
         <button
           onClick={handleShare}
           title={copied ? t('marketplace.share_copied') : t('marketplace.share')}
-          className="shrink-0 text-gray-400 hover:text-indigo-600 transition-colors"
+          className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
         >
           {copied ? (
-            <svg className="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7"/>
             </svg>
           ) : (
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
             </svg>
           )}
         </button>
-      </div>
+      </Link>
 
-      {listing.quiz.description && (
-        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{listing.quiz.description}</p>
-      )}
-
-      <div className="flex flex-wrap gap-1.5">
-        {listing.quiz.category && (
-          <span className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
-            {listing.quiz.category}
-          </span>
-        )}
-        {listing.quiz.difficulty && (
-          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${difficultyColor[listing.quiz.difficulty] ?? ''}`}>
-            {difficultyLabel[listing.quiz.difficulty] ?? listing.quiz.difficulty}
-          </span>
-        )}
-        {listing.quiz.language && (
-          <span className="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
-            {listing.quiz.language}
-          </span>
-        )}
-      </div>
-
-      <div className="flex items-center justify-between mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
-        <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-          <span>{t('marketplace.questions_count', { count: listing.quiz.questionCount })}</span>
-          <Stars rating={listing.avgRating} />
-        </div>
-        <div className="text-sm font-semibold text-indigo-600">
-          {listing.price === 0
-            ? t('marketplace.free')
-            : formatPrice(listing.price, listing.currency, displayCurrency)}
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        {listing.creator.avatar ? (
-          <img src={listing.creator.avatar} alt={listing.creator.name} className="h-5 w-5 rounded-full object-cover"/>
-        ) : (
-          <div className="h-5 w-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-xs font-semibold text-indigo-600">
-            {listing.creator.name[0]?.toUpperCase()}
+      {/* ── Card body ── */}
+      <div className="flex flex-1 flex-col p-4 gap-3">
+        {/* Rating + price */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            {listing.avgRating !== null ? (
+              <>
+                <Stars rating={listing.avgRating} />
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{listing.avgRating.toFixed(1)}</span>
+                {listing.reviewCount > 0 && (
+                  <span className="text-xs text-gray-400 dark:text-gray-500">({listing.reviewCount})</span>
+                )}
+              </>
+            ) : (
+              <span className="text-xs text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews', { defaultValue: 'No reviews yet' })}</span>
+            )}
           </div>
+          <span className="shrink-0 text-sm font-bold text-indigo-600 dark:text-indigo-400">
+            {listing.price === 0
+              ? t('marketplace.free')
+              : formatPrice(listing.price, listing.currency, displayCurrency)}
+          </span>
+        </div>
+
+        {/* Description */}
+        {listing.quiz.description && (
+          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">{listing.quiz.description}</p>
         )}
-        <span className="text-xs text-gray-500 dark:text-gray-400">{listing.creator.name}</span>
+
+        {/* Badges */}
+        <div className="flex flex-wrap gap-1.5">
+          {listing.quiz.category && (
+            <span className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+              {tCategory(listing.quiz.category, t)}
+            </span>
+          )}
+          {listing.quiz.difficulty && (
+            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${difficultyColor[listing.quiz.difficulty] ?? ''}`}>
+              {difficultyLabel[listing.quiz.difficulty] ?? listing.quiz.difficulty}
+            </span>
+          )}
+          {listing.quiz.language && (
+            <span className="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-400">
+              {tLanguage(listing.quiz.language, t)}
+            </span>
+          )}
+        </div>
+
+        {/* Creator + view button */}
+        <div className="mt-auto flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+          <Link
+            to={`/marketplace/creator/${listing.creator.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-1.5 min-w-0 hover:opacity-80 transition-opacity"
+          >
+            {listing.creator.avatar ? (
+              <img src={listing.creator.avatar} alt={listing.creator.name} className="h-5 w-5 rounded-full object-cover shrink-0"/>
+            ) : (
+              <div className="h-5 w-5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-xs font-semibold text-indigo-600 shrink-0">
+                {listing.creator.name[0]?.toUpperCase()}
+              </div>
+            )}
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate">{listing.creator.name}</span>
+          </Link>
+          <Link
+            to={`/marketplace/${listing.id}`}
+            className="shrink-0 rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition-colors"
+          >
+            {t('marketplace.view', { defaultValue: 'View' })}
+          </Link>
+        </div>
       </div>
     </div>
   )

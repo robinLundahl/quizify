@@ -158,6 +158,20 @@ router.put('/:id', async (req, res) => {
   res.json(quiz)
 })
 
+router.patch('/:id/cover', async (req, res) => {
+  const { coverImage } = req.body as { coverImage: string | null }
+  const exists = await prisma.quiz.findFirst({ where: { id: req.params.id, ownerId: req.userId!, deletedAt: null } })
+  if (!exists) {
+    res.status(404).json({ error: 'Not found' })
+    return
+  }
+  const quiz = await prisma.quiz.update({
+    where: { id: req.params.id },
+    data: { coverImage: coverImage ?? null },
+  })
+  res.json(quiz)
+})
+
 router.delete('/:id', async (req, res) => {
   const quiz = await prisma.quiz.findFirst({
     where: { id: req.params.id, ownerId: req.userId!, deletedAt: null },

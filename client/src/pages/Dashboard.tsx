@@ -6,6 +6,7 @@ import {
   useQuizzes, useCreateQuiz, useDeleteQuiz, useDeleteSession,
   useActiveSessions, usePurchases, useRentals,
   useDeletePurchase, useDeleteRental,
+  useUploadQuizCover, useUpdateQuizCover,
   type Quiz,
 } from '../hooks/useQuizzes'
 import NavDropdown from '../components/ui/NavDropdown'
@@ -45,6 +46,8 @@ export default function Dashboard() {
   const deleteSession = useDeleteSession()
   const deletePurchase = useDeletePurchase()
   const deleteRental = useDeleteRental()
+  const uploadCover = useUploadQuizCover()
+  const updateCover = useUpdateQuizCover()
 
   const location = useLocation()
   const [activeTab, setActiveTab] = useState<Tab>((location.state as { tab?: Tab } | null)?.tab ?? 'quizzes')
@@ -110,6 +113,11 @@ export default function Dashboard() {
     setTheme(value as Parameters<typeof setTheme>[0])
   }
 
+  async function handleCoverUpload(quizId: string, file: File) {
+    const url = await uploadCover.mutateAsync(file)
+    await updateCover.mutateAsync({ id: quizId, coverImage: url })
+  }
+
   async function handleHost(quizId: string, themeColor?: string | null, listingId?: string) {
     setHostingId(quizId)
     setHostError(null)
@@ -150,84 +158,142 @@ export default function Dashboard() {
         )}
 
         {quizzes && quizzes.length > 0 && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {quizzes.map((quiz) => {
               const listing = quiz.listings?.[0]
               const isPublished = listing?.status === 'PUBLISHED'
+              const isUploading = uploadCover.isPending || updateCover.isPending
               return (
-                <div key={quiz.id} className="flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm transition-shadow hover:shadow-md">
-                  <div className="h-1 w-full bg-indigo-600" />
-                  <div className="flex flex-1 flex-col p-5">
-                    <div className="flex items-start justify-between gap-2 min-w-0">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <h2 className="truncate text-base font-semibold text-gray-900 dark:text-gray-100">{quiz.title}</h2>
-                          {isPublished && listing?.versionAtPublish != null && (
-                            <span className="shrink-0 rounded-full bg-green-100 dark:bg-green-900/30 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
-                              v{listing.versionAtPublish}
-                            </span>
-                          )}
+                <div
+                  key={quiz.id}
+                  className="group flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
+                >
+                  {/* ── Cover image area ── */}
+                  <div className="relative h-44 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
+                    {quiz.coverImage ? (
+                      <img
+                        src={quiz.coverImage}
+                        alt={quiz.title}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <span className="text-6xl font-black text-white/20 select-none">
+                          {quiz.title.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                    {/* gradient overlay */}
+                    <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+
+                    {/* title + question count over image */}
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <div className="flex items-end justify-between gap-2">
+                        <div className="min-w-0">
+                          <h2 className="truncate text-base font-bold text-white leading-tight">{quiz.title}</h2>
+                          <p className="mt-0.5 text-xs text-white/70">
+                            {t('dashboard.question_count', { count: quiz._count?.questions ?? 0 })}
+                          </p>
                         </div>
-                        {quiz.description && (
-                          <p className="mt-1 line-clamp-2 text-sm text-gray-500 dark:text-gray-400">{quiz.description}</p>
+                        {isPublished && listing?.versionAtPublish != null && (
+                          <span className="shrink-0 rounded-full bg-green-500/90 px-2 py-0.5 text-xs font-semibold text-white">
+                            v{listing.versionAtPublish}
+                          </span>
                         )}
-                        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-                          {t('dashboard.question_count', { count: quiz._count?.questions ?? 0 })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {!isPublished && (
-                          <button
-                            onClick={() => {
-                              const missing: string[] = []
-                              if (!quiz.title?.trim())       missing.push(t('quiz_editor.title_label'))
-                              if (!quiz.description?.trim()) missing.push(t('quiz_editor.description_label'))
-                              if (!quiz.category)            missing.push(t('quiz_editor.ai_panel_category'))
-                              if (!quiz.language)            missing.push(t('quiz_editor.ai_panel_language'))
-                              if (!quiz.difficulty)          missing.push(t('quiz_editor.ai_panel_difficulty'))
-                              if ((quiz._count?.questions ?? 0) < 5) missing.push(t('quiz_editor.publish_min_questions', { defaultValue: 'At least 5 questions' }))
-                              if (missing.length > 0) { setMissingPublishFields(missing); return }
-                              setPublishingQuiz({ id: quiz.id, title: quiz.title, category: quiz.category, language: quiz.language })
-                            }}
-                            title={t('dashboard.publish')}
-                            className="rounded-lg p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-                              <path d="M8.75 13.25a.75.75 0 0 1-1.5 0V4.71L5.03 6.93a.75.75 0 0 1-1.06-1.06l3.5-3.5a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 1 1-1.06 1.06L8.75 4.71v8.54Z" />
-                              <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
-                            </svg>
-                          </button>
-                        )}
-                        <button
-                          onClick={() => navigate(`/quiz/${quiz.id}`)}
-                          title={t('common.edit')}
-                          className="rounded-lg p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-                            <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 13.25a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Z" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title, isPublished })}
-                          title={t('common.delete')}
-                          className="rounded-lg p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-4 w-4">
-                            <path fillRule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5A.75.75 0 0 1 9.95 6Z" clipRule="evenodd" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="mt-auto pt-4">
-                      <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
-                        <button onClick={() => handleHost(quiz.id)} disabled={hostingId === quiz.id} className="w-full rounded-xl bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-                          {hostingId === quiz.id ? t('common.creating') : t('dashboard.host')}
-                        </button>
                       </div>
                     </div>
 
+                    {/* action buttons top-right */}
+                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      {/* upload cover */}
+                      <label
+                        title="Upload cover image"
+                        className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                      >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="sr-only"
+                          disabled={isUploading}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0]
+                            if (file) handleCoverUpload(quiz.id, file)
+                            e.target.value = ''
+                          }}
+                        />
+                        {isUploading ? (
+                          <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                          </svg>
+                        ) : (
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                            <path fillRule="evenodd" d="M9.5 8.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" clipRule="evenodd" />
+                            <path fillRule="evenodd" d="M2.5 5A1.5 1.5 0 0 0 1 6.5v6A1.5 1.5 0 0 0 2.5 14h11a1.5 1.5 0 0 0 1.5-1.5v-6A1.5 1.5 0 0 0 13.5 5H11l-.5-1.5A1.5 1.5 0 0 0 9.058 2.5H6.942A1.5 1.5 0 0 0 5.5 3.5L5 5H2.5ZM8 7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </label>
+                      {!isPublished && (
+                        <button
+                          onClick={() => {
+                            const missing: string[] = []
+                            if (!quiz.title?.trim())       missing.push(t('quiz_editor.title_label'))
+                            if (!quiz.description?.trim()) missing.push(t('quiz_editor.description_label'))
+                            if (!quiz.category)            missing.push(t('quiz_editor.ai_panel_category'))
+                            if (!quiz.language)            missing.push(t('quiz_editor.ai_panel_language'))
+                            if (!quiz.difficulty)          missing.push(t('quiz_editor.ai_panel_difficulty'))
+                            if ((quiz._count?.questions ?? 0) < 5) missing.push(t('quiz_editor.publish_min_questions', { defaultValue: 'At least 5 questions' }))
+                            if (missing.length > 0) { setMissingPublishFields(missing); return }
+                            setPublishingQuiz({ id: quiz.id, title: quiz.title, category: quiz.category, language: quiz.language })
+                          }}
+                          title={t('dashboard.publish')}
+                          className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                            <path d="M8.75 13.25a.75.75 0 0 1-1.5 0V4.71L5.03 6.93a.75.75 0 0 1-1.06-1.06l3.5-3.5a.75.75 0 0 1 1.06 0l3.5 3.5a.75.75 0 1 1-1.06 1.06L8.75 4.71v8.54Z" />
+                            <path d="M3.5 9.75a.75.75 0 0 0-1.5 0v1.5A2.75 2.75 0 0 0 4.75 14h6.5A2.75 2.75 0 0 0 14 11.25v-1.5a.75.75 0 0 0-1.5 0v1.5c0 .69-.56 1.25-1.25 1.25h-6.5c-.69 0-1.25-.56-1.25-1.25v-1.5Z" />
+                          </svg>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => navigate(`/quiz/${quiz.id}`)}
+                        title={t('common.edit')}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                          <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474ZM4.75 13.25a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5Z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete({ id: quiz.id, title: quiz.title, isPublished })}
+                        title={t('common.delete')}
+                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-red-600/80 transition-colors"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3.5 w-3.5">
+                          <path fillRule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5A.75.75 0 0 1 9.95 6Z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* ── Card body ── */}
+                  <div className="flex flex-1 flex-col p-4 gap-3">
+                    {quiz.description && (
+                      <p className="line-clamp-2 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">{quiz.description}</p>
+                    )}
+
+                    <div className="mt-auto">
+                      <button
+                        onClick={() => handleHost(quiz.id)}
+                        disabled={hostingId === quiz.id}
+                        className="w-full rounded-xl bg-indigo-600 px-3 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                      >
+                        {hostingId === quiz.id ? t('common.creating') : t('dashboard.host')}
+                      </button>
+                    </div>
+
                     {quiz.sessions && quiz.sessions.length > 0 && (
-                      <div className="mt-4 border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1.5">
+                      <div className="border-t border-gray-100 dark:border-gray-700 pt-3 space-y-1.5">
                         <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{t('dashboard.past_sessions')}</p>
                         {quiz.sessions.map((s) => (
                           <div key={s.id} className="flex items-center justify-between">

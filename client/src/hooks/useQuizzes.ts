@@ -55,6 +55,7 @@ export interface Quiz {
   id: string
   title: string
   description: string | null
+  coverImage: string | null
   category: string | null
   language: string | null
   difficulty: string | null
@@ -372,6 +373,28 @@ export function useReorderQuestions(quizId: string) {
       if (ctx?.prev) qc.setQueryData(['quiz', quizId], ctx.prev)
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['quiz', quizId] }),
+  })
+}
+
+export function useUploadQuizCover() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData()
+      form.append('image', file)
+      const { data } = await api.post<{ url: string }>('/quiz/upload-image', form)
+      return data.url
+    },
+  })
+}
+
+export function useUpdateQuizCover() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, coverImage }: { id: string; coverImage: string | null }) => {
+      const { data } = await api.patch<Quiz>(`/quiz/${id}/cover`, { coverImage })
+      return data
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['quizzes'] }),
   })
 }
 
