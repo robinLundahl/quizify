@@ -437,7 +437,8 @@
   },
   "quiz_preview": {
     "save_song_names": "Spara låttitlar",
-    "save_song_names_note": "Sparas bara i din kopia"
+    "save_song_names_note": "Sparas bara i din kopia",
+    "song_fields_info": "Fälten Låttitel och Artist låter dig koppla musikinformation till varje fråga för dina spelsessioner. Dina ändringar sparas bara i din kopia av detta quiz — scrolla till botten för att hitta Spara-knappen."
   },
   "review_modal": {
     "title": "Hur var det här quizet?",

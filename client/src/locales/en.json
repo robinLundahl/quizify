@@ -437,7 +437,8 @@
   },
   "quiz_preview": {
     "save_song_names": "Save song names",
-    "save_song_names_note": "Saved to your copy only"
+    "save_song_names_note": "Saved to your copy only",
+    "song_fields_info": "The Song Name and Artist fields let you attach music metadata to each question for your hosted sessions. Your changes are saved only to your copy of this quiz — scroll to the bottom to find the Save button."
   },
   "review_modal": {
     "title": "How was this quiz?",

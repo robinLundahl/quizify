@@ -365,6 +365,18 @@ export default function QuizPreview() {
               </p>
             </div>
 
+            {/* Song name info banner */}
+            {isPurchased && (
+              <div className="rounded-2xl bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/40 px-5 py-4 flex items-start gap-3">
+                <svg className="h-4 w-4 text-indigo-400 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1Zm0 3a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 8 4Zm0 8a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                </svg>
+                <p className="text-sm text-indigo-700 dark:text-indigo-300 leading-snug">
+                  {t('quiz_preview.song_fields_info')}
+                </p>
+              </div>
+            )}
+
             {/* Questions */}
             <div className="space-y-3">
               {quiz.questions.map((q, i) => (
