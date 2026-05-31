@@ -330,11 +330,17 @@ export function registerGameHandlers(io: Server, socket: Socket) {
         select: { versionAtPurchase: true, customSnapshot: true, listing: { select: { contentSnapshot: true } } },
       })
       if (purchase) {
+        const customData = parseCustomSnapshot(purchase.customSnapshot)
         const snapshot =
-          parseCustomSnapshot(purchase.customSnapshot) ??
+          customData ??
           getVersionedSnapshot(purchase.listing.contentSnapshot, purchase.versionAtPurchase)
         if (snapshot && snapshot.questions.length > 0) {
-          questions = snapshot.questions as unknown as QuestionData[]
+          const songOverrides = customData?.songOverrides ?? {}
+          const rawQuestions = snapshot.questions as unknown as QuestionData[]
+          questions = rawQuestions.map((q) => {
+            const ov = songOverrides[q.id]
+            return ov !== undefined ? { ...q, ...ov } : q
+          })
         }
       }
     }
