@@ -384,7 +384,7 @@ export default function QuizPreview() {
                 <button
                   onClick={() => saveSongsMutation.mutate()}
                   disabled={!isSongDirty || saveSongsMutation.isPending}
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 transition shrink-0"
+                  className="rounded-xl px-4 py-2 text-sm font-semibold transition shrink-0 bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-default dark:disabled:bg-gray-700 dark:disabled:text-gray-500"
                 >
                   {saveSongsMutation.isPending ? t('common.saving') : t('quiz_preview.save_song_names')}
                 </button>
