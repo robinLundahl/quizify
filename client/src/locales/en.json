@@ -435,6 +435,10 @@
     "theme_color": "Listing color",
     "theme_none": "None (default)"
   },
+  "quiz_preview": {
+    "save_song_names": "Save song names",
+    "save_song_names_note": "Saved to your copy only"
+  },
   "review_modal": {
     "title": "How was this quiz?",
     "placeholder": "Share your experience (optional)",

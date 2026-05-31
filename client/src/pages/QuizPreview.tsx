@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useParams, useLocation } from 'react-router-dom'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { MapContainer, TileLayer, Marker, Circle } from 'react-leaflet'
 import L from 'leaflet'
@@ -45,6 +45,8 @@ interface Question {
   timeLimit: number
   useTimer: boolean
   points: number
+  songName: string | null
+  artistName: string | null
   answerOptions: AnswerOption[]
   rankingItems: RankingItem[]
   mapQuestion: {
@@ -68,7 +70,13 @@ interface QuizFull {
 
 // ─── Question card ────────────────────────────────────────────────────────────
 
-function QuestionCard({ question, index }: { question: Question; index: number }) {
+function QuestionCard({
+  question, index, songEdit, onSongChange,
+}: {
+  question: Question; index: number
+  songEdit?: { songName: string; artistName: string }
+  onSongChange?: (songName: string, artistName: string) => void
+}) {
   const { t } = useTranslation()
 
   return (
@@ -87,6 +95,29 @@ function QuestionCard({ question, index }: { question: Question; index: number }
             )}
             <span className="text-xs text-gray-400 dark:text-gray-500">· {question.points} {t('common.pts')}</span>
           </div>
+
+          {songEdit !== undefined && (
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs text-gray-400 dark:text-gray-500 mb-1">{t('quiz_editor.song_name_label')}</label>
+                <input
+                  type="text"
+                  value={songEdit.songName}
+                  onChange={(e) => onSongChange?.(e.target.value, songEdit.artistName)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 dark:text-gray-500 mb-1">{t('quiz_editor.artist_name_label')}</label>
+                <input
+                  type="text"
+                  value={songEdit.artistName}
+                  onChange={(e) => onSongChange?.(songEdit.songName, e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-2.5 py-1.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                />
+              </div>
+            </div>
+          )}
 
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">{question.text}</p>
 
@@ -204,13 +235,56 @@ export default function QuizPreview() {
   const { t } = useTranslation()
   const location = useLocation()
   const fromTab = (location.state as { fromTab?: string } | null)?.fromTab
+  const isPurchased = fromTab === 'purchased'
   const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const [songEdits, setSongEdits] = useState<Record<string, { songName: string; artistName: string }>>({})
   const qc = useQueryClient()
 
   const { data: quiz, isLoading, isError } = useQuery<QuizFull>({
     queryKey: ['quiz-preview', listingId],
     queryFn: () => api.get(`/marketplace/${listingId}/quiz`).then((r) => r.data),
     enabled: !!listingId,
+  })
+
+  // Derive initial song values from quiz data (server state). When quiz refetches after a
+  // successful save, this recalculates automatically — no effect needed.
+  const initialSongValues = useMemo(() => {
+    if (!quiz || !isPurchased) return {} as Record<string, { songName: string; artistName: string }>
+    const result: Record<string, { songName: string; artistName: string }> = {}
+    for (const q of quiz.questions) {
+      result[q.id] = { songName: q.songName ?? '', artistName: q.artistName ?? '' }
+    }
+    return result
+  }, [quiz, isPurchased])
+
+  // Merge server values with any unsaved user edits
+  const effectiveSongValues = useMemo(() => {
+    const merged = { ...initialSongValues }
+    for (const [id, vals] of Object.entries(songEdits)) merged[id] = vals
+    return merged
+  }, [initialSongValues, songEdits])
+
+  const isSongDirty = useMemo(() => {
+    if (!isPurchased) return false
+    return Object.entries(songEdits).some(([id, vals]) => {
+      const init = initialSongValues[id]
+      return !init || vals.songName !== init.songName || vals.artistName !== init.artistName
+    })
+  }, [isPurchased, songEdits, initialSongValues])
+
+  const saveSongsMutation = useMutation({
+    mutationFn: () =>
+      api.patch(`/marketplace/${listingId}/song-metadata`, {
+        questions: Object.entries(songEdits).map(([id, { songName, artistName }]) => ({
+          id,
+          songName: songName.trim() || null,
+          artistName: artistName.trim() || null,
+        })),
+      }),
+    onSuccess: () => {
+      setSongEdits({})
+      qc.invalidateQueries({ queryKey: ['quiz-preview', listingId] })
+    },
   })
 
   const { data: listingMeta } = useQuery<{ updateAvailable: boolean }>({
@@ -294,9 +368,28 @@ export default function QuizPreview() {
             {/* Questions */}
             <div className="space-y-3">
               {quiz.questions.map((q, i) => (
-                <QuestionCard key={q.id} question={q} index={i} />
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  index={i}
+                  songEdit={isPurchased ? effectiveSongValues[q.id] : undefined}
+                  onSongChange={isPurchased ? (songName, artistName) => setSongEdits((prev) => ({ ...prev, [q.id]: { songName, artistName } })) : undefined}
+                />
               ))}
             </div>
+
+            {isPurchased && (
+              <div className="rounded-2xl bg-white dark:bg-gray-800 shadow-sm px-5 py-4 flex items-center justify-between gap-3">
+                <p className="text-xs text-gray-400 dark:text-gray-500">{t('quiz_preview.save_song_names_note')}</p>
+                <button
+                  onClick={() => saveSongsMutation.mutate()}
+                  disabled={!isSongDirty || saveSongsMutation.isPending}
+                  className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-40 transition shrink-0"
+                >
+                  {saveSongsMutation.isPending ? t('common.saving') : t('quiz_preview.save_song_names')}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>

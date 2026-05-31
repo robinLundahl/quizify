@@ -26,6 +26,8 @@ export interface SnapshotQuestion {
   timeLimit: number
   useTimer: boolean
   points: number
+  songName?: string | null
+  artistName?: string | null
   answerOptions: { id: string; questionId: string; text: string; isCorrect: boolean; translations: unknown }[]
   mapQuestion: {
     id: string; questionId: string; lat: number; lng: number
@@ -43,8 +45,11 @@ export interface VersionedSnapshot {
 // Extends VersionedSnapshot with an optional diffBaseline — the creator's full state at the
 // time the buyer last did a partial accept. The diff endpoint uses this baseline so that
 // rejected changes are permanently cleared and never reappear in future update prompts.
+// songOverrides stores buyer-set song metadata per question ID, applied on top of snapshot
+// questions when serving the quiz. These are never overwritten by creator updates.
 export interface CustomSnapshot extends VersionedSnapshot {
   diffBaseline?: VersionedSnapshot
+  songOverrides?: Record<string, { songName: string | null; artistName: string | null }>
 }
 
 export function parseSnapshots(raw: unknown): Record<string, unknown> {
@@ -55,7 +60,7 @@ export function parseSnapshots(raw: unknown): Record<string, unknown> {
 
 export function parseCustomSnapshot(raw: unknown): CustomSnapshot | null {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
-  const obj = raw as { meta?: unknown; questions?: unknown; diffBaseline?: unknown }
+  const obj = raw as { meta?: unknown; questions?: unknown; diffBaseline?: unknown; songOverrides?: unknown }
   const qs = Array.isArray(obj.questions) ? (obj.questions as unknown[]) : null
   if (!qs || qs.length === 0) return null
 
@@ -68,10 +73,16 @@ export function parseCustomSnapshot(raw: unknown): CustomSnapshot | null {
     }
   }
 
+  let songOverrides: Record<string, { songName: string | null; artistName: string | null }> | undefined
+  if (obj.songOverrides && typeof obj.songOverrides === 'object' && !Array.isArray(obj.songOverrides)) {
+    songOverrides = obj.songOverrides as Record<string, { songName: string | null; artistName: string | null }>
+  }
+
   return {
     meta: (obj.meta as QuizMeta) ?? null,
     questions: qs as SnapshotQuestion[],
     diffBaseline,
+    songOverrides,
   }
 }
 

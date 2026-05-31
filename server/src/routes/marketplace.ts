@@ -3,7 +3,7 @@ import { Prisma } from '../generated/prisma/client.js'
 import { prisma } from '../lib/prisma.js'
 import { verifyToken } from '../lib/jwt.js'
 import { requireAuth } from '../middleware/requireAuth.js'
-import { parseSnapshots, getVersionedSnapshot, parseCustomSnapshot, type SnapshotQuestion, type QuizMeta } from '../lib/snapshotUtils.js'
+import { parseSnapshots, getVersionedSnapshot, parseCustomSnapshot, type SnapshotQuestion, type QuizMeta, type VersionedSnapshot, type CustomSnapshot } from '../lib/snapshotUtils.js'
 
 const router = Router()
 
@@ -12,7 +12,7 @@ const router = Router()
 type QuestionRow = {
   id: string; quizId: string; type: string; text: string; imageUrl: string | null
   correctAnswers: string[]; translations: unknown; order: number; timeLimit: number
-  useTimer: boolean; points: number
+  useTimer: boolean; points: number; songName: string | null; artistName: string | null
   answerOptions: { id: string; questionId: string; text: string; isCorrect: boolean; translations: unknown }[]
   mapQuestion: {
     id: string; questionId: string; lat: number; lng: number
@@ -27,6 +27,7 @@ function buildQuestionSnapshots(questions: QuestionRow[]) {
     id: q.id, quizId: q.quizId, type: q.type, text: q.text,
     imageUrl: q.imageUrl, correctAnswers: q.correctAnswers, translations: q.translations,
     order: q.order, timeLimit: q.timeLimit, useTimer: q.useTimer, points: q.points,
+    songName: q.songName ?? null, artistName: q.artistName ?? null,
     answerOptions: q.answerOptions,
     mapQuestion: q.mapQuestion ?? null,
     audioQuestion: q.audioQuestion ?? null,
@@ -769,9 +770,8 @@ router.get('/:id/quiz', requireAuth, async (req, res) => {
   // For buyers: serve version-isolated content. If the buyer made selective choices, use their
   // custom snapshot; otherwise fall back to the versioned snapshot at their purchased version.
   if (buyerPurchase) {
-    const snapshot =
-      parseCustomSnapshot(buyerPurchase.customSnapshot) ??
-      getVersionedSnapshot(listing.contentSnapshot, buyerPurchase.versionAtPurchase)
+    const customData = parseCustomSnapshot(buyerPurchase.customSnapshot)
+    const snapshot = customData ?? getVersionedSnapshot(listing.contentSnapshot, buyerPurchase.versionAtPurchase)
     if (snapshot) {
       const quizBase = await prisma.quiz.findUnique({
         where: { id: listing.quizId },
@@ -782,7 +782,12 @@ router.get('/:id/quiz', requireAuth, async (req, res) => {
         where: { id: listing.quizId },
         select: { title: true, description: true, category: true, language: true, difficulty: true },
       })
-      return res.json({ ...quizBase, ...meta, questions: snapshot.questions })
+      const songOverrides = customData?.songOverrides ?? {}
+      const questions = snapshot.questions.map((q) => {
+        const ov = songOverrides[q.id]
+        return ov !== undefined ? { ...q, ...ov } : q
+      })
+      return res.json({ ...quizBase, ...meta, questions })
     }
   }
 
@@ -1059,7 +1064,7 @@ router.post('/:id/claim-update', requireAuth, async (req, res) => {
     questions: buildQuestionSnapshots(listingData.quiz.questions),
   }
 
-  const customSnapshot = { meta: mergedMeta, questions: mergedQuestions, diffBaseline }
+  const customSnapshot = { meta: mergedMeta, questions: mergedQuestions, diffBaseline, songOverrides: existingCustom?.songOverrides }
   await prisma.quizPurchase.update({
     where: { id: purchase.id },
     data: {
@@ -1067,6 +1072,60 @@ router.post('/:id/claim-update', requireAuth, async (req, res) => {
       customSnapshot: customSnapshot as unknown as Prisma.InputJsonValue,
     },
   })
+  res.json({ ok: true })
+})
+
+// PATCH /:id/song-metadata — buyer overrides song name / artist name per question
+// Stores overrides in customSnapshot.songOverrides; never touches the original quiz.
+router.patch('/:id/song-metadata', requireAuth, async (req, res) => {
+  const id = req.params.id as string
+  const body = req.body as { questions?: { id: string; songName: string | null; artistName: string | null }[] }
+
+  if (!Array.isArray(body.questions) || body.questions.length === 0) {
+    res.status(400).json({ error: 'Invalid body' })
+    return
+  }
+
+  const listing = await prisma.marketplaceListing.findUnique({
+    where: { id, status: 'PUBLISHED' },
+    select: { contentSnapshot: true },
+  })
+  if (!listing) { res.status(404).json({ error: 'Not found' }); return }
+
+  const purchase = await prisma.quizPurchase.findFirst({
+    where: { buyerId: req.userId!, listingId: id },
+    select: { id: true, versionAtPurchase: true, customSnapshot: true },
+  })
+  if (!purchase) { res.status(403).json({ error: 'Forbidden' }); return }
+
+  const existingCustom = parseCustomSnapshot(purchase.customSnapshot)
+
+  const updatedOverrides: Record<string, { songName: string | null; artistName: string | null }> = {
+    ...(existingCustom?.songOverrides ?? {}),
+    ...Object.fromEntries(
+      body.questions.map((q) => [q.id, { songName: q.songName ?? null, artistName: q.artistName ?? null }])
+    ),
+  }
+
+  const baseSnapshot: VersionedSnapshot | null =
+    existingCustom ?? getVersionedSnapshot(listing.contentSnapshot, purchase.versionAtPurchase)
+  if (!baseSnapshot) {
+    res.status(422).json({ error: 'Snapshot not available for this purchase' })
+    return
+  }
+
+  const updated: CustomSnapshot = {
+    meta: baseSnapshot.meta,
+    questions: baseSnapshot.questions,
+    diffBaseline: existingCustom?.diffBaseline,
+    songOverrides: updatedOverrides,
+  }
+
+  await prisma.quizPurchase.update({
+    where: { id: purchase.id },
+    data: { customSnapshot: updated as unknown as Prisma.InputJsonValue },
+  })
+
   res.json({ ok: true })
 })
 
