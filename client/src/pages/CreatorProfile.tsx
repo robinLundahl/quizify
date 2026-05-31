@@ -46,6 +46,14 @@ interface CreatorProfileData {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const THEME_ACCENT: Record<string, string> = {
+  sunset: '#eb7f86',
+  forest: '#4da284',
+  rose:   '#cc607d',
+  peach:  '#fac484',
+  ocean:  '#63a6a0',
+}
+
 const RATES: Record<string, Record<string, number>> = {
   USD: { USD: 1,     SEK: 10.5,  EUR: 0.92 },
   SEK: { USD: 0.095, SEK: 1,     EUR: 0.088 },
@@ -89,6 +97,7 @@ type BackState = { from: 'profile'; creatorId: string; creatorName: string }
 function ListingCard({ listing, displayCurrency, backState }: { listing: CreatorListing; displayCurrency: string; backState: BackState }) {
   const { t } = useTranslation()
   const diff = listing.quiz.difficulty
+  const accentColor = listing.themeColor ? (THEME_ACCENT[listing.themeColor] ?? null) : null
 
   return (
     <div className="group isolate flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
@@ -108,12 +117,27 @@ function ListingCard({ listing, displayCurrency, backState }: { listing: Creator
           </div>
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-7 pt-4">
+
+        {/* title + question count — bottom left */}
+        <div className="absolute bottom-0 left-0 px-4 pb-7 pt-4">
           <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">{listing.quiz.title}</h3>
           <p className="mt-0.5 text-xs text-white/70">
             {t('marketplace.questions_count', { count: listing.quiz.questionCount })}
           </p>
         </div>
+
+        {/* Theme colour indicator — bottom right, opposite the title */}
+        {accentColor && (
+          <div className="absolute bottom-0 right-0 flex flex-col items-center gap-1 px-4 pb-7 pt-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-white/60">
+              {t('marketplace.theme_label')}
+            </p>
+            <span
+              className="h-4 w-4 rounded-full ring-2 ring-white/40"
+              style={{ backgroundColor: accentColor }}
+            />
+          </div>
+        )}
       </Link>
 
       {/* ── Card body ── */}
