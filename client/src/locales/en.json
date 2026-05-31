@@ -65,6 +65,8 @@
     "theme_label": "Theme",
     "back_to_marketplace": "← Marketplace",
     "back_to_profile": "← {{name}}",
+    "back_to_listing": "← {{title}}",
+    "creator_label": "Creator",
     "listing_not_found": "Listing not found.",
     "buy_button": "Buy — {{price}}",
     "rent_button": "Rent for 48h — {{price}}",

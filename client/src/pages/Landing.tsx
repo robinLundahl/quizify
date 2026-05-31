@@ -50,6 +50,15 @@ const THEME_ACCENT: Record<string, string> = {
   ocean:  '#63a6a0',
 }
 
+// Per-theme gradients using each palette's own colour stops (lightest → darkest)
+const THEME_GRADIENTS: Record<string, string> = {
+  sunset: 'linear-gradient(135deg, #f3e79b, #fac484, #f8a07e, #eb7f86, #5c53a5)',
+  forest: 'linear-gradient(135deg, #c4e6c3, #96d2a4, #6dbc90, #4da284, #1d4f60)',
+  rose:   'linear-gradient(135deg, #ffc6c4, #f4a3a8, #e38191, #cc607d, #672044)',
+  peach:  'linear-gradient(135deg, #fef6b5, #ffc285, #fa8a76, #f16d7a, #e15383)',
+  ocean:  'linear-gradient(135deg, #e4f1e1, #b4d9cc, #89c0b6, #63a6a0, #287274)',
+}
+
 const RATES: Record<string, Record<string, number>> = {
   USD: { USD: 1,     SEK: 10.5,  EUR: 0.92 },
   SEK: { USD: 0.095, SEK: 1,     EUR: 0.088 },
@@ -194,8 +203,8 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
               {t('marketplace.theme_label')}
             </p>
             <span
-              className="h-4 w-4 rounded-full ring-2 ring-white/40"
-              style={{ backgroundColor: accentColor }}
+              className="h-5 w-5 rounded-full ring-2 ring-white/30"
+              style={{ background: THEME_GRADIENTS[listing.themeColor ?? ''] ?? accentColor }}
             />
           </div>
         )}

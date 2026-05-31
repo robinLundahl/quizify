@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
@@ -52,6 +52,14 @@ const THEME_ACCENT: Record<string, string> = {
   rose:   '#cc607d',
   peach:  '#fac484',
   ocean:  '#63a6a0',
+}
+
+const THEME_GRADIENTS: Record<string, string> = {
+  sunset: 'linear-gradient(135deg, #f3e79b, #fac484, #f8a07e, #eb7f86, #5c53a5)',
+  forest: 'linear-gradient(135deg, #c4e6c3, #96d2a4, #6dbc90, #4da284, #1d4f60)',
+  rose:   'linear-gradient(135deg, #ffc6c4, #f4a3a8, #e38191, #cc607d, #672044)',
+  peach:  'linear-gradient(135deg, #fef6b5, #ffc285, #fa8a76, #f16d7a, #e15383)',
+  ocean:  'linear-gradient(135deg, #e4f1e1, #b4d9cc, #89c0b6, #63a6a0, #287274)',
 }
 
 const RATES: Record<string, Record<string, number>> = {
@@ -133,8 +141,8 @@ function ListingCard({ listing, displayCurrency, backState }: { listing: Creator
               {t('marketplace.theme_label')}
             </p>
             <span
-              className="h-4 w-4 rounded-full ring-2 ring-white/40"
-              style={{ backgroundColor: accentColor }}
+              className="h-5 w-5 rounded-full ring-2 ring-white/30"
+              style={{ background: THEME_GRADIENTS[listing.themeColor ?? ''] ?? accentColor }}
             />
           </div>
         )}
@@ -215,6 +223,12 @@ function ListingCard({ listing, displayCurrency, backState }: { listing: Creator
 export default function CreatorProfile() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
+  const location = useLocation()
+  const navState = location.state as { from?: string; listingId?: string; listingTitle?: string } | null
+  const backTo    = navState?.from === 'listing' ? `/marketplace/${navState.listingId}` : '/'
+  const backLabel = navState?.from === 'listing'
+    ? t('marketplace.back_to_listing', { title: navState.listingTitle })
+    : t('marketplace.back_to_marketplace')
   const [displayCurrency, setDisplayCurrency] = useState('USD')
 
   const { data: creator, isLoading, isError } = useQuery<CreatorProfileData>({
@@ -231,10 +245,10 @@ export default function CreatorProfile() {
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
 
         <Link
-          to="/"
+          to={backTo}
           className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block"
         >
-          {t('marketplace.back_to_marketplace')}
+          {backLabel}
         </Link>
 
         {isLoading && (

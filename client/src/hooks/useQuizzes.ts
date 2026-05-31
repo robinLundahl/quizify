@@ -394,7 +394,12 @@ export function useUpdateQuizCover() {
       const { data } = await api.patch<Quiz>(`/quiz/${id}/cover`, { coverImage })
       return data
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['quizzes'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['quizzes'] })
+      void qc.invalidateQueries({ queryKey: ['marketplace'] })
+      void qc.invalidateQueries({ queryKey: ['marketplace-listing'] })
+      void qc.invalidateQueries({ queryKey: ['creator-profile'] })
+    },
   })
 }
 

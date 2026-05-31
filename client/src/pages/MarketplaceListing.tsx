@@ -311,29 +311,30 @@ export default function MarketplaceListing() {
                 )}
 
                 {/* Creator */}
-                <div className="flex items-center gap-2 mt-4">
-                  {listing.creator.avatar ? (
-                    <img src={listing.creator.avatar} alt={listing.creator.name} className="h-7 w-7 rounded-full object-cover" />
-                  ) : (
-                    <div className="h-7 w-7 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-xs font-semibold text-indigo-600">
-                      {listing.creator.name[0]?.toUpperCase()}
-                    </div>
-                  )}
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {listing.creator.name}
-                  </span>
-                  {/* Creator profile — TICKET-063 */}
+                <div className="mt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+                    {t('marketplace.creator_label')}
+                  </p>
                   <Link
                     to={`/creator/${listing.creator.id}`}
-                    className="text-xs text-indigo-500 hover:underline"
+                    state={{ from: 'listing', listingId: id, listingTitle: listing.quiz.title }}
+                    className="mt-1 flex items-center gap-2 hover:opacity-80 transition-opacity w-fit"
                   >
-                    {t('marketplace.view_creator_profile')}
+                    {listing.creator.avatar ? (
+                      <img src={listing.creator.avatar} alt={listing.creator.name} className="h-6 w-6 rounded-full object-cover" />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-xs font-semibold text-indigo-600">
+                        {listing.creator.name[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      {listing.creator.name}
+                    </span>
                   </Link>
+                  {listing.creator.bio && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">{listing.creator.bio}</p>
+                  )}
                 </div>
-
-                {listing.creator.bio && (
-                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 italic">{listing.creator.bio}</p>
-                )}
               </div>
 
               {/* Stats row */}

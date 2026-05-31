@@ -65,6 +65,8 @@
     "theme_label": "Tema",
     "back_to_marketplace": "← Marknadsplats",
     "back_to_profile": "← {{name}}",
+    "back_to_listing": "← {{title}}",
+    "creator_label": "Skapare",
     "listing_not_found": "Annons hittades inte.",
     "buy_button": "Köp — {{price}}",
     "rent_button": "Hyr i 48h — {{price}}",
