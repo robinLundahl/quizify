@@ -34,6 +34,7 @@
     "filter_category": "Category",
     "filter_language": "Language",
     "filter_difficulty": "Difficulty",
+    "card_difficulty": "Level",
     "filter_questions": "Questions",
     "filter_price": "Price",
     "filter_rating": "Min rating",

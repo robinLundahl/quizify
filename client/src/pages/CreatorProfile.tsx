@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
 import NavBar from '../components/ui/NavBar'
-import { tCategory } from '../lib/i18nMaps'
+import { tCategory, tLanguage } from '../lib/i18nMaps'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -72,10 +72,10 @@ function Stars({ rating }: { rating: number }) {
 
 // ─── Listing card ─────────────────────────────────────────────────────────────
 
-const DIFFICULTY_COLOR: Record<string, string> = {
-  easy:   'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  hard:   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+const DIFFICULTY_TEXT_COLOR: Record<string, string> = {
+  easy:   'text-green-600 dark:text-green-400',
+  medium: 'text-yellow-600 dark:text-yellow-500',
+  hard:   'text-red-600 dark:text-red-400',
 }
 
 function ListingCard({ listing }: { listing: CreatorListing }) {
@@ -131,26 +131,40 @@ function ListingCard({ listing }: { listing: CreatorListing }) {
         </div>
 
         {/* Description */}
-        {listing.quiz.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">{listing.quiz.description}</p>
-        )}
+        <p className="line-clamp-2 min-h-10 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          {listing.quiz.description ?? ''}
+        </p>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-1.5">
-          {listing.quiz.category && (
-            <span className="rounded-full bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400">
-              {tCategory(listing.quiz.category, t)}
-            </span>
-          )}
-          {diff && (
-            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${DIFFICULTY_COLOR[diff] ?? ''}`}>
-              {t(`marketplace.difficulty_${diff}`, { defaultValue: diff })}
-            </span>
-          )}
+        {/* Metadata columns */}
+        <div className="grid grid-cols-3 divide-x divide-gray-100 dark:divide-gray-700">
+          <div className="min-w-0 pr-3 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+              {t('marketplace.filter_category')}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-gray-800 dark:text-gray-200">
+              {listing.quiz.category ? tCategory(listing.quiz.category, t) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0 px-3 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+              {t('marketplace.card_difficulty')}
+            </p>
+            <p className={`mt-0.5 truncate text-xs font-semibold ${diff ? (DIFFICULTY_TEXT_COLOR[diff] ?? 'text-gray-800 dark:text-gray-200') : 'text-gray-400 dark:text-gray-500'}`}>
+              {diff ? t(`marketplace.difficulty_${diff}`, { defaultValue: diff }) : '—'}
+            </p>
+          </div>
+          <div className="min-w-0 pl-3 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">
+              {t('marketplace.filter_language')}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-gray-800 dark:text-gray-200">
+              {listing.quiz.language ? tLanguage(listing.quiz.language, t) : '—'}
+            </p>
+          </div>
         </div>
 
         {/* View button */}
-        <div className="mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
+        <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
           <Link
             to={`/marketplace/${listing.id}`}
             className="block w-full rounded-xl bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
