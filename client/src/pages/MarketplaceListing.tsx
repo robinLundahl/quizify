@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import api from '../lib/api'
@@ -139,7 +139,13 @@ export default function MarketplaceListing() {
   const { user } = useAuth()
   const isAdmin = useAuthStore((s) => s.user?.isAdmin ?? false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { t } = useTranslation()
+  const fromProfile = (location.state as { from?: string; creatorId?: string; creatorName?: string } | null)?.from === 'profile'
+  const backTo   = fromProfile ? `/creator/${(location.state as { creatorId: string }).creatorId}` : '/'
+  const backLabel = fromProfile
+    ? t('marketplace.back_to_profile', { name: (location.state as { creatorName: string }).creatorName })
+    : t('marketplace.back_to_marketplace')
   const [displayCurrency, setDisplayCurrency] = useState('USD')
   const [copied, setCopied] = useState(false)
 
@@ -249,9 +255,9 @@ export default function MarketplaceListing() {
 
       <main className="mx-auto max-w-5xl px-4 sm:px-6 py-8">
 
-        {/* Back link */}
-        <Link to="/" className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block">
-          {t('marketplace.back_to_marketplace')}
+        {/* Back link — destination depends on navigation source */}
+        <Link to={backTo} className="text-sm text-gray-500 dark:text-gray-400 hover:text-indigo-600 transition-colors mb-6 inline-block">
+          {backLabel}
         </Link>
 
         {isLoading && (

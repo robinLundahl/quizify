@@ -50,14 +50,14 @@ const RATES: Record<string, Record<string, number>> = {
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: '$', SEK: 'kr', EUR: '€' }
 
-function convertPrice(amount: number, from: string, to: string): number {
-  return Math.round(amount * (RATES[from]?.[to] ?? 1))
+function convertPrice(amountCents: number, from: string, to: string): number {
+  return Math.round((amountCents / 100) * (RATES[from]?.[to] ?? 1))
 }
 
-function formatPrice(amount: number, from: string, to: string): string {
-  const converted = convertPrice(amount, from, to)
+function formatPrice(amountCents: number, from: string, to: string): string {
+  const converted = (amountCents / 100) * (RATES[from]?.[to] ?? 1)
   const sym = CURRENCY_SYMBOL[to] ?? to
-  return to === 'SEK' ? `${converted} ${sym}` : `${sym}${converted}`
+  return to === 'SEK' ? `${Math.round(converted)} ${sym}` : `${sym}${converted.toFixed(2)}`
 }
 
 // ─── Filter constants ─────────────────────────────────────────────────────────
@@ -111,15 +111,14 @@ const PRICE_RANGES: Record<string, Array<{ label: string; min: number; max: numb
 // ─── Star rating ──────────────────────────────────────────────────────────────
 
 function Stars({ rating }: { rating: number | null }) {
-  if (rating === null) return <span className="text-xs text-gray-400">—</span>
+  if (rating === null) return null
   return (
     <span className="flex items-center gap-0.5">
       {[1,2,3,4,5].map((i) => (
-        <svg key={i} className={`h-3 w-3 ${i <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
+        <svg key={i} className={`h-4 w-4 ${i <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600'}`} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
       ))}
-      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">{rating.toFixed(1)}</span>
     </span>
   )
 }
@@ -152,9 +151,9 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
   }
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+    <div className="group isolate flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
       {/* ── Image hero ── */}
-      <Link to={`/marketplace/${listing.id}`} className="relative block h-44 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
+      <Link to={`/marketplace/${listing.id}`} className="relative block h-48 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
         {listing.quiz.coverImage ? (
           <img
             src={listing.quiz.coverImage}
@@ -171,7 +170,7 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
 
         {/* title + question count overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-7 pt-4">
           <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">{listing.quiz.title}</h3>
           <p className="mt-0.5 text-xs text-white/70">
             {t('marketplace.questions_count', { count: listing.quiz.questionCount })}
@@ -182,7 +181,7 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
         <button
           onClick={handleShare}
           title={copied ? t('marketplace.share_copied') : t('marketplace.share')}
-          className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-2 right-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg bg-black/50 text-white backdrop-blur-sm hover:bg-black/70 transition-colors opacity-0 group-hover:opacity-100"
         >
           {copied ? (
             <svg className="h-3.5 w-3.5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,24 +195,24 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
         </button>
       </Link>
 
-      {/* ── Card body ── */}
-      <div className="flex flex-1 flex-col p-4 gap-3">
+      {/* ── Card body — pulls up to overlap image bottom for a soft transition ── */}
+      <div className="relative -mt-3 flex flex-1 flex-col gap-3 rounded-t-2xl bg-white p-4 dark:bg-gray-800">
         {/* Rating + price */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             {listing.avgRating !== null ? (
               <>
                 <Stars rating={listing.avgRating} />
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{listing.avgRating.toFixed(1)}</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{listing.avgRating.toFixed(1)}</span>
                 {listing.reviewCount > 0 && (
                   <span className="text-xs text-gray-400 dark:text-gray-500">({listing.reviewCount})</span>
                 )}
               </>
             ) : (
-              <span className="text-xs text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews', { defaultValue: 'No reviews yet' })}</span>
+              <span className="text-xs italic text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews', { defaultValue: 'No reviews yet' })}</span>
             )}
           </div>
-          <span className="shrink-0 text-sm font-bold text-indigo-600 dark:text-indigo-400">
+          <span className="shrink-0 text-base font-bold text-indigo-600 dark:text-indigo-400">
             {listing.price === 0
               ? t('marketplace.free')
               : formatPrice(listing.price, listing.currency, displayCurrency)}
@@ -256,7 +255,7 @@ function QuizCard({ listing, displayCurrency }: { listing: MarketplaceListing; d
         {/* Creator + view button */}
         <div className="mt-auto flex items-center justify-between gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
           <Link
-            to={`/marketplace/creator/${listing.creator.id}`}
+            to={`/creator/${listing.creator.id}`}
             onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-1.5 min-w-0 hover:opacity-80 transition-opacity"
           >

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -45,12 +46,17 @@ interface CreatorProfileData {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const RATES: Record<string, Record<string, number>> = {
+  USD: { USD: 1,     SEK: 10.5,  EUR: 0.92 },
+  SEK: { USD: 0.095, SEK: 1,     EUR: 0.088 },
+  EUR: { USD: 1.09,  SEK: 11.36, EUR: 1 },
+}
 const CURRENCY_SYMBOL: Record<string, string> = { USD: '$', SEK: 'kr', EUR: '€' }
 
-function formatPrice(amountCents: number, currency: string): string {
-  const amount = amountCents / 100
-  const sym = CURRENCY_SYMBOL[currency] ?? currency
-  return currency === 'SEK' ? `${Math.round(amount)} ${sym}` : `${sym}${amount.toFixed(2)}`
+function formatPrice(amountCents: number, from: string, to: string): string {
+  const converted = (amountCents / 100) * (RATES[from]?.[to] ?? 1)
+  const sym = CURRENCY_SYMBOL[to] ?? to
+  return to === 'SEK' ? `${Math.round(converted)} ${sym}` : `${sym}${converted.toFixed(2)}`
 }
 
 function Stars({ rating }: { rating: number }) {
@@ -59,7 +65,7 @@ function Stars({ rating }: { rating: number }) {
       {[1, 2, 3, 4, 5].map((i) => (
         <svg
           key={i}
-          className={`h-3 w-3 ${i <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
+          className={`h-4 w-4 ${i <= Math.round(rating) ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600'}`}
           fill="currentColor"
           viewBox="0 0 20 20"
         >
@@ -78,14 +84,16 @@ const DIFFICULTY_TEXT_COLOR: Record<string, string> = {
   hard:   'text-red-600 dark:text-red-400',
 }
 
-function ListingCard({ listing }: { listing: CreatorListing }) {
+type BackState = { from: 'profile'; creatorId: string; creatorName: string }
+
+function ListingCard({ listing, displayCurrency, backState }: { listing: CreatorListing; displayCurrency: string; backState: BackState }) {
   const { t } = useTranslation()
   const diff = listing.quiz.difficulty
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl bg-white dark:bg-gray-800 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
+    <div className="group isolate flex flex-col overflow-hidden rounded-2xl bg-white ring-1 ring-black/5 dark:bg-gray-800 dark:ring-white/10 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5">
       {/* ── Image hero ── */}
-      <Link to={`/marketplace/${listing.id}`} className="relative block h-44 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
+      <Link to={`/marketplace/${listing.id}`} state={backState} className="relative block h-48 overflow-hidden bg-linear-to-br from-indigo-500 via-purple-500 to-pink-500">
         {listing.quiz.coverImage ? (
           <img
             src={listing.quiz.coverImage}
@@ -100,7 +108,7 @@ function ListingCard({ listing }: { listing: CreatorListing }) {
           </div>
         )}
         <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4">
+        <div className="absolute bottom-0 left-0 right-0 px-4 pb-7 pt-4">
           <h3 className="text-sm font-bold text-white leading-tight line-clamp-2">{listing.quiz.title}</h3>
           <p className="mt-0.5 text-xs text-white/70">
             {t('marketplace.questions_count', { count: listing.quiz.questionCount })}
@@ -109,24 +117,24 @@ function ListingCard({ listing }: { listing: CreatorListing }) {
       </Link>
 
       {/* ── Card body ── */}
-      <div className="flex flex-1 flex-col p-4 gap-3">
+      <div className="relative -mt-3 flex flex-1 flex-col gap-3 rounded-t-2xl bg-white p-4 dark:bg-gray-800">
         {/* Rating + price */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5">
             {listing.avgRating !== null ? (
               <>
                 <Stars rating={listing.avgRating} />
-                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{listing.avgRating.toFixed(1)}</span>
+                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{listing.avgRating.toFixed(1)}</span>
                 {listing.reviewCount > 0 && (
                   <span className="text-xs text-gray-400 dark:text-gray-500">({listing.reviewCount})</span>
                 )}
               </>
             ) : (
-              <span className="text-xs text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews', { defaultValue: 'No reviews yet' })}</span>
+              <span className="text-xs italic text-gray-400 dark:text-gray-500">{t('marketplace.no_reviews', { defaultValue: 'No reviews yet' })}</span>
             )}
           </div>
-          <span className="shrink-0 text-sm font-bold text-indigo-600 dark:text-indigo-400">
-            {listing.price === 0 ? t('marketplace.free') : formatPrice(listing.price, listing.currency)}
+          <span className="shrink-0 text-base font-bold text-indigo-600 dark:text-indigo-400">
+            {listing.price === 0 ? t('marketplace.free') : formatPrice(listing.price, listing.currency, displayCurrency)}
           </span>
         </div>
 
@@ -167,6 +175,7 @@ function ListingCard({ listing }: { listing: CreatorListing }) {
         <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
           <Link
             to={`/marketplace/${listing.id}`}
+            state={backState}
             className="block w-full rounded-xl bg-indigo-600 px-3 py-2 text-center text-sm font-semibold text-white hover:bg-indigo-700 transition-colors"
           >
             {t('marketplace.view', { defaultValue: 'View' })}
@@ -182,6 +191,7 @@ function ListingCard({ listing }: { listing: CreatorListing }) {
 export default function CreatorProfile() {
   const { id } = useParams<{ id: string }>()
   const { t } = useTranslation()
+  const [displayCurrency, setDisplayCurrency] = useState('USD')
 
   const { data: creator, isLoading, isError } = useQuery<CreatorProfileData>({
     queryKey: ['creator-profile', id],
@@ -270,16 +280,32 @@ export default function CreatorProfile() {
 
             {/* ── Listings grid ── */}
             <section>
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                {t('creator.published_quizzes')}
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  {t('creator.published_quizzes')}
+                </h2>
+                <select
+                  value={displayCurrency}
+                  onChange={(e) => setDisplayCurrency(e.target.value)}
+                  className="border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                >
+                  <option value="USD">USD</option>
+                  <option value="SEK">SEK</option>
+                  <option value="EUR">EUR</option>
+                </select>
+              </div>
 
               {creator.listings.length === 0 ? (
                 <p className="text-sm text-gray-400 dark:text-gray-500">{t('creator.no_quizzes')}</p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {creator.listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} />
+                    <ListingCard
+                      key={listing.id}
+                      listing={listing}
+                      displayCurrency={displayCurrency}
+                      backState={{ from: 'profile', creatorId: creator.id, creatorName: creator.name }}
+                    />
                   ))}
                 </div>
               )}
