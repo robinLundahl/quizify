@@ -228,6 +228,7 @@ router.post('/set-token', async (req: Request, res: Response) => {
     httpOnly: true,
     secure: process.env['NODE_ENV'] === 'production',
     sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
+    domain: process.env['NODE_ENV'] === 'production' ? '.quizcraft.online' : undefined,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
   res.json({ success: true })
