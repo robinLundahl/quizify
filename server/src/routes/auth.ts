@@ -12,6 +12,7 @@ import type { User } from '../generated/prisma/client.js'
 
 const router = Router()
 const CLIENT_URL = process.env['CLIENT_URL'] ?? 'http://localhost:5173'
+console.log('[AUTH] CLIENT_URL set to:', CLIENT_URL)
 
 const upload = multer({
   storage: multer.memoryStorage(),
