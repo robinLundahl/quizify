@@ -12,9 +12,9 @@ import type { User } from '../generated/prisma/client.js'
 
 const router = Router()
 // Temporary hardcode for production debugging
-const CLIENT_URL = process.env['NODE_ENV'] === 'production'
-  ? 'https://quizcraft-nu.vercel.app'
-  : (process.env['CLIENT_URL'] ?? 'http://localhost:5173')
+// Hämta CLIENT_URL direkt från miljövariablerna, med din nya domän som fallback
+const CLIENT_URL = process.env['CLIENT_URL'] ?? 'https://www.quizcraft.online'
+
 console.log('[AUTH] CLIENT_URL set to:', CLIENT_URL)
 console.log('[AUTH] NODE_ENV:', process.env['NODE_ENV'])
 

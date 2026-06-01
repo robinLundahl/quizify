@@ -412,6 +412,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── sv.json
 │   │   ├── pages/
 │   │   │   ├── AdminPanel.tsx
+│   │   │   ├── AuthCallback.tsx
 │   │   │   ├── CreatorProfile.tsx
 │   │   │   ├── Dashboard.tsx
 │   │   │   ├── HostView.tsx
@@ -432,6 +433,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   ├── i18n.ts
 │   │   ├── index.css
 │   │   └── main.tsx
+│   ├── .env.example
 │   ├── .gitignore
 │   ├── eslint.config.js
 │   ├── index.html
@@ -440,6 +442,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── tsconfig.app.json
 │   ├── tsconfig.json
 │   ├── tsconfig.node.json
+│   ├── vercel.json
 │   └── vite.config.ts
 ├── e2e/
 │   └── review.spec.ts
