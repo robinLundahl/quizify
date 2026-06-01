@@ -1,14 +1,5 @@
 [build]
-builder = "NIXPACKS"
-
-[build.nixpacksPlan.phases.setup]
-nixPkgs = ["nodejs_20"]
-
-[build.nixpacksPlan.phases.install]
-cmds = ["cd server && npm install"]
-
-[build.nixpacksPlan.phases.build]
-cmds = ["cd server && npx prisma generate", "cd server && npm run build"]
+builder = "RAILPACK"
 
 [deploy]
 startCommand = "cd server && npm start"

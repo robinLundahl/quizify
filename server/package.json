@@ -29,8 +29,10 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pg": "^8.20.0",
+    "prisma": "^7.8.0",
     "resend": "^6.12.3",
     "socket.io": "^4.8.3",
+    "typescript": "^6.0.3",
     "ws": "^8.20.1"
   },
   "devDependencies": {
@@ -47,8 +49,6 @@
     "@types/pg": "^8.20.0",
     "@types/ws": "^8.18.1",
     "nodemon": "^3.1.14",
-    "prisma": "^7.8.0",
-    "tsx": "^4.22.1",
-    "typescript": "^6.0.3"
+    "tsx": "^4.22.1"
   }
 }
