@@ -11,8 +11,12 @@ import { sendVerificationEmail } from '../lib/email.js'
 import type { User } from '../generated/prisma/client.js'
 
 const router = Router()
-const CLIENT_URL = process.env['CLIENT_URL'] ?? 'http://localhost:5173'
+// Temporary hardcode for production debugging
+const CLIENT_URL = process.env['NODE_ENV'] === 'production'
+  ? 'https://quizcraft-nu.vercel.app'
+  : (process.env['CLIENT_URL'] ?? 'http://localhost:5173')
 console.log('[AUTH] CLIENT_URL set to:', CLIENT_URL)
+console.log('[AUTH] NODE_ENV:', process.env['NODE_ENV'])
 
 const upload = multer({
   storage: multer.memoryStorage(),
