@@ -79,7 +79,9 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   └── SKILL.md
 │   │   ├── ship/
 │   │   │   └── SKILL.md
-│   │   └── todo/
+│   │   ├── todo/
+│   │   │   └── SKILL.md
+│   │   └── ui-ux-pro-max/
 │   │       └── SKILL.md
 │   ├── settings.json
 │   ├── settings.local.json
@@ -127,6 +129,15 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── console-2026-05-26T09-19-45-153Z.log
 │   ├── console-2026-05-26T09-26-32-488Z.log
 │   ├── console-2026-05-26T09-51-45-879Z.log
+│   ├── console-2026-05-31T14-13-35-135Z.log
+│   ├── console-2026-05-31T14-14-30-111Z.log
+│   ├── console-2026-05-31T14-15-04-048Z.log
+│   ├── console-2026-05-31T14-16-27-267Z.log
+│   ├── console-2026-05-31T18-52-19-884Z.log
+│   ├── console-2026-05-31T19-00-36-569Z.log
+│   ├── console-2026-05-31T19-00-59-629Z.log
+│   ├── console-2026-05-31T19-13-17-973Z.log
+│   ├── console-2026-05-31T19-34-54-031Z.log
 │   ├── page-2026-05-18T14-35-50-838Z.yml
 │   ├── page-2026-05-18T14-36-21-233Z.yml
 │   ├── page-2026-05-18T14-36-58-082Z.yml
@@ -271,7 +282,19 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   ├── page-2026-05-26T09-19-45-355Z.yml
 │   ├── page-2026-05-26T09-20-11-897Z.png
 │   ├── page-2026-05-26T09-51-46-317Z.yml
-│   └── page-2026-05-26T09-52-05-592Z.png
+│   ├── page-2026-05-26T09-52-05-592Z.png
+│   ├── page-2026-05-31T14-13-35-525Z.yml
+│   ├── page-2026-05-31T14-14-30-297Z.yml
+│   ├── page-2026-05-31T14-15-04-174Z.yml
+│   ├── page-2026-05-31T14-15-55-287Z.yml
+│   ├── page-2026-05-31T14-16-27-398Z.yml
+│   ├── page-2026-05-31T18-52-20-055Z.yml
+│   ├── page-2026-05-31T19-00-36-836Z.yml
+│   ├── page-2026-05-31T19-00-59-769Z.yml
+│   ├── page-2026-05-31T19-02-06-873Z.yml
+│   ├── page-2026-05-31T19-02-11-749Z.yml
+│   ├── page-2026-05-31T19-13-18-122Z.yml
+│   └── page-2026-05-31T19-34-54-176Z.yml
 ├── backlog/
 │   ├── archive/
 │   │   ├── TICKET-001.md
@@ -382,6 +405,7 @@ This starts both the backend (port 3001) and the frontend (port 5173) concurrent
 │   │   │   ├── api.ts
 │   │   │   ├── audioUrl.ts
 │   │   │   ├── cropImage.ts
+│   │   │   ├── i18nMaps.ts
 │   │   │   └── theme.ts
 │   │   ├── locales/
 │   │   │   ├── en.json
