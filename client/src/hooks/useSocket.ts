@@ -4,7 +4,8 @@ let socket: Socket | null = null
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io('/', { withCredentials: true })
+    const url = import.meta.env.VITE_API_URL || window.location.origin
+    socket = io(url, { withCredentials: true })
   }
   return socket
 }
