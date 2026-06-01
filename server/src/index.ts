@@ -18,10 +18,10 @@ const app = express()
 const httpServer = createServer(app)
 
 // CORS configuration - allow production, preview, and local dev
-const allowedOrigins = [
+const allowedOrigins: string[] = [
   'http://localhost:5173',
-  process.env['CLIENT_URL'],
-].filter(Boolean) as string[]
+  process.env['CLIENT_URL'] || '',
+].filter(Boolean)
 
 app.use(cors({
   origin: (origin, callback) => {
@@ -34,6 +34,7 @@ app.use(cors({
     // Allow all Vercel preview deployments (*.vercel.app)
     if (origin.endsWith('.vercel.app')) return callback(null, true)
 
+    // Reject other origins
     callback(new Error('Not allowed by CORS'))
   },
   credentials: true,
