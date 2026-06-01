@@ -17,7 +17,27 @@ import { requireAdmin } from './middleware/requireAdmin.js'
 const app = express()
 const httpServer = createServer(app)
 
-app.use(cors({ origin: process.env['CLIENT_URL'] ?? 'http://localhost:5173', credentials: true }))
+// CORS configuration - allow production, preview, and local dev
+const allowedOrigins = [
+  'http://localhost:5173',
+  process.env['CLIENT_URL'],
+].filter(Boolean) as string[]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true)
+
+    // Allow exact matches
+    if (allowedOrigins.includes(origin)) return callback(null, true)
+
+    // Allow all Vercel preview deployments (*.vercel.app)
+    if (origin.endsWith('.vercel.app')) return callback(null, true)
+
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true,
+}))
 app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
