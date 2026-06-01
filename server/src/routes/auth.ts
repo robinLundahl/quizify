@@ -34,9 +34,14 @@ const upload = multer({
 function setTokenAndRedirect(res: Response, user: User) {
   const token = signToken(user.id)
 
+  console.log('[AUTH] setTokenAndRedirect - NODE_ENV:', process.env['NODE_ENV'])
+  console.log('[AUTH] setTokenAndRedirect - CLIENT_URL:', CLIENT_URL)
+
   // In production, send token as query param since cross-domain cookies are problematic
   if (process.env['NODE_ENV'] === 'production') {
-    res.redirect(`${CLIENT_URL}/auth/callback?token=${token}`)
+    const redirectUrl = `${CLIENT_URL}/auth/callback?token=${token}`
+    console.log('[AUTH] Redirecting to (production):', redirectUrl)
+    res.redirect(redirectUrl)
   } else {
     // Local dev: use cookie as before
     res.cookie('token', token, {
@@ -45,6 +50,7 @@ function setTokenAndRedirect(res: Response, user: User) {
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     })
+    console.log('[AUTH] Redirecting to (dev):', `${CLIENT_URL}/dashboard`)
     res.redirect(`${CLIENT_URL}/dashboard`)
   }
 }
