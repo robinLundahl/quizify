@@ -5,12 +5,12 @@ builder = "NIXPACKS"
 nixPkgs = ["nodejs_20"]
 
 [build.nixpacksPlan.phases.install]
-cmds = ["npm install"]
+cmds = ["cd server && npm install"]
 
 [build.nixpacksPlan.phases.build]
-cmds = ["npx prisma generate", "npm run build"]
+cmds = ["cd server && npx prisma generate", "cd server && npm run build"]
 
 [deploy]
-startCommand = "npm start"
+startCommand = "cd server && npm start"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
