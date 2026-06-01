@@ -36,12 +36,14 @@ Single Supabase project for production. Local development uses the same database
 
 - [x] Push repo to GitHub
 - [x] Create `dev` branch
-- [ ] Connect repo to Railway (backend)
+- [x] Connect repo to Railway (backend)
   - Link to `main` branch
   - Set environment variables (see below)
+  - Railway URL: `https://quizcraft-production-f318.up.railway.app`
+- [ ] Update `CLIENT_URL` in Railway to Vercel URL (after Vercel deployment)
 - [ ] Connect repo to Vercel (frontend)
   - Link to `main` branch for production
-  - Configure custom domain
+  - Configure custom domain (optional)
   - Set `VITE_API_URL` to Railway backend URL
 - [ ] Update client to use `VITE_API_URL` instead of dev proxy
 - [ ] Configure Google OAuth callback URLs to include production URLs
