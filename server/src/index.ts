@@ -57,7 +57,7 @@ app.get('/api/health', (_req, res) => {
 
 initSocket(httpServer)
 
-const PORT = process.env['PORT'] ?? 3001
+const PORT = parseInt(process.env['PORT'] || '3001', 10)
 const HOST = process.env['HOST'] ?? '0.0.0.0'
 httpServer.listen(PORT, HOST, () => {
   console.log(`Server running on http://${HOST}:${PORT}`)
