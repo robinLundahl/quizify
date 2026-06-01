@@ -10,46 +10,55 @@
 
 Vercel cannot run a persistent Socket.io server (serverless), so the backend must go on Railway or equivalent.
 
-## Environments
+## Environment strategy
 
-Two separate deployments, each linked to a GitHub branch:
+**Single environment: production only**
 
-| | Production | Staging |
-|---|---|---|
-| Branch | `main` | `dev` |
-| URL | `quizcraft.app` | `dev.quizcraft.app` |
-| Supabase project | production project | separate dev project |
+- Deploy `main` branch to production
+- Test changes locally before merging to `main`
+- Vercel automatically generates preview URLs for every branch/PR — use these for testing before merge
+- One Supabase project (production)
 
-Vercel automatically generates a preview URL for every branch/PR — useful for testing `dev` before merging to `main`.
+This keeps the deployment simple and avoids the cost/complexity of a staging environment. We can add staging later if needed.
 
 ## Branching strategy
 
 ```
 main      → live production (only merge here when ready to release)
-dev       → active development
-feature/* → individual features, merged into dev
+feature/* → individual features, test locally then merge into main
 ```
 
-## Two Supabase projects
+## Database
 
-Create a second Supabase project for development. Never run migrations or seed test data against the production project.
-
-- `server/.env` (production) → production DATABASE_URL, DIRECT_URL, JWT_SECRET, Google OAuth credentials
-- `server/.env.development` → dev Supabase DATABASE_URL, DIRECT_URL
+Single Supabase project for production. Local development uses the same database (RLS is enabled on all tables for security).
 
 ## Setup checklist
 
-- [ ] Push repo to GitHub
-- [ ] Create second Supabase project for dev
-- [ ] Connect repo to Vercel (frontend) — link `main` to production domain, `dev` auto-previews
-- [ ] Connect repo to Railway (backend) — one service per environment, each linked to its branch
-- [ ] Replace Vite dev proxy with `VITE_API_URL` env variable pointing to the Railway backend URL
-- [ ] Set all production secrets in Railway's environment variable panel (never in the repo):
-  - `DATABASE_URL`
-  - `DIRECT_URL`
-  - `JWT_SECRET`
-  - `GOOGLE_CLIENT_ID`
-  - `GOOGLE_CLIENT_SECRET`
+- [x] Push repo to GitHub
+- [x] Create `dev` branch
+- [ ] Connect repo to Railway (backend)
+  - Link to `main` branch
+  - Set environment variables (see below)
+- [ ] Connect repo to Vercel (frontend)
+  - Link to `main` branch for production
+  - Configure custom domain
+  - Set `VITE_API_URL` to Railway backend URL
+- [ ] Update client to use `VITE_API_URL` instead of dev proxy
+- [ ] Configure Google OAuth callback URLs to include production URLs
+- [ ] Verify Resend sending domain (remove DEV_EMAIL workaround)
+
+### Railway environment variables
+
+Set these in Railway's environment variable panel (never commit to repo):
+
+- `DATABASE_URL` — Supabase connection pooling URL (port 6543)
+- `DIRECT_URL` — Supabase direct connection URL (port 5432)
+- `JWT_SECRET` — same as local `.env`
+- `GOOGLE_CLIENT_ID` — OAuth credentials
+- `GOOGLE_CLIENT_SECRET` — OAuth credentials
+- `NODE_ENV=production`
+- `RESEND_API_KEY` — for email sending
+- `CLIENT_URL` — your Vercel production URL (e.g., `https://quizcraft.app`)
 
 ## RLS
 
