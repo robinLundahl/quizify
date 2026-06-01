@@ -33,13 +33,20 @@ const upload = multer({
 
 function setTokenAndRedirect(res: Response, user: User) {
   const token = signToken(user.id)
-  res.cookie('token', token, {
-    httpOnly: true,
-    secure: process.env['NODE_ENV'] === 'production',
-    sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  })
-  res.redirect(`${CLIENT_URL}/dashboard`)
+
+  // In production, send token as query param since cross-domain cookies are problematic
+  if (process.env['NODE_ENV'] === 'production') {
+    res.redirect(`${CLIENT_URL}/auth/callback?token=${token}`)
+  } else {
+    // Local dev: use cookie as before
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    })
+    res.redirect(`${CLIENT_URL}/dashboard`)
+  }
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -203,6 +210,22 @@ router.get(
   }
 )
 
+
+router.post('/set-token', async (req: Request, res: Response) => {
+  const { token } = req.body as { token?: string }
+  if (!token) {
+    res.status(400).json({ error: 'Token required' })
+    return
+  }
+  // Set httpOnly cookie with the token
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env['NODE_ENV'] === 'production',
+    sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  })
+  res.json({ success: true })
+})
 
 router.get('/me', requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.userId } })

@@ -14,6 +14,7 @@ import Landing from './pages/Landing'
 import MarketplaceListing from './pages/MarketplaceListing'
 import CreatorProfile from './pages/CreatorProfile'
 import QuizPreview from './pages/QuizPreview'
+import AuthCallback from './pages/AuthCallback'
 
 const queryClient = new QueryClient()
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/join" element={<JoinView />} />
           <Route path="/marketplace/:id" element={<MarketplaceListing />} />
           <Route path="/creator/:id" element={<CreatorProfile />} />
