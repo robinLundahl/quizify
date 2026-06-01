@@ -75,7 +75,7 @@ export default function Login() {
 
             <div className="flex flex-col gap-3">
               <a
-                href="/api/auth/google"
+                href={`${import.meta.env.VITE_API_URL || ''}/api/auth/google`}
                 className="flex items-center justify-center gap-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 transition hover:bg-gray-50 dark:hover:bg-gray-600"
               >
                 <GoogleIcon />
