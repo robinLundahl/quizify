@@ -14,9 +14,29 @@ declare module 'socket.io' {
 export let io: Server
 
 export function initSocket(httpServer: HttpServer) {
+  // Allow both production domains, preview deployments, and local dev
+  const allowedOrigins = [
+    'http://localhost:5173',
+    'https://quizcraft.online',
+    'https://www.quizcraft.online',
+    process.env['CLIENT_URL'] || '',
+  ].filter(Boolean)
+
   io = new Server(httpServer, {
     cors: {
-      origin: process.env['CLIENT_URL'] ?? 'http://localhost:5173',
+      origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true)
+
+        // Allow exact matches
+        if (allowedOrigins.includes(origin)) return callback(null, true)
+
+        // Allow all Vercel preview deployments
+        if (origin.endsWith('.vercel.app')) return callback(null, true)
+
+        // Reject other origins
+        callback(new Error('Not allowed by CORS'))
+      },
       credentials: true,
     },
   })
