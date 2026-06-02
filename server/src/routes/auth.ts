@@ -133,7 +133,8 @@ router.post('/login', async (req: Request, res: Response) => {
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
+    sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
+    domain: process.env['NODE_ENV'] === 'production' ? '.quizcraft.online' : undefined,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
@@ -162,7 +163,8 @@ router.post('/verify-email', async (req: Request, res: Response) => {
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env['NODE_ENV'] === 'production',
-    sameSite: 'lax',
+    sameSite: process.env['NODE_ENV'] === 'production' ? 'none' : 'lax',
+    domain: process.env['NODE_ENV'] === 'production' ? '.quizcraft.online' : undefined,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   })
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
