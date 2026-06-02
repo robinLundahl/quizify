@@ -11,18 +11,38 @@ type LoginResult =
   | { emailNotVerified: true; userId: string }
   | AuthUser
 
+/**
+ * Safely parse JSON response, handling empty or invalid responses
+ */
+async function parseJSON(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text()
+  if (!text) {
+    throw new Error('Server returned an empty response. Please try again.')
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    console.error('Failed to parse JSON response:', text)
+    throw new Error('Invalid server response. Please try again.')
+  }
+}
+
 async function loginRequest(email: string, password: string): Promise<LoginResult> {
-  const res = await fetch('/api/auth/login', {
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const res = await fetch(`${apiUrl}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
+    credentials: 'include',
   })
-  const data = await res.json()
+
+  const data = await parseJSON(res)
+
   if (res.status === 403 && data.error === 'email_not_verified') {
     return { emailNotVerified: true, userId: data.userId as string }
   }
-  if (!res.ok) throw new Error(data.error ?? 'Login failed.')
-  return data
+  if (!res.ok) throw new Error((data.error as string) ?? 'Login failed.')
+  return data as unknown as AuthUser
 }
 
 export default function Login() {

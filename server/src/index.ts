@@ -57,6 +57,20 @@ app.get('/api/health', (_req, res) => {
   res.json({ ok: true })
 })
 
+// Error handling middleware - must be after all routes
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Express error:', err.message)
+
+  // CORS errors
+  if (err.message === 'Not allowed by CORS') {
+    res.status(403).json({ error: 'CORS policy violation. Please check your origin.' })
+    return
+  }
+
+  // Generic server errors
+  res.status(500).json({ error: err.message || 'Internal server error' })
+})
+
 initSocket(httpServer)
 
 const PORT = parseInt(process.env['PORT'] || '3001', 10)

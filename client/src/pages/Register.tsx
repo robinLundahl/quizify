@@ -7,14 +7,29 @@ import { useAuthStore } from '../store/authStore'
 import LangToggle from '../components/ui/LangToggle'
 import VerifyEmailStep from '../components/auth/VerifyEmailStep'
 
+async function parseJSON(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text()
+  if (!text) {
+    throw new Error('Server returned an empty response. Please try again.')
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    console.error('Failed to parse JSON response:', text)
+    throw new Error('Invalid server response. Please try again.')
+  }
+}
+
 async function registerRequest(name: string, email: string, password: string) {
-  const res = await fetch('/api/auth/register', {
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const res = await fetch(`${apiUrl}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
+    credentials: 'include',
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? 'Registration failed.')
+  const data = await parseJSON(res)
+  if (!res.ok) throw new Error((data.error as string) ?? 'Registration failed.')
   return data as { pending: true; userId: string }
 }
 

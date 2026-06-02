@@ -7,25 +7,42 @@ interface Props {
   onSuccess: () => void
 }
 
+async function parseJSON(res: Response): Promise<Record<string, unknown>> {
+  const text = await res.text()
+  if (!text) {
+    throw new Error('Server returned an empty response. Please try again.')
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>
+  } catch {
+    console.error('Failed to parse JSON response:', text)
+    throw new Error('Invalid server response. Please try again.')
+  }
+}
+
 async function verifyCode(userId: string, code: string) {
-  const res = await fetch('/api/auth/verify-email', {
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const res = await fetch(`${apiUrl}/api/auth/verify-email`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId, code }),
+    credentials: 'include',
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? 'Verification failed.')
+  const data = await parseJSON(res)
+  if (!res.ok) throw new Error((data.error as string) ?? 'Verification failed.')
   return data
 }
 
 async function resendCode(userId: string) {
-  const res = await fetch('/api/auth/resend-verification', {
+  const apiUrl = import.meta.env.VITE_API_URL || ''
+  const res = await fetch(`${apiUrl}/api/auth/resend-verification`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ userId }),
+    credentials: 'include',
   })
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.error ?? 'Resend failed.')
+  const data = await parseJSON(res)
+  if (!res.ok) throw new Error((data.error as string) ?? 'Resend failed.')
 }
 
 export default function VerifyEmailStep({ email, userId, onSuccess }: Props) {
