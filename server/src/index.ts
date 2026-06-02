@@ -20,6 +20,8 @@ const httpServer = createServer(app)
 // CORS configuration - allow production, preview, and local dev
 const allowedOrigins: string[] = [
   'http://localhost:5173',
+  'https://quizcraft.online',
+  'https://www.quizcraft.online',
   process.env['CLIENT_URL'] || '',
 ].filter(Boolean)
 
