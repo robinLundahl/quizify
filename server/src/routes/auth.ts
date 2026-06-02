@@ -304,12 +304,18 @@ router.delete('/avatar', requireAuth, async (req: Request, res: Response) => {
 
 router.delete('/account', requireAuth, async (req, res) => {
   await prisma.user.delete({ where: { id: req.userId } })
-  res.clearCookie('token')
+  res.clearCookie('token', {
+    domain: process.env['NODE_ENV'] === 'production' ? '.quizcraft.online' : undefined,
+    path: '/',
+  })
   res.json({ ok: true })
 })
 
 router.post('/logout', (_req, res) => {
-  res.clearCookie('token')
+  res.clearCookie('token', {
+    domain: process.env['NODE_ENV'] === 'production' ? '.quizcraft.online' : undefined,
+    path: '/',
+  })
   res.json({ ok: true })
 })
 
