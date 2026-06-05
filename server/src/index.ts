@@ -67,8 +67,9 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
     return
   }
 
-  // Generic server errors
-  res.status(500).json({ error: err.message || 'Internal server error' })
+  // Generic server errors — never expose internal messages in production
+  const message = process.env['NODE_ENV'] === 'production' ? 'Internal server error' : err.message
+  res.status(500).json({ error: message })
 })
 
 initSocket(httpServer)
