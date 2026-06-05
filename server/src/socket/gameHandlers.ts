@@ -107,7 +107,9 @@ async function broadcastQuestion(io: Server, sessionId: string, state: SessionSt
 
   if (q.useTimer) {
     state.questionEndTimer = setTimeout(() => {
-      void endQuestion(io, sessionId, state)
+      endQuestion(io, sessionId, state).catch((err) => {
+        console.error(`[timer] endQuestion failed for session ${sessionId}:`, err)
+      })
     }, q.timeLimit * 1000)
   }
 
@@ -171,11 +173,18 @@ async function endQuestion(io: Server, sessionId: string, state: SessionState) {
   const q = state.questions[state.currentIndex]
   const correctAnswer = computeCorrectAnswer(q)
 
-  const participants = await prisma.participant.findMany({
-    where: { sessionId },
-    orderBy: { score: 'desc' },
-    select: { id: true, nickname: true, score: true },
-  })
+  // Always emit the event even if the DB query fails — a transient DB error must
+  // not leave clients permanently stuck on the question screen.
+  let participants: { id: string; nickname: string; score: number }[] = []
+  try {
+    participants = await prisma.participant.findMany({
+      where: { sessionId },
+      orderBy: { score: 'desc' },
+      select: { id: true, nickname: true, score: true },
+    })
+  } catch (err) {
+    console.error(`[endQuestion] DB fetch failed for session ${sessionId}:`, err)
+  }
 
   const nextIndex = state.currentIndex + 1
   const nextQuestion =

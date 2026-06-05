@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { getSocket } from '../hooks/useSocket'
@@ -81,6 +81,7 @@ export default function HostView() {
   const setTheme = useThemeStore((s) => s.setTheme)
   const isFreePlan = useAuthStore((s) => s.user?.plan === 'FREE')
   const [phase, setPhase] = useState<Phase>('lobby')
+  const phaseRef = useRef<Phase>('lobby')
   const [reviewPrompt, setReviewPrompt] = useState<{ listingId: string; quizTitle: string } | null>(null)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const locationState = location.state as { code?: string; rejoin?: boolean; status?: string; themeColor?: string | null } | null
@@ -238,12 +239,43 @@ export default function HostView() {
     socket.emit('host:set_theme', { sessionId, theme })
   }, [theme, sessionId, socket])
 
+  // Keep ref in sync so callbacks that can't close over state always read the current phase.
+  useEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
+
   // Countdown timer
   useEffect(() => {
     if (phase !== 'question' || timeLeft <= 0) return
     const t = setTimeout(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000)
     return () => clearTimeout(t)
   }, [phase, timeLeft])
+
+  // Safety net: if the timer reaches 0 but session:question_ended never arrives
+  // (missed event or transient DB error on the server), re-sync after a 3-second
+  // grace period by re-emitting host:rejoin, which returns the current server phase.
+  // Only applies to timed questions — untimed questions start with timeLeft=0 by design.
+  useEffect(() => {
+    if (phase !== 'question' || timeLeft !== 0 || !sessionId) return
+    if (!currentQuestion?.question.useTimer) return
+    const handle = setTimeout(() => {
+      socket.emit('host:rejoin', { sessionId, theme: useThemeStore.getState().theme })
+    }, 3000)
+    return () => clearTimeout(handle)
+  }, [phase, timeLeft, sessionId, socket, currentQuestion])
+
+  // Reconnect handler: after a socket disconnect/reconnect the host is no longer
+  // in the server-side room, so re-join the session to resume receiving events.
+  useEffect(() => {
+    if (!sessionId) return
+    const handleConnect = () => {
+      if (phaseRef.current !== 'lobby' && phaseRef.current !== 'finished') {
+        socket.emit('host:rejoin', { sessionId, theme: useThemeStore.getState().theme })
+      }
+    }
+    socket.on('connect', handleConnect)
+    return () => { socket.off('connect', handleConnect) }
+  }, [sessionId, socket])
 
   const handleStart = useCallback(() => {
     socket.emit('host:start', { sessionId })
