@@ -111,17 +111,16 @@ export default function HostView() {
   useEffect(() => {
     if (!sessionId) return
 
-    const fromDashboardRejoin = locationState?.rejoin === true && locationState?.status === 'ACTIVE'
-    const fromLocalStorage = localStorage.getItem(STORAGE_KEY) === sessionId
-
-    if (fromDashboardRejoin || fromLocalStorage) {
-      socket.emit('host:rejoin', { sessionId, theme: useThemeStore.getState().theme })
-    } else {
-      socket.emit('host:join', { sessionId, theme: useThemeStore.getState().theme })
-    }
-
+    // Register all event listeners BEFORE emitting join to avoid race conditions
     socket.on('host:joined', ({ participants }: { participants: string[] }) => {
-      setPlayers(participants.map((nickname) => ({ id: nickname, nickname, score: 0 })))
+      setPlayers((prev) => {
+        // Merge initial participants with any that may have already joined
+        const existingNicknames = new Set(prev.map((p) => p.nickname))
+        const newPlayers = participants
+          .filter((nickname) => !existingNicknames.has(nickname))
+          .map((nickname) => ({ id: nickname, nickname, score: 0 }))
+        return [...prev, ...newPlayers]
+      })
     })
 
     socket.on('session:player_joined', ({ nickname, count }: { nickname: string; count: number }) => {
@@ -210,6 +209,16 @@ export default function HostView() {
       setRejoinError(reason)
     })
 
+    // Emit join AFTER all listeners are registered to prevent race conditions
+    const fromDashboardRejoin = locationState?.rejoin === true && locationState?.status === 'ACTIVE'
+    const fromLocalStorage = localStorage.getItem(STORAGE_KEY) === sessionId
+
+    if (fromDashboardRejoin || fromLocalStorage) {
+      socket.emit('host:rejoin', { sessionId, theme: useThemeStore.getState().theme })
+    } else {
+      socket.emit('host:join', { sessionId, theme: useThemeStore.getState().theme })
+    }
+
     return () => {
       socket.off('host:joined')
       socket.off('session:player_joined')
@@ -221,7 +230,7 @@ export default function HostView() {
       socket.off('host:rejoin_success')
       socket.off('host:rejoin_failed')
     }
-  }, [sessionId, socket])
+  }, [sessionId, socket, locationState])
 
   // Broadcast theme changes to all players in the session
   useEffect(() => {
