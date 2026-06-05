@@ -258,7 +258,16 @@ router.patch('/me', requireAuth, async (req: Request, res: Response) => {
   res.json({ id: user.id, name: user.name, email: user.email, avatar: user.avatar, plan: user.plan, isAdmin: user.isAdmin, aiGenerationsUsedThisMonth: user.aiGenerationsUsedThisMonth })
 })
 
-router.patch('/avatar', requireAuth, upload.single('avatar'), async (req: Request, res: Response) => {
+router.patch('/avatar', requireAuth, (req: Request, res: Response, next: NextFunction) => {
+  upload.single('avatar')(req, res, (err) => {
+    if (!err) return next()
+    const status = (err as { code?: string }).code === 'LIMIT_FILE_SIZE' ? 400 : 400
+    const message = (err as { code?: string }).code === 'LIMIT_FILE_SIZE'
+      ? 'Image is too large. Maximum size is 2 MB.'
+      : (err as Error).message ?? 'Invalid file.'
+    res.status(status).json({ error: message })
+  })
+}, async (req: Request, res: Response) => {
   if (!req.file) {
     res.status(400).json({ error: 'No file uploaded.' })
     return

@@ -8,9 +8,12 @@ export async function getCroppedBlob(imageSrc: string, croppedAreaPixels: Area):
     img.src = imageSrc
   })
 
+  // Always output at a fixed avatar size so the blob stays well under the
+  // server's 2 MB limit regardless of the source image resolution.
+  const OUTPUT_SIZE = 512
   const canvas = document.createElement('canvas')
-  canvas.width = croppedAreaPixels.width
-  canvas.height = croppedAreaPixels.height
+  canvas.width = OUTPUT_SIZE
+  canvas.height = OUTPUT_SIZE
   const ctx = canvas.getContext('2d')!
   ctx.drawImage(
     image,
@@ -20,8 +23,8 @@ export async function getCroppedBlob(imageSrc: string, croppedAreaPixels: Area):
     croppedAreaPixels.height,
     0,
     0,
-    croppedAreaPixels.width,
-    croppedAreaPixels.height,
+    OUTPUT_SIZE,
+    OUTPUT_SIZE,
   )
 
   return new Promise<Blob>((resolve, reject) => {
