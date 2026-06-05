@@ -171,6 +171,7 @@ export default function JoinView() {
 
   const participantIdRef = useRef('')
   const sessionIdRef = useRef('')
+  const phaseRef = useRef<Phase>('enter')
 
   const rankingSensors = useSensors(
     useSensor(PointerSensor),
@@ -319,12 +320,51 @@ export default function JoinView() {
     }
   }, [socket])
 
+  // Keep ref in sync so reconnect callbacks always read the current phase.
+  useEffect(() => {
+    phaseRef.current = phase
+  }, [phase])
+
   // Countdown timer
   useEffect(() => {
     if (phase !== 'question' || timeLeft <= 0) return
     const timer = setTimeout(() => setTimeLeft((s) => Math.max(0, s - 1)), 1000)
     return () => clearTimeout(timer)
   }, [phase, timeLeft])
+
+  // Re-sync when the socket reconnects: mobile browsers drop the WebSocket connection
+  // after a short time in the background. Without this, the player re-connects but is
+  // no longer in the session room and silently misses all subsequent events.
+  useEffect(() => {
+    const handleConnect = () => {
+      const p = phaseRef.current
+      if (p !== 'question' && p !== 'answered' && p !== 'reveal') return
+      const sessionId = sessionIdRef.current
+      const participantId = participantIdRef.current
+      if (!sessionId || !participantId) return
+      socket.emit('player:reconnect', { sessionId, participantId })
+    }
+    socket.on('connect', handleConnect)
+    return () => { socket.off('connect', handleConnect) }
+  }, [socket])
+
+  // Re-sync when the tab is foregrounded: JS execution may have been suspended while
+  // the app was backgrounded, causing missed events (e.g. session:question for the
+  // next question arriving while the player was on the home screen). Always re-fetch
+  // authoritative state from the server on resume.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return
+      const p = phaseRef.current
+      if (p !== 'question' && p !== 'answered' && p !== 'reveal') return
+      const sessionId = sessionIdRef.current
+      const participantId = participantIdRef.current
+      if (!sessionId || !participantId) return
+      socket.emit('player:reconnect', { sessionId, participantId })
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [socket])
 
   const handleJoin = useCallback(
     (e: React.FormEvent) => {
